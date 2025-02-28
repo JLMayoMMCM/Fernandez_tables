@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Interface</title>
+    <link rel="stylesheet" href="../design/dashboard_style.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <div class="header">
+            <div class="header-username">
+                <h1 id="dashboard_Username">Staff name</h1>
+            </div>
+    
+            <div class="header-panel-title">
+                <h1 id="panel-title">Add Orders</h1>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="sidebar">
+                <img src="../Assets/logo.png" alt="logo" class="sidebar_img">
+                <a href="#" id="addOrders">Add Orders</a>
+                <a href="#" id="activeOrders">Active Orders</a>
+                <a href="#" id="pendingOrders">Pending Orders</a>
+                <a href="#" id="history">Order History</a>
+                <a href="#" id="inventoryStock">Inventory Stock</a>
+                <button id="logout">Logout</button>
+            </div>
+        
+            <div class="content">
+                <div class="content_add_orders">
+                    <h2>Add Orders</h2>
+                    <p>No Content THIS TIME</p>
+                </div>
+        
+                <div class="content_active_orders" style="display: none;">
+                    <h2>Active Orders</h2>
+                    <p>No active orders at the moment.</p>
+                </div>
+        
+                <div class="content_pending_orders" style="display: none;">
+                    <h2>Pending Orders</h2>
+                    <p>No pending orders at the moment.</p>
+                </div>
+        
+                <div class="content_order_history" style="display: none;">
+                    <h2>Order History</h2>
+                    <p>No order history available.</p>
+                </div>
+        
+                <div class="content_inventory_stock" style="display: none;">
+                    <h2>Inventory Stock</h2>
+                    <p>No inventory stock information available.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../script.js"></script>
+</body>
+</html>
