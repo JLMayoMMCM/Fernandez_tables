@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Interface</title>
+  <link rel="stylesheet" href="../design/dashboard_style.css">
+  <link rel="stylesheet" href="../design/table_styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="header">
+      <div class="header-username">
+        <h1 id="dashboard_Username">Staff name</h1>
+      </div>
+      <div class="header-panel-title">
+        <h1 id="panel-title">Add Orders</h1>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <div class="sidebar">
+        <img src="../Assets/logo.png" alt="logo" class="sidebar_img">
+        <a href="#" id="addOrders">Add Orders</a>
+        <a href="#" id="activeOrders">Active Orders</a>
+        <a href="#" id="payment">Payment Channel</a>
+        <a href="#" id="history">Order History</a>
+        <a href="#" id="inventoryStock">Inventory Stock</a>
+        <button id="logout">Logout</button>
+      </div>
+
+      <div class="content">
+        <!-- Order Information Container -->
+        <div class="content_add_orders">
+          <!-- Button to toggle to Item List view -->
+          <button type="button" id="toggleToItemList">View Item List</button>
+
+          <form class="form-container">
+            <!-- Event Information -->
+            <div class="event-info">
+              <h4>Event Information</h4>
+              <label for="event-name">Event Name:</label>
+              <input type="text" id="event-name" name="event-name" required>
+              <label for="event-date">Event Date:</label>
+              <input type="datetime-local" id="event-date" name="event-date" required>
+              
+              <h4>Address Information</h4>
+              <label for="street">Street:</label>
+              <input type="text" id="street" name="street" required>
+              <label for="barangay">Barangay:</label>
+              <input type="text" id="barangay" name="barangay" required>
+              <label for="city">City:</label>
+              <input type="text" id="city" name="city" required>
+            </div>
+            
+            <!-- Customer Information -->
+            <div class="customer-info">
+              <h4>Customer Information</h4>
+              <label for="first-name">First Name:</label>
+              <input type="text" id="first-name" name="first-name" required>
+              <label for="middle-name">Middle Name:</label>
+              <input type="text" id="middle-name" name="middle-name">
+              <label for="last-name">Last Name:</label>
+              <input type="text" id="last-name" name="last-name" required>
+              <label for="phone-number">Phone Number:</label>
+              <input type="tel" id="phone-number" name="phone-number" required>
+              <label for="age">Age:</label>
+              <input type="number" id="age" name="age" min="1" max="120">
+              <label for="gender">Gender:</label>
+              <select id="gender" name="gender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              <label for="extra-fees">Extra Fees:</label>
+              <input type="number" id="extra-fees" name="extra-fees" min="0" step="0.01" value="0">
+            </div>
+          </form>
+          <!-- Submit Order Button -->
+          <button type="button" id="add_order_button">ADD ORDER</button>
+        </div>
+
+        <!-- Item List Container -->
+        <div class="content_add_item_list" style="display: none;">
+          <!-- Button to toggle back to Order Info view -->
+          <button type="button" id="toggleToOrderInfo">View Order Info</button>
+          
+          <div class="item-container">
+            <div class="tables-info">
+              <h4>Tables</h4>
+              <table id="tablesContainer">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="chairs-info">
+              <h3>Chairs</h3>
+              <table id="chairsContainer">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="miscellaneous-info">
+              <h3>Miscellaneous</h3>
+              <table id="miscContainer">
+                <thead>
+                  <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="workers-info">
+            <h3>Workers</h3>
+            <table id="workersContainer">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Worker Name</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <!-- Grand Total Display -->
+          <h3>Total: <span id="grandSubtotal">0.00</span></h3>
+        </div>
+
+        <!-- Other Sections -->
+        <div class="content_active_orders" style="display: none;">
+          <h2>Active Orders</h2>
+          <p>No active orders at the moment.</p>
+        </div>
+
+        <div class="content_pending_orders" style="display: none;">
+          <h2>Payment Channel</h2>
+          <p>No Payment Channel at the moment.</p>
+        </div>
+
+        <div class="content_order_history" style="display: none;">
+          <h2>Order History</h2>
+          <p>No order history available.</p>
+        </div>
+
+        <div class="content_inventory_stock" style="display: none;">
+          <h2>Inventory Stock</h2>
+          <p>No inventory stock information available.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../script.js"></script>
+</body>
+</html>

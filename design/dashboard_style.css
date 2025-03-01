@@ -9,65 +9,12 @@ body {
     background-color: #e0e0e0;
 }
 
-.login-container {
-    border: 2px solid black;
-    padding: 20px;
-    width: 320px;
-    background-color: #f1f1f1;
-    border-radius: 10px;
-    display: absolute;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-.login_img {
-    width: 200px;
-    height: 200px;
-    margin-bottom: 10px;
-}
-
-.login_label {
-    font-size: 18px;
-    margin-bottom: 5px;
-    display: block;
-    text-align: left;
-    width: 100%;
-}
-
-.login_input {
-    font-size: 16px;
-    width: calc(100% - 20px);
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid black;
-    margin-bottom: 10px;
-}
-
-.login_Button {
-    font-size: 18px;
-    padding: 10px;
-    width: 100%;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.login_Button:hover {
-    background-color: #0056b3;
-}
-
 .dashboard-container {
     display: flex;
     flex-direction: column;
     width: 100%;
     height: 100%;
 }
-
 
 .header {
     background-color: #2c3e50;
@@ -77,7 +24,6 @@ body {
     display: flex;
     justify-content: center;
 }
-
 .header-username {
     font-size: 12px;
     display: flex;
@@ -86,9 +32,7 @@ body {
     position: fixed;
     top: 0px;
     right: 20px;
-
 }
-
 .header-panel-title {
     width: 240px;
     justify-content: center;
@@ -102,16 +46,21 @@ body {
 
 .sidebar {
     width: 12%;
-    height: 100%;
+    height: 106%;
     background-color: #2c3e50;
     color: white;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    bottom: 6%;
 }
 
 .sidebar a {
-    margin-bottom: 20px;
+    padding: 20px;
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 25px;
     text-decoration: none;
     color: white;
     width: 100%;
@@ -119,31 +68,32 @@ body {
     display: block;
     transition: 0.3s;
 }
-
 .sidebar a:hover {
     background-color: #34495e;
 }
 
+
 .sidebar_img {
-    width: 150px;
-    height: 150px;
-    margin-top: 20px;
+    width: 200px;
+    height: 200px;
+    margin-bottom: 25px;
 }
 
-
-button {
-    background-color: #575757;
-    color: white;
-    padding: 5px 20px;
-    margin: 8px 0;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
+#logout {
+    position: relative;
+    top: 250px;
     width: 80%;
+    padding: 20px;
+    text-align: center;
+    background-color: darkgray;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
 }
 
-button:hover {
-    background-color: #4d4d4d;
+#logout:hover {
+    background-color: gray;
 }
 
 .dashboard-content {
@@ -153,67 +103,134 @@ button:hover {
     height: 96%;
 }
 
-.content {
-    flex: 1;
+.content_add_orders,
+.content_add_item_list,
+.content_active_orders,
+.content_payment_channel,
+.content_order_history,
+.content_inventory_stock {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 1600px;
+    height: 800px;
     display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add_form_container,
+.item_container{
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
+    width: 1560px;
+}
+
+.event_info,
+.customer-info {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    background-color: rgb(218, 218, 218);
+    width: 100%;
+    padding: 25px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
 }
 
-h2 {
+.event_info input,
+.customer-info input,
+.customer-info select {
+    width: 200px;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.item_container label,
+.add_form_container label {
+    font-weight: bold;
     text-align: center;
-    margin-bottom: 20px;
+    padding: 5px;
+    align-self: center;
+    width: 120px;
+    margin-bottom: 10px;
+
 }
 
-    .content_add_orders, .content_active_orders, .content_pending_orders, .content_order_history, .content_inventory_stock{
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        width: 100%;
-        max-width: 1600px;
-        height: 800px;
-        display: flex;
-        justify-content: center;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+.input-row {
+    display: flex;
+    align-content: center;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
 
-    .form-container {
-        display: flex;
-        flex-direction: row;
-        margin: 20px;
-        gap: 20px;
-        padding: 20px;
-        border: 1px solid black;
-        border-radius: 10px;
-        background-color: white;
-        width: 1500px;
-    }
 
-    .event-info, .customer-info {
-        width: 50%;
-        display: inline-block;
-        
-        padding: 20px;
-        border: 1px solid black;
-        border-radius: 10px;
-    }
-    
-    label {
-        font-size: 20px;
-        font-weight: bold;
-        min-width: 10px;
-        margin-top: 10px;
-        margin-bottom: 5px;
-    }
 
-    form input, form select {
-        padding: 4px;
-        margin-top: 5px;
-        margin-bottom: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    
-    
+h3, h4, h5 {
+    margin: 5px;
+    font-style:italic;
+}
+
+.logout_button,
+.content_add_orders button,
+.content_add_item_list button,
+.content_active_orders button,
+.content_payment_channel button,
+.content_order_history button,
+.content_inventory_stock button {
+    background-color: #575757;
+    color: white;
+    padding: 20px;
+    border-radius: 25px;
+    position: relative;
+    width: 200px;
+}
+.logout_button,
+.content_add_orders button:hover,
+.content_add_item_list button:hover,
+.content_active_orders button:hover,
+.content_payment_channel button:hover,
+.content_order_history button:hover,
+.content_inventory_stock button:hover {
+    background-color: #4d4d4d;
+}
+
+#tablesContainer,
+#chairsContainer,
+#miscContainer {
+    background-color: wheat;
+    width: 450px;
+    height: 300px;
+    overflow-y:visible;
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 12px;
+}
+
+table th {
+    background-color: #f5f5f5;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+table td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+table tr:hover {
+    background-color: #f1f1f1;
+}

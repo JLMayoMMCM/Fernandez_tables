@@ -27,3 +27,21 @@ INSERT INTO item_stock_tbl (item_ID, item_quantity, date_stocked, manager_ID, su
 (10000007, 100, CURRENT_TIMESTAMP, 101, 10000001),
 (10000008, 100, CURRENT_TIMESTAMP, 101, 10000001),
 (10000009, 100, CURRENT_TIMESTAMP, 101, 10000001);
+
+ALTER TABLE item_stock_TBL ADD COLUMN item_id INT NOT NULL after item_stock_ID, ADD CONSTRAINT fk_item_id FOREIGN KEY (item_id) REFERENCES item_tbl(item_id);
+
+INSERT INTO item_stock_tbl (item_ID, item_quantity, date_stocked, manager_ID, supplier_ID) VALUES
+(10000007, 100, CURRENT_TIMESTAMP, 101, 10000001);
+
+CREATE TABLE item_type_TBL (
+item_type_ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+item_type_name VARCHAR(50) NOT NULL
+);
+
+INSERT INTO item_type_TBL (item_type_ID, item_type_name) VALUES
+(101, "Table"),
+(102, "Chair"),
+(103, "Miscellaneous");
+
+
+ALTER TABLE event_info_tbl ALTER COLUMN event_ID SET DEFAULT 10000000;
