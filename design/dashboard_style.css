@@ -167,3 +167,53 @@ h2 {
     margin-bottom: 20px;
 }
 
+    .content_add_orders, .content_active_orders, .content_pending_orders, .content_order_history, .content_inventory_stock{
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 1600px;
+        height: 800px;
+        display: flex;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-container {
+        display: flex;
+        flex-direction: row;
+        margin: 20px;
+        gap: 20px;
+        padding: 20px;
+        border: 1px solid black;
+        border-radius: 10px;
+        background-color: white;
+        width: 1500px;
+    }
+
+    .event-info, .customer-info {
+        width: 50%;
+        display: inline-block;
+        
+        padding: 20px;
+        border: 1px solid black;
+        border-radius: 10px;
+    }
+    
+    label {
+        font-size: 20px;
+        font-weight: bold;
+        min-width: 10px;
+        margin-top: 10px;
+        margin-bottom: 5px;
+    }
+
+    form input, form select {
+        padding: 4px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    
+    
