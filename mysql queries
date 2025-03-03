@@ -125,6 +125,9 @@ ALTER TABLE person_tbl AUTO_INCREMENT = 10000009;
 DELETE FROM finance_tbl WHERE finance_ID > 10000000;
 ALTER TABLE finance_tbl AUTO_INCREMENT = 10000001;
 
+DELETE FROM customer_tbl;
+ALTER TABLE customer_tbl AUTO_INCREMENT = 10000001;
+
 ALTER table finance_tbl ADD COLUMN extra_Fee INT(8) NOT NULL after order_ID,
 ADD COLUMN total_amount INT(8) NOT NULL after extra_Fee;
 

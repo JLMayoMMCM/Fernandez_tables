@@ -155,7 +155,8 @@ body {
   .content_active_orders,
   .content_pending_orders,
   .content_order_history,
-  .content_inventory_stock {
+  .content_inventory_stock,
+  .content_modify_order {
     display: none;
   }
   
@@ -164,7 +165,8 @@ body {
   .content_active_orders.active,
   .content_pending_orders.active,
   .content_order_history.active,
-  .content_inventory_stock.active {
+  .content_inventory_stock.active,
+  .content_modify_order.active {
     position: relative;
     left: 100px;
     display: block;

@@ -26,13 +26,9 @@ const connection = mysql.createConnection({
   password: '',
   database: 'fernandez_tables_chairs_db'
 });
-
 connection.connect(error => {
-  if (error) {
-    console.error('Error connecting to DB:', error);
-  } else {
-    console.log('Connected to DB');
-  }
+  if (error) console.error('Error connecting to DB:', error);
+  else console.log('Connected to DB');
 });
 
 // ---------- Routes ----------
@@ -61,8 +57,6 @@ app.post("/", (req, res) => {
               return res.send('Login failed');
             }
             const user = userResults[0];
-
-            
             req.session.userID = userID;
             req.session.userName = `${user.first_Name} ${user.middle_Name ? user.middle_Name + ' ' : ''}${user.last_Name}`;
             res.send(`
@@ -90,9 +84,7 @@ app.post("/", (req, res) => {
 
 // Dashboard route with session check
 app.get('/dashboard', (req, res) => {
-  if (!req.session.userID) {
-    return res.redirect('/');
-  }
+  if (!req.session.userID) return res.redirect('/');
   res.sendFile(__dirname + '/mainPage/dashboard.html');
 });
 
@@ -170,7 +162,7 @@ app.get('/getActiveOrders', (req, res) => {
       e.event_Name,
       e.event_date AS event_start,
       e.end_event_date AS event_end,
-      f.total_amount AS total_price,
+      f.total_Amount AS total_price,
       ps.payment_status_name AS payment_status,
       CONCAT(mgr_p.first_Name, ' ', COALESCE(mgr_p.middle_Name, ''), ' ', mgr_p.last_Name) AS manager_name,
       CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
@@ -184,27 +176,15 @@ app.get('/getActiveOrders', (req, res) => {
     JOIN person_tbl mgr_p ON s.person_ID = mgr_p.person_ID
     JOIN finance_tbl f ON o.order_ID = f.order_ID
     JOIN payment_status_tbl ps ON f.payment_status_ID = ps.payment_status_ID
-`;
-
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error("Error fetching active orders:", error);
-        return res.status(500).send(error);
-      }
-      res.json(results);
-    });
+  `;
+  connection.query(query, (error, results) => {
+    if (error) {
+      console.error("Error fetching active orders:", error);
+      return res.status(500).send(error);
+    }
+    res.json(results);
   });
-
-// Helper: Format Date to MySQL datetime format
-function formatDateTime(date) {
-  const yyyy = date.getFullYear();
-  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-  const dd = date.getDate().toString().padStart(2, '0');
-  const hh = date.getHours().toString().padStart(2, '0');
-  const min = date.getMinutes().toString().padStart(2, '0');
-  const ss = date.getSeconds().toString().padStart(2, '0');
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-}
+});
 
 // POST /createOrder endpoint
 app.post('/createOrder', async (req, res) => {
@@ -215,131 +195,219 @@ app.post('/createOrder', async (req, res) => {
       firstName, middleName, lastName, phoneNumber, age, gender,
       extraFees, grandSubtotal, items, workers
     } = req.body;
-
     const startDateObj = new Date(eventTimestamp);
     const durationDays = parseInt(eventDuration) || 0;
     const endDateObj = new Date(startDateObj.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const formatDateTime = (date) => {
+      const yyyy = date.getFullYear();
+      const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dd = date.getDate().toString().padStart(2, '0');
+      const hh = date.getHours().toString().padStart(2, '0');
+      const min = date.getMinutes().toString().padStart(2, '0');
+      const ss = date.getSeconds().toString().padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+    };
     const startDateFormatted = formatDateTime(startDateObj);
     const endDateFormatted = formatDateTime(endDateObj);
-
     let finalSubtotal = parseFloat(extraFees) || 0;
     if (Array.isArray(items)) {
       items.forEach(item => {
         finalSubtotal += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
       });
     }
-
     const addressId = await insertAddress(street, barangay, city);
     const personId = await insertPerson(firstName, lastName, middleName, phoneNumber, age, gender);
     const customerId = await insertCustomer(personId);
     const orderId = await insertOrder(customerId, assignedManager);
-    const eventInserted = await insertEvent(orderId, eventName, addressId, startDateFormatted, endDateFormatted);
-    const financeInserted = await insertFinance(orderId, extraFees, grandSubtotal);
-    
+    await insertEvent(orderId, eventName, addressId, startDateFormatted, endDateFormatted);
+    await insertFinance(orderId, extraFees, grandSubtotal);
     await Promise.all([
       insertWorkers(orderId, workers),
       insertOrderDetails(orderId, items)
     ]);
-
     res.json({ message: "Order created successfully", orderId });
   } catch (err) {
     console.error("Error creating order:", err);
     res.status(500).json({ error: "Failed to create order" });
   }
 });
-
 function insertAddress(street, barangay, city) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO address_tbl (street_Name, barangay_Name, city_Name) VALUES (?, ?, ?)";
-    connection.query(sql, [street, barangay, city], (err, result) => {
-      if (err) return reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(sql, [street, barangay, city], (err, result) => { if (err) return reject(err); resolve(result.insertId); });
   });
 }
-
 function insertPerson(firstName, lastName, middleName, phoneNumber, age, gender) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO person_tbl (first_Name, last_Name, middle_Name, phone_Number, age, gender_ID) VALUES (?, ?, ?, ?, ?, ?)";
-    connection.query(sql, [firstName, lastName, middleName, phoneNumber, age, gender], (err, result) => {
-      if (err) return reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(sql, [firstName, lastName, middleName, phoneNumber, age, gender], (err, result) => { if (err) return reject(err); resolve(result.insertId); });
   });
 }
-
 function insertCustomer(personId) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO customer_tbl (person_ID) VALUES (?)";
-    connection.query(sql, [personId], (err, result) => {
-      if (err) return reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(sql, [personId], (err, result) => { if (err) return reject(err); resolve(result.insertId); });
   });
 }
-
 function insertOrder(customerId, assignedManager) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO order_info_tbl (customer_ID, manager_ID) VALUES (?, ?)";
-    connection.query(sql, [customerId, assignedManager], (err, result) => {
-      if (err) return reject(err);
-      resolve(result.insertId);
-    });
+    connection.query(sql, [customerId, assignedManager], (err, result) => { if (err) return reject(err); resolve(result.insertId); });
   });
 }
-
 function insertEvent(orderId, eventName, addressId, startDateFormatted, endDateFormatted) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO event_info_tbl (order_Id, event_Name, address_ID, event_date, end_event_date) VALUES (?, ?, ?, ?, ?)";
-    connection.query(sql, [orderId, eventName, addressId, startDateFormatted, endDateFormatted], (err) => {
-      if (err) return reject(err);
-      resolve(true);
-    });
+    connection.query(sql, [orderId, eventName, addressId, startDateFormatted, endDateFormatted], (err) => { if (err) return reject(err); resolve(true); });
   });
 }
-
 function insertFinance(orderId, extraFees, grandSubtotal) {
   return new Promise((resolve, reject) => {
     const sql = "INSERT INTO finance_tbl (order_ID, extra_Fee, total_Amount) VALUES (?, ?, ?)";
-    connection.query(sql, [orderId, extraFees, grandSubtotal], (err) => {
-      if (err) return reject(err);
-      resolve(true);
-    });
+    connection.query(sql, [orderId, extraFees, grandSubtotal], (err) => { if (err) return reject(err); resolve(true); });
   });
 }
-
 function insertWorkers(orderId, workers = []) {
   return Promise.all(workers.map(workerId => {
     return new Promise((resolve, reject) => {
       const sql = "INSERT INTO assigned_worker_tbl (worker_ID, order_ID) VALUES (?, ?)";
-      connection.query(sql, [workerId, orderId], (err) => {
-        if (err) return reject(err);
-        resolve(true);
-      });
+      connection.query(sql, [workerId, orderId], (err) => { if (err) return reject(err); resolve(true); });
     });
   }));
 }
-
 function insertOrderDetails(orderId, items = []) {
   return Promise.all(items.map(item => {
     return new Promise((resolve, reject) => {
       if (parseInt(item.quantity) > 0) {
         const sql = "INSERT INTO order_details_tbl (order_ID, item_ID, item_quantity) VALUES (?, ?, ?)";
-        connection.query(sql, [orderId, item.item_ID, parseInt(item.quantity)], (err) => {
-          if (err) return reject(err);
-          resolve(true);
-        });
-      } else {
-        resolve(true);
-      }
+        connection.query(sql, [orderId, item.item_ID, parseInt(item.quantity)], (err) => { if (err) return reject(err); resolve(true); });
+      } else { resolve(true); }
     });
   }));
 }
-
-
-
-
-// ---------- Start Server ----------
+// GET /getOrderDetails endpoint
+app.get('/getOrderDetails', (req, res) => {
+  const orderId = req.query.orderId;
+  if (!orderId) return res.status(400).json({ error: "orderId is required" });
+  const orderQuery = `
+    SELECT o.order_ID, o.customer_ID, o.manager_ID,
+           e.event_Name, e.event_date, e.end_event_date,
+           f.extra_Fee, f.total_Amount
+    FROM order_info_tbl o
+    JOIN event_info_tbl e ON o.order_ID = e.order_Id
+    JOIN finance_tbl f ON o.order_ID = f.order_ID
+    WHERE o.order_ID = ?
+  `;
+  connection.query(orderQuery, [orderId], (err, orderResults) => {
+    if (err || orderResults.length === 0) return res.status(500).json({ error: "Order not found" });
+    const orderData = orderResults[0];
+    const customerQuery = `
+      SELECT p.first_Name, p.middle_Name, p.last_Name, p.phone_Number, p.age, p.gender_ID
+      FROM customer_tbl c
+      JOIN person_tbl p ON c.person_ID = p.person_ID
+      WHERE c.customer_ID = ?
+    `;
+    connection.query(customerQuery, [orderData.customer_ID], (err, customerResults) => {
+      if (err || customerResults.length === 0) return res.status(500).json({ error: "Customer not found" });
+      const customerData = customerResults[0];
+      const detailsQuery = `SELECT * FROM order_details_tbl WHERE order_ID = ?`;
+      connection.query(detailsQuery, [orderId], (err, detailsResults) => {
+        if (err) return res.status(500).json({ error: "Error fetching order details" });
+        const workersQuery = `SELECT worker_ID FROM assigned_worker_tbl WHERE order_ID = ?`;
+        connection.query(workersQuery, [orderId], (err, workersResults) => {
+          if (err) return res.status(500).json({ error: "Error fetching assigned workers" });
+          res.json({
+            order: orderData,
+            customer: customerData,
+            orderDetails: detailsResults,
+            assignedWorkers: workersResults
+          });
+        });
+      });
+    });
+  });
+});
+// PUT /updateOrder endpoint
+app.put('/updateOrder', async (req, res) => {
+  try {
+    const { orderId, eventName, eventTimestamp, eventDuration, assignedManager,
+      firstName, middleName, lastName, phoneNumber, age, gender,
+      extraFees, grandSubtotal, items, workers } = req.body;
+    const startDate = new Date(eventTimestamp);
+    const durationDays = parseInt(eventDuration);
+    const endDate = new Date(startDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const formatDateTime = date => {
+      const yyyy = date.getFullYear();
+      const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dd = date.getDate().toString().padStart(2, '0');
+      const hh = date.getHours().toString().padStart(2, '0');
+      const min = date.getMinutes().toString().padStart(2, '0');
+      const ss = date.getSeconds().toString().padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+    };
+    const startDateFormatted = formatDateTime(startDate);
+    const endDateFormatted = formatDateTime(endDate);
+    const orderUpdateQuery = `UPDATE order_info_tbl SET manager_ID = ? WHERE order_ID = ?`;
+    connection.query(orderUpdateQuery, [assignedManager, orderId]);
+    const eventUpdateQuery = `UPDATE event_info_tbl SET event_Name = ?, event_date = ?, end_event_date = ? WHERE order_Id = ?`;
+    connection.query(eventUpdateQuery, [eventName, startDateFormatted, endDateFormatted, orderId]);
+    const financeUpdateQuery = `UPDATE finance_tbl SET extra_Fee = ?, total_Amount = ? WHERE order_ID = ?`;
+    connection.query(financeUpdateQuery, [extraFees, grandSubtotal, orderId]);
+    connection.query(`DELETE FROM order_details_tbl WHERE order_ID = ?`, [orderId], err => {
+      if (err) console.error(err);
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          if (parseInt(item.quantity) > 0) {
+            const sql = "INSERT INTO order_details_tbl (order_ID, item_ID, item_quantity) VALUES (?, ?, ?)";
+            connection.query(sql, [orderId, item.item_ID, parseInt(item.quantity)]);
+          }
+        });
+      }
+    });
+    connection.query(`DELETE FROM assigned_worker_tbl WHERE order_ID = ?`, [orderId], err => {
+      if (err) console.error(err);
+      if (Array.isArray(workers)) {
+        workers.forEach(workerId => {
+          const sql = "INSERT INTO assigned_worker_tbl (worker_ID, order_ID) VALUES (?, ?)";
+          connection.query(sql, [workerId, orderId]);
+        });
+      }
+    });
+    res.json({ message: "Order updated successfully" });
+  } catch (err) {
+    console.error("Error updating order:", err);
+    res.status(500).json({ error: "Failed to update order" });
+  }
+});
+// DELETE /deleteOrder endpoint
+app.delete('/deleteOrder', (req, res) => {
+  const { orderId } = req.body;
+  if (!orderId) return res.status(400).json({ error: "orderId is required" });
+  const queries = [
+    { query: "DELETE FROM order_details_tbl WHERE order_ID = ?", params: [orderId] },
+    { query: "DELETE FROM assigned_worker_tbl WHERE order_ID = ?", params: [orderId] },
+    { query: "DELETE FROM event_info_tbl WHERE order_Id = ?", params: [orderId] },
+    { query: "DELETE FROM finance_tbl WHERE order_ID = ?", params: [orderId] },
+    { query: "DELETE FROM order_info_tbl WHERE order_ID = ?", params: [orderId] }
+  ];
+  let promiseChain = Promise.resolve();
+  queries.forEach(q => {
+    promiseChain = promiseChain.then(() => {
+      return new Promise((resolve, reject) => {
+        connection.query(q.query, q.params, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        });
+      });
+    });
+  });
+  promiseChain
+    .then(() => res.json({ message: "Order deleted successfully" }))
+    .catch(err => {
+      console.error("Error deleting order:", err);
+      res.status(500).json({ error: "Failed to delete order" });
+    });
+});
 app.listen(4500, () => {
   console.log("Server listening on port 4500");
 });

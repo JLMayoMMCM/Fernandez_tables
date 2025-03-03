@@ -27,151 +27,168 @@
         <button id="logout">Logout</button>
       </div>
       <div class="content">
-        <!-- Add Orders Section -->
+        <!-- Add Order Section (Combined Event/Customer, Items & Workers, Grand Total, Add Order) -->
         <div class="content_add_orders active">
-          <button type="button" id="addItemsList">View Item List</button>
-          <form class="add_form_container">
-            <div class="event_info">
-              <h3>Event Information</h3>
-              <div class="input_row">
-                <label for="event_name">Event Name:</label>
-                <input type="text" id="event_name" name="event_name" required>
-              </div>
-                <div class="input_row">
-                <label for="event_timestamp">Event Timestamp:</label>
-                <input type="datetime-local" id="event_timestamp" name="event_timestamp" required>
+          <form class="add_order_container">
+            <div class="order_info">
+
+              <div class="event_info">
+                <h3>Event Information</h3>
+
+                <div class= "input_row">
+                  <div class="input_row">
+                    <label for="event_name">Event Name:</label>
+                    <input type="text" id="event_name" required>
+                  </div>
+                  <div class="input_row">
+                    <label for="event_timestamp">Event Timestamp:</label>
+                    <input type="datetime-local" id="event_timestamp" required>
+                  </div>
                 </div>
-              <div class="input_row">
-                <label for="event_duration">Event Duration (days):</label>
-                <input type="number" id="event_duration" name="event_duration" min="1" required>
+
+                <div class= "input_row">
+                  <div class="input_row">
+                    <label for="event_duration">Event Duration (days):</label>
+                    <input type="number" id="event_duration" min="1" required>
+                  </div>
+                  <div class="input_row">
+                    <label for="assigned_manager">Assigned Manager:</label>
+                    <select id="assigned_manager" required></select>
+                  </div>
+                </div>
+
+                <h3>Address Information</h3>
+                <div class="input_row">
+                  <div class="input_row">
+                    <label for="street">Street:</label>
+                    <input type="text" id="street" required>
+                  </div>
+                  <div class="input_row">
+                    <label for="barangay">Barangay:</label>
+                    <input type="text" id="barangay" required>
+                  </div>
+                </div>
+
+
+                <div class="input_row">
+                  <label for="city">City:</label>
+                  <input type="text" id="city" required>
+                </div>
+
               </div>
-              <div class="input_row">
-                <label for="assigned_manager">Assigned Manager:</label>
-                <select id="assigned_manager" name="assigned_manager" required></select>
-              </div>
-              <h3>Address Information</h3>
-              <div class="input_row">
-                <label for="street">Street:</label>
-                <input type="text" id="street" name="street" required>
-              </div>
-              <div class="input_row">
-                <label for="barangay">Barangay:</label>
-                <input type="text" id="barangay" name="barangay" required>
-              </div>
-              <div class="input_row">
-                <label for="city">City:</label>
-                <input type="text" id="city" name="city" required>
+              
+              <div class="customer_info">
+                <h3>Customer Information</h3>
+                <div class="input_row">
+                  <label for="first_name">First Name:</label>
+                  <input type="text" id="first_name" required>
+                </div>
+                <div class="input_row">
+                  <label for="middle_name">Middle Name:</label>
+                  <input type="text" id="middle_name">
+                </div>
+                <div class="input_row">
+                  <label for="last_name">Last Name:</label>
+                  <input type="text" id="last_name" required>
+                </div>
+                <div class="input_row">
+                  <label for="phone_number">Phone Number:</label>
+                  <input type="tel" id="phone_number" required>
+                </div>
+                <div class="input_row">
+                  <label for="age">Age:</label>
+                  <input type="number" id="age" min="0">
+                </div>
+                <div class="input_row">
+                  <label for="gender">Gender:</label>
+                  <select id="gender" required></select>
+                </div>
+                <div class="input_row">
+                  <label for="extra_fees">Extra Fees:</label>
+                  <input type="number" id="extra_fees" min="0" step="0.01" value="0">
+                </div>
               </div>
             </div>
-            <div class="customer_info">
-              <h3>Customer Information</h3>
-              <div class="input_row">
-                <label for="first_name">First Name:</label>
-                <input type="text" id="first_name" name="first_name" required>
+            <!-- Item and Worker Information -->
+            <div class="item_and_worker_info">
+              <div class="item_container">
+                <div class="tables_info">
+                  <h5>Tables</h5>
+                  <div class="table_wrapper">
+                    <table id="tables_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="chairs_info">
+                  <h5>Chairs</h5>
+                  <div class="table_wrapper">
+                    <table id="chairs_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-              <div class="input_row">
-                <label for="middle_name">Middle Name:</label>
-                <input type="text" id="middle_name" name="middle_name">
+              <div class="workers_info">
+                <div class="misc_info">
+                  <h5>Miscellaneous</h5>
+                  <div class="table_wrapper">
+                    <table id="misc_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <h5>Workers</h5>
+                <div class="table_wrapper">
+                  <table id="workers_Container">
+                    <thead>
+                      <tr>
+                        <th>Select</th>
+                        <th>Worker Name</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
               </div>
-              <div class="input_row">
-                <label for="last_name">Last Name:</label>
-                <input type="text" id="last_name" name="last_name" required>
-              </div>
-              <div class="input_row">
-                <label for="phone_number">Phone Number:</label>
-                <input type="tel" id="phone_number" name="phone_number" required>
-              </div>
-              <div class="input_row">
-                <label for="age">Age:</label>
-                <input type="number" id="age" name="age" min="0">
-              </div>
-              <div class="input_row">
-                <label for="gender">Gender:</label>
-                <select id="gender" name="gender" required></select>
-              </div>
-              <div class="input_row">
-                <label for="extra_fees">Extra Fees:</label>
-                <input type="number" id="extra_fees" name="extra_fees" min="0" step="0.01" value="0">
-              </div>
+            </div>
+            <div class="order_total">
+              <h5>Total: <span id="grandSubtotal">0.00</span></h5>
+              <button type="button" id="add_order_button">ADD ORDER</button>
             </div>
           </form>
-          <h5>Total: <span id="grandSubtotal">0.00</span></h5>
-          <button type="button" id="add_order_button">ADD ORDER</button>
         </div>
-        <!-- Item List Section -->
-        <div class="content_add_item_list">
-          <button type="button" id="revert_to_order_info">View Order Info</button>
-          <div class="item_container">
-            <div class="tables_info">
-              <h5>Tables</h5>
-              <div class="table_wrapper">
-                <table id="tables_Container">
-                  <thead>
-                    <tr>
-                      <th>Select</th>
-                      <th>Name</th>
-                      <th>Price</th>
-                      <th>Quantity</th>
-                      <th>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="chairs_info">
-              <h5>Chairs</h5>
-              <div class="table_wrapper">
-                <table id="chairs_Container">
-                  <thead>
-                    <tr>
-                      <th>Select</th>
-                      <th>Name</th>
-                      <th>Price</th>
-                      <th>Quantity</th>
-                      <th>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="misc_info">
-              <h5>Miscellaneous</h5>
-              <div class="table_wrapper">
-                <table id="misc_Container">
-                  <thead>
-                    <tr>
-                      <th>Select</th>
-                      <th>Name</th>
-                      <th>Price</th>
-                      <th>Quantity</th>
-                      <th>Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="workers_info">
-              <h5>Workers</h5>
-              <div class="table_wrapper">
-                <table id="workers_Container">
-                  <thead>
-                    <tr>
-                      <th>Select</th>
-                      <th>Worker Name</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          <div class="input_row">
-            <h5>Total: <span id="item_Subtotal">0.00</span></h5>
-          </div>
-        </div>
+
         <!-- Active Orders Section -->
         <div class="content_active_orders">
           <h2>Active Orders</h2>
@@ -187,32 +204,167 @@
                 <th>Status</th>
                 <th>Manager</th>
                 <th>Address</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <!-- Payment Channel Section -->
-        <div class="content_pending_orders">
-          <h2>Payment Channel</h2>
-          <p>No Payment Channel at the moment.</p>
-        </div>
-        <!-- Order History Section -->
-        <div class="content_order_history">
-          <h2>Order History</h2>
-          <p>No order history available.</p>
-        </div>
-        <!-- Inventory Stock Section -->
-        <div class="content_inventory_stock">
-          <h2>Inventory Stock</h2>
-          <p>No inventory stock information available.</p>
+
+        <!-- Modify Order Section (Combined Modify Order and Item List) -->
+        <div class="content_modify_order">
+          <button type="button" id="back_to_active_orders">Back to Active Orders</button>
+          <form class="modify_order_container">
+            <div class="order_info">
+              <div class="event_info">
+                <h3>Event Information</h3>
+                <div class="input_row">
+                  <label for="modify_event_name">Event Name:</label>
+                  <input type="text" id="modify_event_name" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_event_timestamp">Event Timestamp:</label>
+                  <input type="datetime-local" id="modify_event_timestamp" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_event_duration">Event Duration (days):</label>
+                  <input type="number" id="modify_event_duration" min="1" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_assigned_manager">Assigned Manager:</label>
+                  <select id="modify_assigned_manager" required></select>
+                </div>
+              </div>
+              <div class="address_info">
+                <h3>Address Information</h3>
+                <div class="input_row">
+                  <label for="modify_street">Street:</label>
+                  <input type="text" id="modify_street" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_barangay">Barangay:</label>
+                  <input type="text" id="modify_barangay" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_city">City:</label>
+                  <input type="text" id="modify_city" required>
+                </div>
+              </div>
+              <div class="customer_info">
+                <h3>Customer Information</h3>
+                <div class="input_row">
+                  <label for="modify_first_name">First Name:</label>
+                  <input type="text" id="modify_first_name" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_middle_name">Middle Name:</label>
+                  <input type="text" id="modify_middle_name">
+                </div>
+                <div class="input_row">
+                  <label for="modify_last_name">Last Name:</label>
+                  <input type="text" id="modify_last_name" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_phone_number">Phone Number:</label>
+                  <input type="tel" id="modify_phone_number" required>
+                </div>
+                <div class="input_row">
+                  <label for="modify_age">Age:</label>
+                  <input type="number" id="modify_age" min="0">
+                </div>
+                <div class="input_row">
+                  <label for="modify_gender">Gender:</label>
+                  <select id="modify_gender" required></select>
+                </div>
+                <div class="input_row">
+                  <label for="modify_extra_fees">Extra Fees:</label>
+                  <input type="number" id="modify_extra_fees" min="0" step="0.01" value="0">
+                </div>
+              </div>
+            </div>
+            <div class="item_and_worker_info">
+              <div class="item_container">
+                <div class="tables_info">
+                  <h5>Tables</h5>
+                  <div class="table_wrapper">
+                    <table id="modify_tables_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="chairs_info">
+                  <h5>Chairs</h5>
+                  <div class="table_wrapper">
+                    <table id="modify_chairs_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="misc_info">
+                  <h5>Miscellaneous</h5>
+                  <div class="table_wrapper">
+                    <table id="modify_misc_Container">
+                      <thead>
+                        <tr>
+                          <th>Select</th>
+                          <th>Name</th>
+                          <th>Price</th>
+                          <th>Stock</th>
+                          <th>Quantity</th>
+                          <th>Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="workers_info">
+                <h5>Workers</h5>
+                <div class="table_wrapper">
+                  <table id="modify_workers_Container">
+                    <thead>
+                      <tr>
+                        <th>Select</th>
+                        <th>Worker Name</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="order_total">
+              <h5>Total: <span id="modify_grandSubtotal">0.00</span></h5>
+              <button type="button" id="save_order_button">SAVE ORDER</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
   <script src="../script.js"></script>
   <script>
-    // Update dashboard username from localStorage
     const usernameElem = document.getElementById("dashboard_Username");
     if (localStorage.getItem("firstName")) {
       const fullName = localStorage.getItem("firstName") + " " +
