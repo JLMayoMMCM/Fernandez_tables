@@ -163,25 +163,29 @@ app.get('/getGenders', (req, res) => {
 
 // GET /getActiveOrders endpoint
 app.get('/getActiveOrders', (req, res) => {
-const query = `
-  SELECT 
-    o.order_ID,
-    CONCAT(p.first_Name, ' ', COALESCE(p.middle_Name, ''), ' ', p.last_Name) AS customer_name,
-    e.event_Name,
-    e.event_date AS event_start,
-    e.end_event_date AS event_end,
-    CONCAT(mgr_p.first_Name, ' ', COALESCE(mgr_p.middle_Name, ''), ' ', mgr_p.last_Name) AS manager_name,
-    CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
-  FROM order_info_tbl o
-  JOIN customer_tbl c ON o.customer_ID = c.customer_ID
-  JOIN person_tbl p ON c.person_ID = p.person_ID
-  JOIN event_info_tbl e ON o.order_ID = e.order_ID
-  JOIN address_tbl a ON e.address_ID = a.address_ID
-  JOIN manager_tbl m ON o.manager_ID = m.manager_ID
-  JOIN staff_tbl s ON m.staff_ID = s.staff_ID
-  JOIN person_tbl mgr_p ON s.person_ID = mgr_p.person_ID
-  WHERE e.end_event_date >= NOW()
+  const query = `
+    SELECT 
+      o.order_ID,
+      CONCAT(p.first_Name, ' ', COALESCE(p.middle_Name, ''), ' ', p.last_Name) AS customer_name,
+      e.event_Name,
+      e.event_date AS event_start,
+      e.end_event_date AS event_end,
+      f.total_amount AS total_price,
+      ps.payment_status_name AS payment_status,
+      CONCAT(mgr_p.first_Name, ' ', COALESCE(mgr_p.middle_Name, ''), ' ', mgr_p.last_Name) AS manager_name,
+      CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
+    FROM order_info_tbl o
+    JOIN customer_tbl c ON o.customer_ID = c.customer_ID
+    JOIN person_tbl p ON c.person_ID = p.person_ID
+    JOIN event_info_tbl e ON o.order_ID = e.order_ID
+    JOIN address_tbl a ON e.address_ID = a.address_ID
+    JOIN manager_tbl m ON o.manager_ID = m.manager_ID
+    JOIN staff_tbl s ON m.staff_ID = s.staff_ID
+    JOIN person_tbl mgr_p ON s.person_ID = mgr_p.person_ID
+    JOIN finance_tbl f ON o.order_ID = f.order_ID
+    JOIN payment_status_tbl ps ON f.payment_status_ID = ps.payment_status_ID
 `;
+
     connection.query(query, (error, results) => {
       if (error) {
         console.error("Error fetching active orders:", error);

@@ -1,7 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-
-
-
+  // ---------- Toggle between Order Info and Item List ----------
   const toggleToItemList = document.getElementById("toggleToItemList");
   const revertToOrderInfo = document.getElementById("revert_to_order_info");
   const addOrdersContainer = document.querySelector(".content_add_orders");
@@ -9,57 +7,59 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (toggleToItemList) {
     toggleToItemList.addEventListener("click", () => {
-      addOrdersContainer.style.display = "none";
-      addItemListContainer.style.display = "flex";
+      addOrdersContainer.classList.remove("active");
+      addItemListContainer.classList.add("active");
     });
   }
 
   if (revertToOrderInfo) {
     revertToOrderInfo.addEventListener("click", () => {
-      addItemListContainer.style.display = "none";
-      addOrdersContainer.style.display = "flex";
+      addItemListContainer.classList.remove("active");
+      addOrdersContainer.classList.add("active");
     });
   }
 
-  // --------------------------
-  // SIDEBAR NAVIGATION
-  // --------------------------
+
+  // ---------- Sidebar Navigation ----------
   const sections = [
     { buttonId: "addOrders", sectionClass: "content_add_orders" },
+    { buttonId: "addItemsList", sectionClass: "content_add_item_list" },
     { buttonId: "activeOrders", sectionClass: "content_active_orders" },
     { buttonId: "payment", sectionClass: "content_pending_orders" },
     { buttonId: "history", sectionClass: "content_order_history" },
-    { buttonId: "inventoryStock", sectionClass: "content_inventory_stock" },
-    { sectionClass: "content_add_item_list" }
+    { buttonId: "inventoryStock", sectionClass: "content_inventory_stock" }
   ];
 
   function toggleSection(activeSectionClass) {
     sections.forEach(({ sectionClass }) => {
       const section = document.querySelector(`.${sectionClass}`);
       if (section) {
-        section.style.display = sectionClass === activeSectionClass ? "block" : "none";
+        if (sectionClass === activeSectionClass) {
+          section.classList.add("active");
+          if (sectionClass === "content_active_orders") {
+            populateActiveOrders();
+          }
+        } else {
+          section.classList.remove("active");
+        }
       }
     });
   }
 
   sections.forEach(({ buttonId, sectionClass }) => {
-  const button = document.getElementById(buttonId);
-  if (button) {
-    button.addEventListener("click", () => {
-      toggleSection(sectionClass);
-      document.getElementById("panel-title").textContent = button.textContent;
-      
-      if (sectionClass === "content_active_orders") {
-        populateActiveOrders();
-      }
-    });
-  }
-});
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.addEventListener("click", () => {
+        toggleSection(sectionClass);
+        document.getElementById("panel-title").textContent = button.textContent;
+      });
+    }
+  });
 
 
-  // --------------------------
-  // LOGOUT FUNCTIONALITY
-  // --------------------------
+
+
+  // ---------- Logout Functionality ----------
   const logoutButton = document.getElementById("logout");
   if (logoutButton) {
     logoutButton.addEventListener("click", () => {
@@ -68,38 +68,38 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // --------------------------
-  // ADD VALUES TO VARIOUS SELECT ELEMENTS
-  // --------------------------
+  // ---------- Populate Select Elements ----------
   const managerSelect = document.getElementById("assigned_manager");
-  fetch("/getManagers")
-    .then(response => response.json())
-    .then(managers => {
-      managers.forEach(manager => {
-        const option = document.createElement("option");
-        option.value = manager.manager_ID;
-        option.textContent = `${manager.first_Name} ${manager.last_Name}`;
-        managerSelect.appendChild(option);
-      });
-    })
-    .catch(error => console.error("Error fetching managers:", error));
+  if (managerSelect) {
+    fetch("/getManagers")
+      .then(response => response.json())
+      .then(managers => {
+        managers.forEach(manager => {
+          const option = document.createElement("option");
+          option.value = manager.manager_ID;
+          option.textContent = `${manager.first_Name} ${manager.last_Name}`;
+          managerSelect.appendChild(option);
+        });
+      })
+      .catch(error => console.error("Error fetching managers:", error));
+  }
 
   const genderSelect = document.getElementById("gender");
-  fetch("/getGenders")
-    .then(response => response.json())
-    .then(genders => {
-      genders.forEach(gender => {
-        const option = document.createElement("option");
-        option.value = gender.gender_ID;
-        option.textContent = gender.gender_name;
-        genderSelect.appendChild(option);
-      });
-    })
-    .catch(error => console.error("Error fetching genders:", error));
+  if (genderSelect) {
+    fetch("/getGenders")
+      .then(response => response.json())
+      .then(genders => {
+        genders.forEach(gender => {
+          const option = document.createElement("option");
+          option.value = gender.gender_ID;
+          option.textContent = gender.gender_name;
+          genderSelect.appendChild(option);
+        });
+      })
+      .catch(error => console.error("Error fetching genders:", error));
+  }
 
-  // --------------------------
-  // ADD ITEMS TO ITEM TABLE
-  // --------------------------
+  // ---------- Populate Items ----------
   fetch("/getItems")
     .then(response => response.json())
     .then(items => {
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
       items.forEach(item => {
         const row = document.createElement("tr");
 
-        // Checkbox cell
+        // Checkbox
         const checkCell = document.createElement("td");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -118,17 +118,17 @@ document.addEventListener("DOMContentLoaded", function () {
         checkCell.appendChild(checkbox);
         row.appendChild(checkCell);
 
-        // Name cell
+        // Name
         const nameCell = document.createElement("td");
         nameCell.textContent = item.item_name;
         row.appendChild(nameCell);
 
-        // Price cell
+        // Price
         const priceCell = document.createElement("td");
-        priceCell.textContent = item.item_price;
+        priceCell.textContent = parseFloat(item.item_price).toFixed(2);
         row.appendChild(priceCell);
 
-        // Quantity cell (auto-correct if value exceeds max)
+        // Quantity
         const qtyCell = document.createElement("td");
         const qtyInput = document.createElement("input");
         qtyInput.type = "number";
@@ -139,12 +139,12 @@ document.addEventListener("DOMContentLoaded", function () {
         qtyCell.appendChild(qtyInput);
         row.appendChild(qtyCell);
 
-        // Subtotal cell
+        // Subtotal
         const subtotalCell = document.createElement("td");
         subtotalCell.textContent = "0.00";
         row.appendChild(subtotalCell);
 
-        // Decide which table body to place row in (by item_type_ID)
+        // Append row based on item type
         if (item.item_type_ID === 401) {
           tablesBody.appendChild(row);
         } else if (item.item_type_ID === 402) {
@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
           miscBody.appendChild(row);
         }
 
-        // Event listeners for quantity & checkbox changes
+        // Event listeners
         qtyInput.addEventListener("input", () => {
           const maxVal = parseInt(qtyInput.max);
           let currentVal = parseInt(qtyInput.value);
@@ -173,9 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch(error => console.error("Error fetching items:", error));
 
-  // --------------------------
-  // ADD WORKERS TO OPTION TABLE
-  // --------------------------
+  // ---------- Populate Workers ----------
   fetch("/getWorkers")
     .then(response => response.json())
     .then(workers => {
@@ -201,9 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .catch(error => console.error("Error fetching workers:", error));
 
-  // --------------------------
-  // 7. Subtotal Calculation Functions
-  // --------------------------
+  // ---------- Subtotal Calculation Functions ----------
   function updateRowSubtotal(qtyInput, price, subtotalCell) {
     const quantity = parseInt(qtyInput.value) || 0;
     const rowSubtotal = quantity * parseFloat(price);
@@ -217,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     allRows.forEach(row => {
       const checkbox = row.querySelector("input[type='checkbox']");
-      const subtotalCell = row.cells[4]; // 5th column is "Subtotal"
+      const subtotalCell = row.cells[4];
       if (checkbox && checkbox.checked) {
         const rowSubtotal = parseFloat(subtotalCell.textContent) || 0;
         total += rowSubtotal;
@@ -233,7 +229,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     allRows.forEach(row => {
       const checkbox = row.querySelector("input[type='checkbox']");
-      const subtotalCell = row.cells[4]; // 5th column is "Subtotal"
+      const subtotalCell = row.cells[4];
       if (checkbox && checkbox.checked) {
         const rowSubtotal = parseFloat(subtotalCell.textContent) || 0;
         total += rowSubtotal;
@@ -244,15 +240,11 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("grandSubtotal").textContent = total.toFixed(2);
   }
 
-  // --------------------------
-  // 8. Form Validation Before Submission
-  // --------------------------
+  // ---------- Form Validation ----------
   function validateOrderForm() {
-    // Required field IDs
     const requiredFields = [
       "event_name",
-      "event_date",
-      "event_time",
+      "event_timestamp",
       "event_duration",
       "assigned_manager",
       "street",
@@ -263,7 +255,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "phone_number",
       "gender"
     ];
-    // Check each required field
     for (let fieldId of requiredFields) {
       const field = document.getElementById(fieldId);
       if (!field || !field.value.trim()) {
@@ -271,15 +262,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return false;
       }
     }
-    // At least one worker must be selected
     const workerCheckboxes = document.querySelectorAll("#workers_Container tbody input[type='checkbox']");
     const atLeastOneWorker = Array.from(workerCheckboxes).some(cb => cb.checked);
     if (!atLeastOneWorker) {
       alert("Please select at least one worker.");
       return false;
     }
-
-    // Grand subtotal must be > 0
     const grandSubtotal = parseFloat(document.getElementById("grandSubtotal").textContent) || 0;
     if (grandSubtotal <= 0) {
       alert("Grand subtotal must be greater than 0.");
@@ -288,112 +276,110 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
-  // --------------------------
-  // Handle "Add Order" Submission
-  // --------------------------
+  // ---------- Order Submission ----------
   const addOrderButton = document.getElementById("add_order_button");
-  addOrderButton.addEventListener("click", () => {
-    if (!validateOrderForm()) return;
+  if (addOrderButton) {
+    addOrderButton.addEventListener("click", () => {
+      if (!validateOrderForm()) return;
 
-    // Gather event information
-    const eventName = document.getElementById("event_name").value;
-    const eventDate = document.getElementById("event_date").value;
-    const eventTime = document.getElementById("event_time").value;
-    const eventDuration = document.getElementById("event_duration").value;
-    const assignedManager = document.getElementById("assigned_manager").value;
+      // Gather event info
+      const eventName = document.getElementById("event_name").value;
+      const eventTimestamp = document.getElementById("event_timestamp").value;
+      const eventDuration = document.getElementById("event_duration").value;
+      const assignedManager = document.getElementById("assigned_manager").value;
 
-    // Gather address information
-    const street = document.getElementById("street").value;
-    const barangay = document.getElementById("barangay").value;
-    const city = document.getElementById("city").value;
+      // Address info
+      const street = document.getElementById("street").value;
+      const barangay = document.getElementById("barangay").value;
+      const city = document.getElementById("city").value;
 
-    // Gather customer information
-    const firstName = document.getElementById("first_name").value;
-    const middleName = document.getElementById("middle_name").value;
-    const lastName = document.getElementById("last_name").value;
-    const phoneNumber = document.getElementById("phone_number").value;
-    const age = document.getElementById("age") ? document.getElementById("age").value : "";
-    const gender = document.getElementById("gender").value;
+      // Customer info
+      const firstName = document.getElementById("first_name").value;
+      const middleName = document.getElementById("middle_name").value;
+      const lastName = document.getElementById("last_name").value;
+      const phoneNumber = document.getElementById("phone_number").value;
+      const age = document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const extraFees = document.getElementById("extra_fees").value || 0;
+      const grandSubtotal = parseFloat(document.getElementById("grandSubtotal").textContent) || 0;
 
-    // Extra fees
-    const extraFees = document.getElementById("extra_fees").value || 0;
+      // Gather selected items
+      const tableRows = document.querySelectorAll("#tables_Container tbody tr");
+      const chairRows = document.querySelectorAll("#chairs_Container tbody tr");
+      const miscRows = document.querySelectorAll("#misc_Container tbody tr");
+      const allItemRows = [...tableRows, ...chairRows, ...miscRows];
 
-    // Gather selected items
-    const tableRows = document.querySelectorAll("#tables_Container tbody tr");
-    const chairRows = document.querySelectorAll("#chairs_Container tbody tr");
-    const miscRows = document.querySelectorAll("#misc_Container tbody tr");
-    const allItemRows = [...tableRows, ...chairRows, ...miscRows];
-
-    let items = [];
-    allItemRows.forEach(row => {
-      const checkbox = row.querySelector("input[type='checkbox']");
-      const qtyInput = row.querySelector("input[type='number']");
-      if (checkbox && checkbox.checked) {
-        const itemId = checkbox.id.split("_")[1];
-        const price = parseFloat(row.cells[2].textContent) || 0;
-        const quantity = parseInt(qtyInput.value) || 0;
-        if (quantity > 0) {
-          items.push({
-            item_ID: itemId,
-            quantity: quantity,
-            price: price,
-          });
+      let items = [];
+      allItemRows.forEach(row => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        const qtyInput = row.querySelector("input[type='number']");
+        if (checkbox && checkbox.checked) {
+          const itemId = checkbox.id.split("_")[1];
+          const price = parseFloat(row.cells[2].textContent) || 0;
+          const quantity = parseInt(qtyInput.value) || 0;
+          if (quantity > 0) {
+            items.push({
+              item_ID: itemId,
+              quantity: quantity,
+              price: price,
+            });
+          }
         }
-      }
-    });
+      });
 
-    // Gather selected workers
-    const workerRows = document.querySelectorAll("#workers_Container tbody tr");
-    let workers = [];
-    workerRows.forEach(row => {
-      const checkbox = row.querySelector("input[type='checkbox']");
-      if (checkbox && checkbox.checked) {
-        const workerId = checkbox.id.split("_")[1];
-        workers.push(workerId);
-      }
-    });
+      // Gather selected workers
+      const workerRows = document.querySelectorAll("#workers_Container tbody tr");
+      let workers = [];
+      workerRows.forEach(row => {
+        const checkbox = row.querySelector("input[type='checkbox']");
+        if (checkbox && checkbox.checked) {
+          const workerId = checkbox.id.split("_")[1];
+          workers.push(workerId);
+        }
+      });
 
-    // POST data to /createOrder endpoint
-    fetch("/createOrder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eventName,
-        eventDate,
-        eventTime,
-        eventDuration,
-        assignedManager,
-        street,
-        barangay,
-        city,
-        firstName,
-        middleName,
-        lastName,
-        phoneNumber,
-        age,
-        gender,
-        extraFees,
-        items,
-        workers
+      // Submit order
+      fetch("/createOrder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventName,
+          eventTimestamp,
+          eventDuration,
+          assignedManager,
+          street,
+          barangay,
+          city,
+          firstName,
+          middleName,
+          lastName,
+          phoneNumber,
+          age,
+          gender,
+          extraFees,
+          grandSubtotal,
+          items,
+          workers
+        })
       })
-    })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
           alert("Failed to create order: " + data.error);
         } else {
           alert("Order created successfully! Order ID: " + data.orderId);
+          populateActiveOrders();
         }
       })
       .catch(err => {
         console.error("Error creating order:", err);
         alert("An error occurred while creating the order.");
       });
-  });
+    });
+  }
 
-  // --------------------------
-  // 
-  // --------------------------
+
+
   function populateActiveOrders() {
     fetch("/getActiveOrders")
       .then(response => response.json())
@@ -406,11 +392,10 @@ document.addEventListener("DOMContentLoaded", function () {
             <td>${order.order_ID}</td>
             <td>${order.customer_name}</td>
             <td>${order.event_Name}</td>
-            <td>${order.event_date}</td>
-            <td>${order.end_event_date}</td>
-            <td>${order.start_date}</td>
-            <td>${order.end_date}</td>
-            <td>${order.subtotal}</td>
+            <td>${order.event_start}</td>
+            <td>${order.event_end}</td>
+            <td>${order.total_price}</td>
+            <td>${order.payment_status}</td>
             <td>${order.manager_name}</td>
             <td>${order.address}</td>
           `;
@@ -421,3 +406,5 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   
 });
+
+

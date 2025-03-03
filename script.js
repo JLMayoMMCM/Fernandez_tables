@@ -395,7 +395,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <td>${order.event_start}</td>
             <td>${order.event_end}</td>
             <td>${order.total_price}</td>
-            <td>${order.status}</td>
+            <td>${order.payment_status}</td>
             <td>${order.manager_name}</td>
             <td>${order.address}</td>
           `;

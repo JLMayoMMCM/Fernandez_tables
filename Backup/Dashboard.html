@@ -1,25 +1,24 @@
-<!-- Dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard</title>
   <link rel="stylesheet" href="../design/dashboard_style.css">
 </head>
 <body>
   <div class="dashboard_container">
     <div class="header">
-      <div class="header_username">
-        <h1 id="dashboard_Username">Staff name</h1>
-      </div>
-      <div class="header_panel-title">
+      <div class="header_panel_title">
         <h1 id="panel-title">Add Orders</h1>
       </div>
+      <div class="header_username">
+        <h1 id="dashboard_Username">Staff Name</h1>
+      </div>
     </div>
-    <div class="dashboard_content">
+    <div>
       <div class="sidebar">
-        <img src="../Assets/logo.png" alt="logo" class="sidebar_img">
+        <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
         <a href="#" id="addOrders">Add Orders</a>
         <a href="#" id="activeOrders">Active Orders</a>
         <a href="#" id="payment">Payment Channel</a>
@@ -29,8 +28,8 @@
       </div>
       <div class="content">
         <!-- Add Orders Section -->
-        <div class="content_add_orders">
-          <button type="button" id="toggleToItemList">View Item List</button>
+        <div class="content_add_orders active">
+          <button type="button" id="addItemsList">View Item List</button>
           <form class="add_form_container">
             <div class="event_info">
               <h3>Event Information</h3>
@@ -38,14 +37,10 @@
                 <label for="event_name">Event Name:</label>
                 <input type="text" id="event_name" name="event_name" required>
               </div>
-              <div class="input_row">
-                <label for="event_date">Event Date:</label>
-                <input type="date" id="event_date" name="event_date" required>
-              </div>
-              <div class="input_row">
-                <label for="event_time">Event Time:</label>
-                <input type="time" id="event_time" name="event_time" required>
-              </div>
+                <div class="input_row">
+                <label for="event_timestamp">Event Timestamp:</label>
+                <input type="datetime-local" id="event_timestamp" name="event_timestamp" required>
+                </div>
               <div class="input_row">
                 <label for="event_duration">Event Duration (days):</label>
                 <input type="number" id="event_duration" name="event_duration" min="1" required>
@@ -100,12 +95,11 @@
               </div>
             </div>
           </form>
-          <br>
           <h5>Total: <span id="grandSubtotal">0.00</span></h5>
           <button type="button" id="add_order_button">ADD ORDER</button>
         </div>
         <!-- Item List Section -->
-        <div class="content_add_item_list" style="display: none;">
+        <div class="content_add_item_list">
           <button type="button" id="revert_to_order_info">View Order Info</button>
           <div class="item_container">
             <div class="tables_info">
@@ -114,16 +108,11 @@
                 <table id="tables_Container">
                   <thead>
                     <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Event Name</th>
-                      <th>Event Start</th>
-                      <th>Event End</th>
-                      <th>Order Start</th>
-                      <th>Order End</th>
+                      <th>Select</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
                       <th>Subtotal</th>
-                      <th>Manager</th>
-                      <th>Address</th>
                     </tr>
                   </thead>
                   <tbody></tbody>
@@ -184,50 +173,53 @@
           </div>
         </div>
         <!-- Active Orders Section -->
-        <div class="content_active_orders" style="display: none;">
+        <div class="content_active_orders">
           <h2>Active Orders</h2>
           <table id="activeOrdersTable">
             <thead>
               <tr>
                 <th>Order ID</th>
                 <th>Customer</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Subtotal</th>
+                <th>Event Name</th>
+                <th>Event Start</th>
+                <th>Event End</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Manager</th>
+                <th>Address</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-        <!-- Other Sections (Payment, Order History, Inventory Stock) -->
-        <div class="content_pending_orders" style="display: none;">
+        <!-- Payment Channel Section -->
+        <div class="content_pending_orders">
           <h2>Payment Channel</h2>
           <p>No Payment Channel at the moment.</p>
         </div>
-        <div class="content_order_history" style="display: none;">
+        <!-- Order History Section -->
+        <div class="content_order_history">
           <h2>Order History</h2>
           <p>No order history available.</p>
         </div>
-        <div class="content_inventory_stock" style="display: none;">
+        <!-- Inventory Stock Section -->
+        <div class="content_inventory_stock">
           <h2>Inventory Stock</h2>
           <p>No inventory stock information available.</p>
         </div>
       </div>
     </div>
   </div>
-  <script src="../script.js">
-  </script>
-
+  <script src="../script.js"></script>
   <script>
-    // Update the header username using values stored in localStorage from login.
+    // Update dashboard username from localStorage
     const usernameElem = document.getElementById("dashboard_Username");
     if (localStorage.getItem("firstName")) {
       const fullName = localStorage.getItem("firstName") + " " +
-                      (localStorage.getItem("middleName") ? localStorage.getItem("middleName") + " " : "") +
-                      localStorage.getItem("lastName");
+        (localStorage.getItem("middleName") ? localStorage.getItem("middleName") + " " : "") +
+        localStorage.getItem("lastName");
       usernameElem.textContent = fullName;
     }
   </script>
-
 </body>
 </html>

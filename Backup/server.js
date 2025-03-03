@@ -1,43 +1,25 @@
-
 const mysql = require('mysql');
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
 const session = require('express-session');
+const app = express();
+
+// ---------- Middleware ----------
 app.use(session({
   secret: 'mySecretKey',
   resave: false,
   saveUninitialized: false
 }));
-
-req.session.userID = userID;
-req.session.userName = `${user.first_Name} ${user.middle_Name ? user.middle_Name + ' ' : ''}${user.last_Name}`;
-res.send(`
-  <script>
-    localStorage.setItem('userID', '${userID}');
-    localStorage.setItem('firstName', '${user.first_Name}');
-    localStorage.setItem('middleName', '${user.middle_Name}');
-    localStorage.setItem('lastName', '${user.last_Name}');
-    window.location.href = "/dashboard";
-  </script>
-`);
-
-
-// --------------------------
-// Middleware for parsing bodies
-// --------------------------
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files (dashboard, design, assets, etc.)
+// ---------- Serve Static Files ----------
 app.use("/mainPage", express.static(__dirname + "/mainPage"));
 app.use("/design", express.static(__dirname + "/design"));
-app.use("/assets", express.static(__dirname + "/assets"));
+app.use("/assets", express.static(__dirname + "/Assets"));
 app.use(express.static(__dirname));
 
-// --------------------------
-// Create MySQL connection (ERD-based DB structure assumed)
-// --------------------------
+// ---------- MySQL Connection ----------
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -53,16 +35,14 @@ connection.connect(error => {
   }
 });
 
-// --------------------------
-// Routes
-// --------------------------
+// ---------- Routes ----------
 
-// Serve the index page
+// Serve login page
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-// LOGIN route
+// Login route
 app.post("/", (req, res) => {
   const { userID, staffPassword } = req.body;
   connection.query(
@@ -81,6 +61,10 @@ app.post("/", (req, res) => {
               return res.send('Login failed');
             }
             const user = userResults[0];
+
+            
+            req.session.userID = userID;
+            req.session.userName = `${user.first_Name} ${user.middle_Name ? user.middle_Name + ' ' : ''}${user.last_Name}`;
             res.send(`
               <script>
                 localStorage.setItem('userID', '${userID}');
@@ -104,15 +88,15 @@ app.post("/", (req, res) => {
   );
 });
 
+// Dashboard route with session check
 app.get('/dashboard', (req, res) => {
-    if (!req.session.userID) {
-      return res.redirect('/');
-    }
-    res.sendFile(__dirname + '/mainPage/dashboard.html');
-  });
-  
+  if (!req.session.userID) {
+    return res.redirect('/');
+  }
+  res.sendFile(__dirname + '/mainPage/dashboard.html');
+});
 
-// GET /getItems endpoint: returns items with current stock quantities
+// GET /getItems endpoint
 app.get('/getItems', (req, res) => {
   const query = `
     SELECT i.item_ID, i.item_name, i.item_price, i.item_type_ID, 
@@ -131,7 +115,7 @@ app.get('/getItems', (req, res) => {
   });
 });
 
-// GET /getManagers endpoint: returns manager details
+// GET /getManagers endpoint
 app.get('/getManagers', (req, res) => {
   const query = `
     SELECT m.manager_ID, p.first_Name, p.middle_Name, p.last_Name
@@ -148,7 +132,7 @@ app.get('/getManagers', (req, res) => {
   });
 });
 
-// GET /getWorkers endpoint: returns worker details
+// GET /getWorkers endpoint
 app.get('/getWorkers', (req, res) => {
   const query = `
     SELECT w.worker_ID, p.first_Name, p.last_Name, p.middle_Name
@@ -165,7 +149,7 @@ app.get('/getWorkers', (req, res) => {
   });
 });
 
-// GET /getGenders endpoint: returns genders
+// GET /getGenders endpoint
 app.get('/getGenders', (req, res) => {
   const query = `SELECT gender_ID, gender_name FROM gender_tbl`;
   connection.query(query, (error, results) => {
@@ -177,26 +161,41 @@ app.get('/getGenders', (req, res) => {
   });
 });
 
-// GET /getActiveOrders endpoint: returns active orders (where end_date >= NOW())
+// GET /getActiveOrders endpoint
 app.get('/getActiveOrders', (req, res) => {
   const query = `
-    SELECT o.order_ID, o.start_date, o.end_date, o.subtotal,
-           CONCAT(p.first_Name, ' ', p.last_Name) AS customer_name
+    SELECT 
+      o.order_ID,
+      CONCAT(p.first_Name, ' ', COALESCE(p.middle_Name, ''), ' ', p.last_Name) AS customer_name,
+      e.event_Name,
+      e.event_date AS event_start,
+      e.end_event_date AS event_end,
+      f.total_amount AS total_price,
+      ps.payment_status_name AS payment_status,
+      CONCAT(mgr_p.first_Name, ' ', COALESCE(mgr_p.middle_Name, ''), ' ', mgr_p.last_Name) AS manager_name,
+      CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
     FROM order_info_tbl o
     JOIN customer_tbl c ON o.customer_ID = c.customer_ID
     JOIN person_tbl p ON c.person_ID = p.person_ID
-    WHERE o.end_date >= NOW()
-  `;
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error("Error fetching active orders:", error);
-      return res.status(500).send(error);
-    }
-    res.json(results);
-  });
-});
+    JOIN event_info_tbl e ON o.order_ID = e.order_ID
+    JOIN address_tbl a ON e.address_ID = a.address_ID
+    JOIN manager_tbl m ON o.manager_ID = m.manager_ID
+    JOIN staff_tbl s ON m.staff_ID = s.staff_ID
+    JOIN person_tbl mgr_p ON s.person_ID = mgr_p.person_ID
+    JOIN finance_tbl f ON o.order_ID = f.order_ID
+    JOIN payment_status_tbl ps ON f.payment_status_ID = ps.payment_status_ID
+`;
 
-// Helper: Format Date object into MySQL timestamp format
+    connection.query(query, (error, results) => {
+      if (error) {
+        console.error("Error fetching active orders:", error);
+        return res.status(500).send(error);
+      }
+      res.json(results);
+    });
+  });
+
+// Helper: Format Date to MySQL datetime format
 function formatDateTime(date) {
   const yyyy = date.getFullYear();
   const mm = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -207,180 +206,140 @@ function formatDateTime(date) {
   return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
 
-// POST /createOrder endpoint: process order submission using separate timestamps
-app.post('/createOrder', (req, res) => {
-  const {
-    eventName,
-    eventDate,
-    eventTime,
-    eventDuration, // duration in days
-    assignedManager,
-    street,
-    barangay,
-    city,
-    firstName,
-    middleName,
-    lastName,
-    phoneNumber,
-    age,
-    gender,
-    extraFees,
-    items,
-    workers
-  } = req.body;
-  
-  // Compute event start and end timestamps
-  const startDateObj = new Date(`${eventDate}T${eventTime}:00`);
-  const durationDays = parseInt(eventDuration) || 0;
-  const endDateObj = new Date(startDateObj.getTime() + durationDays * 24 * 60 * 60 * 1000);
-  
-  const startDateFormatted = formatDateTime(startDateObj);
-  const endDateFormatted = formatDateTime(endDateObj);
-  
-  // Calculate final subtotal: extra fees + sum(item price * quantity)
-  let finalSubtotal = parseFloat(extraFees) || 0;
-  if (Array.isArray(items)) {
-    items.forEach(item => {
-      finalSubtotal += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
-    });
-  }
-  
-  // Begin DB insertion sequence (following the ERD)
-  // 1. Insert into address_tbl
-  const addressSql = `
-    INSERT INTO address_tbl (street_Name, barangay_Name, city_Name)
-    VALUES (?, ?, ?)
-  `;
-  connection.query(addressSql, [street, barangay, city], (err, addressResult) => {
-    if (err) {
-      console.error("Error inserting address:", err);
-      return res.status(500).json({ error: "Failed to create address record" });
-    }
-    const addressId = addressResult.insertId;
-    
-    // 2. Insert into person_tbl
-    const personSql = `
-      INSERT INTO person_tbl (first_Name, last_Name, middle_Name, phone_Number, age, gender_ID)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    connection.query(personSql, [firstName, lastName, middleName, phoneNumber, age, gender], (err, personResult) => {
-      if (err) {
-        console.error("Error inserting person:", err);
-        return res.status(500).json({ error: "Failed to create person record" });
-      }
-      const personId = personResult.insertId;
-      
-      // 3. Insert into customer_tbl
-      const customerSql = `INSERT INTO customer_tbl (person_ID) VALUES (?)`;
-      connection.query(customerSql, [personId], (err, customerResult) => {
-        if (err) {
-          console.error("Error inserting customer:", err);
-          return res.status(500).json({ error: "Failed to create customer record" });
-        }
-        const customerId = customerResult.insertId;
-        
-        // 4. Insert into event_info_tbl (with start and end event timestamps)
-        const eventSql = `
-          INSERT INTO event_info_tbl (event_Name, address_ID, event_date, end_event_date)
-          VALUES (?, ?, ?, ?)
-        `;
-        connection.query(eventSql, [eventName, addressId, startDateFormatted, endDateFormatted], (err, eventResult) => {
-          if (err) {
-            console.error("Error inserting event info:", err);
-            return res.status(500).json({ error: "Failed to create event record" });
-          }
-          const eventId = eventResult.insertId;
-          
-          // 5. Insert into order_info_tbl (linking customer, manager, event and timestamps)
-          const orderSql = `
-            INSERT INTO order_info_tbl (customer_ID, manager_ID, event_ID, start_date, end_date, subtotal)
-            VALUES (?, ?, ?, ?, ?, ?)
-          `;
-          connection.query(orderSql, [customerId, assignedManager, eventId, startDateFormatted, endDateFormatted, finalSubtotal], (err, orderResult) => {
-            if (err) {
-              console.error("Error inserting order info:", err);
-              return res.status(500).json({ error: "Failed to create order" });
-            }
-            const orderId = orderResult.insertId;
-            
-            // 6. Insert into finance_tbl
-            const financeSql = `INSERT INTO finance_tbl (order_ID, amount) VALUES (?, ?)`;
-            connection.query(financeSql, [orderId, finalSubtotal], (err, financeResult) => {
-              if (err) {
-                console.error("Error inserting finance:", err);
-                return res.status(500).json({ error: "Failed to create finance record" });
-              }
-              
-              // 7. Insert assigned workers (ensure at least one worker is selected)
-              const workerPromises = (workers || []).map(workerId => {
-                return new Promise((resolve, reject) => {
-                  const workerSql = `INSERT INTO assigned_worker_tbl (worker_ID, order_ID) VALUES (?, ?)`;
-                  connection.query(workerSql, [workerId, orderId], (err) => err ? reject(err) : resolve());
-                });
-              });
-              
-              // 8. Insert order details for each item
-              const orderDetailsPromises = (items || []).map(item => {
-                return new Promise((resolve, reject) => {
-                  if (parseInt(item.quantity) > 0) {
-                    const detailsSql = `INSERT INTO order_details_tbl (order_ID, item_ID, item_quantity) VALUES (?, ?, ?)`;
-                    connection.query(detailsSql, [orderId, item.item_ID, parseInt(item.quantity)], (err) => err ? reject(err) : resolve());
-                  } else {
-                    resolve();
-                  }
-                });
-              });
-              
-              Promise.all([...workerPromises, ...orderDetailsPromises])
-                .then(() => res.json({ message: "Order created successfully", orderId }))
-                .catch(err => {
-                  console.error("Error inserting workers/items:", err);
-                  res.status(500).json({ error: "Failed to insert workers/items" });
-                });
-            });
-          });
-        });
+// POST /createOrder endpoint
+app.post('/createOrder', async (req, res) => {
+  try {
+    const {
+      eventName, eventTimestamp, eventDuration, assignedManager,
+      street, barangay, city,
+      firstName, middleName, lastName, phoneNumber, age, gender,
+      extraFees, grandSubtotal, items, workers
+    } = req.body;
+
+    const startDateObj = new Date(eventTimestamp);
+    const durationDays = parseInt(eventDuration) || 0;
+    const endDateObj = new Date(startDateObj.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const startDateFormatted = formatDateTime(startDateObj);
+    const endDateFormatted = formatDateTime(endDateObj);
+
+    let finalSubtotal = parseFloat(extraFees) || 0;
+    if (Array.isArray(items)) {
+      items.forEach(item => {
+        finalSubtotal += (parseFloat(item.price) || 0) * (parseInt(item.quantity) || 0);
       });
-    });
-  });
+    }
+
+    const addressId = await insertAddress(street, barangay, city);
+    const personId = await insertPerson(firstName, lastName, middleName, phoneNumber, age, gender);
+    const customerId = await insertCustomer(personId);
+    const orderId = await insertOrder(customerId, assignedManager);
+    const eventInserted = await insertEvent(orderId, eventName, addressId, startDateFormatted, endDateFormatted);
+    const financeInserted = await insertFinance(orderId, extraFees, grandSubtotal);
+    
+    await Promise.all([
+      insertWorkers(orderId, workers),
+      insertOrderDetails(orderId, items)
+    ]);
+
+    res.json({ message: "Order created successfully", orderId });
+  } catch (err) {
+    console.error("Error creating order:", err);
+    res.status(500).json({ error: "Failed to create order" });
+  }
 });
 
-app.get('/getActiveOrders', (req, res) => {
-    const query = `
-      SELECT o.order_ID,
-             CONCAT(p.first_Name, ' ', p.last_Name) AS customer_name,
-             e.event_Name,
-             e.event_date,
-             e.end_event_date,
-             o.start_date,
-             o.end_date,
-             o.subtotal,
-             CONCAT(mgr.first_Name, ' ', mgr.last_Name) AS manager_name,
-             CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
-      FROM order_info_tbl o
-      JOIN customer_tbl c ON o.customer_ID = c.customer_ID
-      JOIN person_tbl p ON c.person_ID = p.person_ID
-      JOIN event_info_tbl e ON o.event_ID = e.event_ID
-      JOIN address_tbl a ON e.address_ID = a.address_ID
-      JOIN manager_tbl m ON o.manager_ID = m.manager_ID
-      JOIN staff_tbl s ON m.staff_ID = s.staff_ID
-      JOIN person_tbl mgr ON s.person_ID = mgr.person_ID
-      WHERE o.end_date >= NOW()
-    `;
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error("Error fetching active orders:", error);
-        return res.status(500).send(error);
-      }
-      res.json(results);
+function insertAddress(street, barangay, city) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO address_tbl (street_Name, barangay_Name, city_Name) VALUES (?, ?, ?)";
+    connection.query(sql, [street, barangay, city], (err, result) => {
+      if (err) return reject(err);
+      resolve(result.insertId);
     });
   });
-  
+}
+
+function insertPerson(firstName, lastName, middleName, phoneNumber, age, gender) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO person_tbl (first_Name, last_Name, middle_Name, phone_Number, age, gender_ID) VALUES (?, ?, ?, ?, ?, ?)";
+    connection.query(sql, [firstName, lastName, middleName, phoneNumber, age, gender], (err, result) => {
+      if (err) return reject(err);
+      resolve(result.insertId);
+    });
+  });
+}
+
+function insertCustomer(personId) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO customer_tbl (person_ID) VALUES (?)";
+    connection.query(sql, [personId], (err, result) => {
+      if (err) return reject(err);
+      resolve(result.insertId);
+    });
+  });
+}
+
+function insertOrder(customerId, assignedManager) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO order_info_tbl (customer_ID, manager_ID) VALUES (?, ?)";
+    connection.query(sql, [customerId, assignedManager], (err, result) => {
+      if (err) return reject(err);
+      resolve(result.insertId);
+    });
+  });
+}
+
+function insertEvent(orderId, eventName, addressId, startDateFormatted, endDateFormatted) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO event_info_tbl (order_Id, event_Name, address_ID, event_date, end_event_date) VALUES (?, ?, ?, ?, ?)";
+    connection.query(sql, [orderId, eventName, addressId, startDateFormatted, endDateFormatted], (err) => {
+      if (err) return reject(err);
+      resolve(true);
+    });
+  });
+}
+
+function insertFinance(orderId, extraFees, grandSubtotal) {
+  return new Promise((resolve, reject) => {
+    const sql = "INSERT INTO finance_tbl (order_ID, extra_Fee, total_Amount) VALUES (?, ?, ?)";
+    connection.query(sql, [orderId, extraFees, grandSubtotal], (err) => {
+      if (err) return reject(err);
+      resolve(true);
+    });
+  });
+}
+
+function insertWorkers(orderId, workers = []) {
+  return Promise.all(workers.map(workerId => {
+    return new Promise((resolve, reject) => {
+      const sql = "INSERT INTO assigned_worker_tbl (worker_ID, order_ID) VALUES (?, ?)";
+      connection.query(sql, [workerId, orderId], (err) => {
+        if (err) return reject(err);
+        resolve(true);
+      });
+    });
+  }));
+}
+
+function insertOrderDetails(orderId, items = []) {
+  return Promise.all(items.map(item => {
+    return new Promise((resolve, reject) => {
+      if (parseInt(item.quantity) > 0) {
+        const sql = "INSERT INTO order_details_tbl (order_ID, item_ID, item_quantity) VALUES (?, ?, ?)";
+        connection.query(sql, [orderId, item.item_ID, parseInt(item.quantity)], (err) => {
+          if (err) return reject(err);
+          resolve(true);
+        });
+      } else {
+        resolve(true);
+      }
+    });
+  }));
+}
 
 
-// --------------------------
-// Start Server
-// --------------------------
+
+
+// ---------- Start Server ----------
 app.listen(4500, () => {
   console.log("Server listening on port 4500");
 });
