@@ -5,27 +5,56 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------- Sidebar Navigation ----------
   const sections = [
     { buttonId: "addOrders", sectionClass: "content_add_orders" },
-    { buttonId: "activeOrders", sectionClass: "content_active_orders" }
-    // (Other sections omitted for brevity)
+    { buttonId: "add_Item_Orders", sectionClass: "content_add_item_orders" },
+    { buttonId: "back_to_add_orders", sectionClass: "content_add_orders" },
+    { buttonId: "activeOrders", sectionClass: "content_active_orders" },
+    { buttonId: "back_to_active_orders", sectionClass: "content_active_orders" },
+    { buttonId: "modifyItemOrders", sectionClass: "content_modify_item_orders" },
+    { buttonId: "back_to_modify_order", sectionClass: "content_modify_order" },
+    { buttonId: "payment", sectionClass: "content_payment" },
+    { buttonId: "history", sectionClass: "content_history" },
+    { buttonId: "inventoryStock", sectionClass: "content_inventory_stock" }
   ];
+
+  const NavigationNames = {
+    addOrders: "Add Orders",
+    activeOrders: "Active Orders",
+    modifyItemOrders: "Modify Item Orders",
+    payment: "Payment",
+    history: "History",
+    inventoryStock: "Inventory Stock",
+    add_Item_Orders: "Item List",
+    back_to_add_orders: "Add Orders",
+    back_to_active_orders: "Active Orders",
+    back_to_modify_order: "Item List"
+  };
+  
   function toggleSection(activeSectionClass) {
     sections.forEach(({ sectionClass }) => {
       const section = document.querySelector(`.${sectionClass}`);
-      if (section) section.classList.toggle("active", sectionClass === activeSectionClass);
-      if (sectionClass === "content_active_orders" && section.classList.contains("active")) {
-        populateActiveOrders();
+      if (section) {
+        if (sectionClass === activeSectionClass) {
+          section.classList.add("active");
+          if (sectionClass === "content_active_orders") {
+            populateActiveOrders();
+          }
+        } else {
+          section.classList.remove("active");
+        }
       }
     });
   }
+  
   sections.forEach(({ buttonId, sectionClass }) => {
     const button = document.getElementById(buttonId);
     if (button) {
       button.addEventListener("click", () => {
         toggleSection(sectionClass);
-        document.getElementById("panel-title").textContent = button.textContent;
+        document.getElementById("panel-title").textContent = NavigationNames[buttonId];
       });
     }
   });
+  
 
   // ---------- Logout Functionality ----------
   const logoutButton = document.getElementById("logout");
@@ -475,7 +504,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (data.error) alert("Failed to update order: " + data.error);
       else {
         alert("Order updated successfully!");
-        document.querySelector(".content_modify_order").classList.remove("active");
+        document.querySelector(".content_modify_item_orders").classList.remove("active");
         document.querySelector(".content_active_orders").classList.add("active");
         populateActiveOrders();
       }
@@ -484,12 +513,6 @@ document.addEventListener("DOMContentLoaded", function () {
       console.error("Error updating order:", err);
       alert("An error occurred while updating the order.");
     });
-  });
-
-  // ---------- Back Button from Modify Order ----------
-  document.getElementById("back_to_active_orders").addEventListener("click", () => {
-    document.querySelector(".content_modify_order").classList.remove("active");
-    document.querySelector(".content_active_orders").classList.add("active");
   });
 
   // ---------- Validation ----------
