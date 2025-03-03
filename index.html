@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Interface</title>
-    <link rel="stylesheet" href="design/dashboard_style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - Dashboard</title>
+  <link rel="stylesheet" href="design/dashboard_style.css">
 </head>
 <body>
-    <div class="login-container">
-        <img src="Assets/logo.png" alt="logo" class="login_img">
-        
-        <form method="POST" class="login_form" id = "loginForm">
-            <label class="login_label" for="staffID">Staff ID:</label>
-            <input class="login_input" type="text" name="userID" required>
-
-            <label class="login_label" for="password">Password:</label>
-            <input class="login_input" type="password" name="staffPassword" required>
-
-            <button type="submit" class="login_Button">Login</button>
-        </form>
-    </div>
-    <script src="script.js"></script>
+  <div class="login-container">
+    
+    <form id="loginForm" class="login_form" method="POST" action="/">
+    <img src="Assets/logo.png" alt="Logo" class="login_img">
+      <label class="login_label" for="userID">Staff ID:</label>
+      <input class="login_input" type="text" id="userID" name="userID" required>
+      
+      <label class="login_label" for="staffPassword">Password:</label>
+      <input class="login_input" type="password" id="staffPassword" name="staffPassword" required>
+      
+      <button type="submit" class="login_Button">Login</button>
+    </form>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>

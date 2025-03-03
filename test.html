@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Timestamp Input Example</title>
+</head>
+<body>
+
+<label for="timestamp">Enter Timestamp:</label>
+<input type="datetime-local" id="timestamp" name="timestamp">
+
+<p id="output"></p>
+
+<script>
+const timestampInput = document.getElementById('timestamp');
+const outputParagraph = document.getElementById('output');
+
+timestampInput.addEventListener('change', function() {
+  const selectedTimestamp = timestampInput.value;
+  if (selectedTimestamp) {
+    outputParagraph.textContent = "Selected Timestamp: " + selectedTimestamp;
+  } else {
+    outputParagraph.textContent = "";
+  }
+});
+
+</script>
+
+</body>
+</html>

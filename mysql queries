@@ -45,3 +45,97 @@ INSERT INTO item_type_TBL (item_type_ID, item_type_name) VALUES
 
 
 ALTER TABLE event_info_tbl ALTER COLUMN event_ID SET DEFAULT 10000000;
+
+
+
+CREATE TABLE assigned_worker_tbl (order_ID INT(8) NOT NULL, worker_ID INT(4), FOREIGN KEY (worker_ID) REFERENCES worker_tbl(worker_ID));
+
+
+
+ALTER TABLE finance_tbl ADD COLUMN order_ID INT(8) NOT NULL after finance_ID, ADD CONSTRAINT fk_order_ID FOREIGN KEY (order_ID) REFERENCES order_info_tbl(order_ID);
+
+CREATE TABLE finance_tbl (
+    finance_ID INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    order_ID INT(8) NOT NULL,
+    payment_status_ID INT(3) NOT NULL DEFAULT 102,
+    FOREIGN KEY (order_ID) REFERENCES order_info_tbl(order_ID),
+    FOREIGN KEY (payment_status_ID) REFERENCES payment_status_tbl(payment_status_ID)
+);
+
+ALTER TABLE finance_tbl AUTO_INCREMENT = 10000000;
+
+CREATE TABLE liability_tbl (
+    liability_ID INT(8) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    finance_ID INT(8) NOT NULL,
+    quantity INT(3) NOT NULL,
+    date_issued CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    remarks text,
+    FOREIGN KEY (finance_ID) REFERENCES finance_tbl(finance_ID)
+);
+
+ALTER TABLE liability_tbl AUTO_INCREMENT = 10000000;
+
+INSERT INTO payment_status_tbl (payment_status_ID, payment_type_name) VALUES
+(101, "Paid"),
+(102, "Unpaid"),
+(103, "Partial");
+
+ALTER table payment_status_tbl AUTO_INCREMENT = 104;
+
+
+CREATE TABLE payment_tbl (
+    customer_ID INT(8) NOT NULL,
+    finance_ID INT(8) NOT NULL,
+    payment_type_ID INT(3) NOT NULL,
+    date_of_payment TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_ID) REFERENCES customer_tbl(customer_ID),
+    FOREIGN KEY (finance_ID) REFERENCES finance_tbl(finance_ID),
+    FOREIGN KEY (payment_type_ID) REFERENCES payment_type_tbl(payment_type_ID)
+);
+
+ALTER TABLE payment_tbl AUTO_INCREMENT = 10000000;
+
+ALTER TABLE finance_tbl modify column order_ID INT(8) NOT NULL unique;
+
+alter table worker_tbl modify column worker_ID INT(4) default 1001;
+
+--RESET AUTO_INCREMENT AND DATA
+
+DELETE FROM customer_tbl;
+ALTER TABLE customer_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM assigned_worker_tbl;
+ALTER TABLE assigned_worker_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM event_info_tbl;
+ALTER TABLE event_info_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM finance_tbl;
+ALTER TABLE finance_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM order_info_tbl;
+ALTER TABLE order_info_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM payment_tbl;
+ALTER TABLE payment_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM PERSON_tbl WHERE person_ID > 10000008;
+ALTER TABLE person_tbl AUTO_INCREMENT = 10000009;
+
+DELETE FROM finance_tbl WHERE finance_ID > 10000000;
+ALTER TABLE finance_tbl AUTO_INCREMENT = 10000001;
+
+ALTER table finance_tbl ADD COLUMN extra_Fee INT(8) NOT NULL after order_ID,
+ADD COLUMN total_amount INT(8) NOT NULL after extra_Fee;
+
+ALTER table finance_tbl ADD COLUMN grand_Total INT(8) NOT NULL after extra_Fee;
+
+--Drop all tables
+DROP TABLE assigned_worker_tbl;
+DROP TABLE customer_tbl;
+DROP TABLE event_info_tbl;
+DROP TABLE finance_tbl;
+DROP TABLE item_stock_tbl;
+DROP TABLE item_tbl;
+DROP TABLE item_type_TBL;
+DROP TABLE liability_tbl;

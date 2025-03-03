@@ -2,25 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Menu Interface</title>
-  <!-- Single CSS file that includes table and dashboard styles -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard</title>
   <link rel="stylesheet" href="../design/dashboard_style.css">
 </head>
 <body>
-  <div class="dashboard-container">
+  <div class="dashboard_container">
     <div class="header">
-      <div class="header-username">
-        <h1 id="dashboard_Username">Staff name</h1>
-      </div>
-      <div class="header-panel-title">
+      <div class="header_panel_title">
         <h1 id="panel-title">Add Orders</h1>
       </div>
+      <div class="header_username">
+        <h1 id="dashboard_Username">Staff Name</h1>
+      </div>
     </div>
-
-    <div class="dashboard-content">
+    <div>
       <div class="sidebar">
-        <img src="../Assets/logo.png" alt="logo" class="sidebar_img">
+        <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
         <a href="#" id="addOrders">Add Orders</a>
         <a href="#" id="activeOrders">Active Orders</a>
         <a href="#" id="payment">Payment Channel</a>
@@ -28,198 +26,200 @@
         <a href="#" id="inventoryStock">Inventory Stock</a>
         <button id="logout">Logout</button>
       </div>
-
       <div class="content">
-
-
-        <!-- Navigation Pages -->
-         
-        <!-- Pages for adding orders-->
-        <div class="content_add_orders">
-
-            <!-- transitions from the content_add_orders to content_add_item_list-->
-            <button type="button" id="toggleToItemList">View Item List</button>
-
-            <!-- Form for adding orders-->
-            <form class="add_form_container">
+        <!-- Add Orders Section -->
+        <div class="content_add_orders active">
+          <button type="button" id="addItemsList">View Item List</button>
+          <form class="add_form_container">
             <div class="event_info">
-                <h3>Event Information</h3>
-                <div class = "input-row">
-                    <label for="event-name">Event Name:</label>
-                    <input type="text" id="event-name" name="event-name" required>
+              <h3>Event Information</h3>
+              <div class="input_row">
+                <label for="event_name">Event Name:</label>
+                <input type="text" id="event_name" name="event_name" required>
+              </div>
+                <div class="input_row">
+                <label for="event_timestamp">Event Timestamp:</label>
+                <input type="datetime-local" id="event_timestamp" name="event_timestamp" required>
                 </div>
-
-                <div class = "input-row">
-                    <label for="event-date">Event Date:</label>
-                    <input type="datetime-local" id="event-date" name="event-date" required>
-                </div>
-
-                <h3>Address Information</h3>
-
-                <div class = "input-row">
-                    <div class = "input-row">
-                        <label for="street">Street:</label>
-                        <input type="text" id="street" name="street" required>
-                    </div>
-                    <div class = "input-row">
-                        <label for="barangay">Barangay:</label>
-                        <input type="text" id="barangay" name="barangay" required>
-                    </div>
-                </div>
-
-                <div class = "input-row">
-                    <div class = "input-row">
-                        <label for="city">City:</label>
-                        <input type="text" id="city" name="city" required>
-                    </div>
-                    <div>                    </div>
-                </div>
-
+              <div class="input_row">
+                <label for="event_duration">Event Duration (days):</label>
+                <input type="number" id="event_duration" name="event_duration" min="1" required>
+              </div>
+              <div class="input_row">
+                <label for="assigned_manager">Assigned Manager:</label>
+                <select id="assigned_manager" name="assigned_manager" required></select>
+              </div>
+              <h3>Address Information</h3>
+              <div class="input_row">
+                <label for="street">Street:</label>
+                <input type="text" id="street" name="street" required>
+              </div>
+              <div class="input_row">
+                <label for="barangay">Barangay:</label>
+                <input type="text" id="barangay" name="barangay" required>
+              </div>
+              <div class="input_row">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" required>
+              </div>
             </div>
-            
-            <!-- Customer Information -->
-            <div class="customer-info">
-                <h3>Customer Information</h3>
-                
-                <!-- first row (first & middle name) -->
-                <div class = "input-row">
-                    <div class = "input-row">
-                        <label for="first-name">First Name:</label>
-                        <input type="text" id="first-name" name="first-name" required>
-                    </div>
-
-                    <div class = "input-row">
-                        <label for="middle-name">Middle Name:</label>
-                        <input type="text" id="middle-name" name="middle-name">
-                    </div>
-                </div> 
-
-                <!-- second row (last name & phone number) -->
-                <div class = "input-row">
-                    <div class = "input-row">
-                        <label for="last-name">Last Name:</label>
-                        <input type="text" id="last-name" name="last-name" required>
-                    </div>
-                    
-                    <div class = "input-row">
-                        <label for="phone-number">Phone Number:</label>
-                        <input type="tel" id="phone-number" name="phone-number" required>
-                    </div>
-                </div>
-
-                <!-- third row (gender and extra fees) -->
-                <div class="input-row">
-                    <div class = "input-row">
-                        <label for="gender">Gender:</label>
-                        <select id="gender" name="gender"> </select>
-                    </div>
-
-                    <div class = "input-row">
-                        <label for="extra-fees">Extra Fees:</label>
-                        <input type="number" id="extra-fees" name="extra-fees" min="0" step="100" value="0">
-                    </div>
-                </div>
-
+            <div class="customer_info">
+              <h3>Customer Information</h3>
+              <div class="input_row">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" required>
+              </div>
+              <div class="input_row">
+                <label for="middle_name">Middle Name:</label>
+                <input type="text" id="middle_name" name="middle_name">
+              </div>
+              <div class="input_row">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" required>
+              </div>
+              <div class="input_row">
+                <label for="phone_number">Phone Number:</label>
+                <input type="tel" id="phone_number" name="phone_number" required>
+              </div>
+              <div class="input_row">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" min="0">
+              </div>
+              <div class="input_row">
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" required></select>
+              </div>
+              <div class="input_row">
+                <label for="extra_fees">Extra Fees:</label>
+                <input type="number" id="extra_fees" name="extra_fees" min="0" step="0.01" value="0">
+              </div>
             </div>
           </form>
-          <br>
           <h5>Total: <span id="grandSubtotal">0.00</span></h5>
-          <!-- Submit Order Button -->
           <button type="button" id="add_order_button">ADD ORDER</button>
         </div>
-
-        <!-- Item List Container -->
-        <div class="content_add_item_list" style="display: none;">
-          <button type="button" id="rever_to_order_info">View Order Info</button>
-          
+        <!-- Item List Section -->
+        <div class="content_add_item_list">
+          <button type="button" id="revert_to_order_info">View Order Info</button>
           <div class="item_container">
-            <div class="tables-info">
+            <div class="tables_info">
               <h5>Tables</h5>
-              <table id="tablesContainer">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="table_wrapper">
+                <table id="tables_Container">
+                  <thead>
+                    <tr>
+                      <th>Select</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
-
-            <div class="chairs-info">
+            <div class="chairs_info">
               <h5>Chairs</h5>
-              <table id="chairsContainer">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="table_wrapper">
+                <table id="chairs_Container">
+                  <thead>
+                    <tr>
+                      <th>Select</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
-
-            <div class="miscellaneous-info">
+            <div class="misc_info">
               <h5>Miscellaneous</h5>
-              <table id="miscContainer">
-                <thead>
-                  <tr>
-                    <th>Select</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
+              <div class="table_wrapper">
+                <table id="misc_Container">
+                  <thead>
+                    <tr>
+                      <th>Select</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="workers_info">
+              <h5>Workers</h5>
+              <div class="table_wrapper">
+                <table id="workers_Container">
+                  <thead>
+                    <tr>
+                      <th>Select</th>
+                      <th>Worker Name</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
           </div>
-
-          <div class="workers-info">
-            <h5>Workers</h5>
-            <table id="workersContainer">
-              <thead>
-                <tr>
-                  <th>Select</th>
-                  <th>Worker Name</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
+          <div class="input_row">
+            <h5>Total: <span id="item_Subtotal">0.00</span></h5>
           </div>
         </div>
-
-        <!-- Other Sections (Hidden by default) -->
-        <div class="content_active_orders" style="display: none;">
+        <!-- Active Orders Section -->
+        <div class="content_active_orders">
           <h2>Active Orders</h2>
-          <p>No active orders at the moment.</p>
+          <table id="activeOrdersTable">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Event Name</th>
+                <th>Event Start</th>
+                <th>Event End</th>
+                <th>Total Price</th>
+                <th>Status</th>
+                <th>Manager</th>
+                <th>Address</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-
-        <div class="content_pending_orders" style="display: none;">
+        <!-- Payment Channel Section -->
+        <div class="content_pending_orders">
           <h2>Payment Channel</h2>
           <p>No Payment Channel at the moment.</p>
         </div>
-
-        <div class="content_order_history" style="display: none;">
+        <!-- Order History Section -->
+        <div class="content_order_history">
           <h2>Order History</h2>
           <p>No order history available.</p>
         </div>
-
-        <div class="content_inventory_stock" style="display: none;">
+        <!-- Inventory Stock Section -->
+        <div class="content_inventory_stock">
           <h2>Inventory Stock</h2>
           <p>No inventory stock information available.</p>
         </div>
       </div>
     </div>
   </div>
-
   <script src="../script.js"></script>
+  <script>
+    // Update dashboard username from localStorage
+    const usernameElem = document.getElementById("dashboard_Username");
+    if (localStorage.getItem("firstName")) {
+      const fullName = localStorage.getItem("firstName") + " " +
+        (localStorage.getItem("middleName") ? localStorage.getItem("middleName") + " " : "") +
+        localStorage.getItem("lastName");
+      usernameElem.textContent = fullName;
+    }
+  </script>
 </body>
 </html>
