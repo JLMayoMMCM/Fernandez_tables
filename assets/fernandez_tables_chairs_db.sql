@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 03, 2025 at 09:04 AM
+-- Generation Time: Mar 03, 2025 at 05:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,7 +52,9 @@ INSERT INTO `address_tbl` (`address_ID`, `street_Name`, `barangay_Name`, `city_N
 (20000029, 'Camia', 'Matina', 'Davao'),
 (20000030, 'Camia', 'Matina', 'Davao'),
 (20000031, 'Camia', 'Matina', 'Davao'),
-(20000032, 'abc', 'def', 'ghi');
+(20000032, 'abc', 'def', 'ghi'),
+(20000033, 'Dao', 'Matina', 'Davao'),
+(20000034, 'Camia', 'Juna Subdivision', 'Davao');
 
 -- --------------------------------------------------------
 
@@ -70,8 +72,7 @@ CREATE TABLE `assigned_worker_tbl` (
 --
 
 INSERT INTO `assigned_worker_tbl` (`order_ID`, `worker_ID`) VALUES
-(10000003, 40000002),
-(10000004, 40000002);
+(10000001, 40000002);
 
 -- --------------------------------------------------------
 
@@ -89,10 +90,7 @@ CREATE TABLE `customer_tbl` (
 --
 
 INSERT INTO `customer_tbl` (`customer_ID`, `person_ID`) VALUES
-(10000001, 10000009),
-(10000002, 10000010),
-(10000003, 10000011),
-(10000004, 10000012);
+(10000001, 10000009);
 
 -- --------------------------------------------------------
 
@@ -114,9 +112,7 @@ CREATE TABLE `event_info_tbl` (
 --
 
 INSERT INTO `event_info_tbl` (`event_ID`, `order_ID`, `event_Name`, `address_ID`, `event_date`, `end_event_date`) VALUES
-(10000002, 10000002, 'Birthday', 20000030, '2025-03-16 06:36:00', '2025-03-28 06:36:00'),
-(10000003, 10000003, 'Funeral', 20000031, '2025-03-16 06:30:00', '2025-04-01 06:30:00'),
-(10000004, 10000004, 'Birthday', 20000032, '2025-03-08 07:09:00', '2025-03-09 07:09:00');
+(10000001, 10000001, 'Party', 20000034, '0000-00-00 00:00:00', '0000-00-00 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -137,9 +133,7 @@ CREATE TABLE `finance_tbl` (
 --
 
 INSERT INTO `finance_tbl` (`finance_ID`, `order_ID`, `extra_Fee`, `total_amount`, `payment_status_id`) VALUES
-(10000002, 10000002, 500, 3650, 301),
-(10000003, 10000003, 500, 3650, 301),
-(10000004, 10000004, 2500, 3980, 301);
+(10000001, 10000001, 1200, 4640, 301);
 
 -- --------------------------------------------------------
 
@@ -295,7 +289,16 @@ INSERT INTO `order_details_tbl` (`order_ID`, `item_ID`, `item_quantity`) VALUES
 (10000003, 80000013, 12),
 (10000004, 80000001, 3),
 (10000004, 80000007, 24),
-(10000004, 80000015, 2);
+(10000004, 80000015, 2),
+(10000005, 80000001, 12),
+(10000005, 80000002, 6),
+(10000005, 80000011, 12),
+(10000005, 80000007, 96),
+(10000005, 80000013, 12),
+(10000005, 80000015, 4),
+(10000001, 80000001, 12),
+(10000001, 80000007, 12),
+(10000001, 80000015, 4);
 
 -- --------------------------------------------------------
 
@@ -315,9 +318,7 @@ CREATE TABLE `order_info_tbl` (
 --
 
 INSERT INTO `order_info_tbl` (`order_ID`, `customer_ID`, `order_date`, `manager_ID`) VALUES
-(10000002, 10000002, '2025-03-03 06:36:38', 30000002),
-(10000003, 10000003, '2025-03-03 06:38:15', 30000002),
-(10000004, 10000004, '2025-03-03 07:10:53', 30000002);
+(10000001, 10000001, '2025-03-03 14:30:30', 30000002);
 
 -- --------------------------------------------------------
 
@@ -407,10 +408,7 @@ INSERT INTO `person_tbl` (`person_id`, `first_Name`, `last_Name`, `middle_Name`,
 (10000006, 'Taylor', 'Johnson', 'G', '09123456789', 25, 901),
 (10000007, 'Morgan', 'Brown', 'H', '09123456789', 25, 901),
 (10000008, 'Jordan', 'Davis', 'I', '09123456789', 25, 901),
-(10000009, 'Jonathan', 'Mayo', 'May', '12145', 12, 901),
-(10000010, 'Jonathan', 'Mayo', 'May', '12145', 12, 901),
-(10000011, 'Jonathan', 'Mayo', 'May', '12145', 12, 901),
-(10000012, 'martzel', 'baste', 'a', '12048512', 30, 901);
+(10000009, 'Jonathan', 'May', 'S', '09205696575', 21, 901);
 
 -- --------------------------------------------------------
 
@@ -627,25 +625,25 @@ ALTER TABLE `worker_tbl`
 -- AUTO_INCREMENT for table `address_tbl`
 --
 ALTER TABLE `address_tbl`
-  MODIFY `address_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000033;
+  MODIFY `address_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000035;
 
 --
 -- AUTO_INCREMENT for table `customer_tbl`
 --
 ALTER TABLE `customer_tbl`
-  MODIFY `customer_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000005;
+  MODIFY `customer_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
 
 --
 -- AUTO_INCREMENT for table `event_info_tbl`
 --
 ALTER TABLE `event_info_tbl`
-  MODIFY `event_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000005;
+  MODIFY `event_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
 
 --
 -- AUTO_INCREMENT for table `finance_tbl`
 --
 ALTER TABLE `finance_tbl`
-  MODIFY `finance_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000005;
+  MODIFY `finance_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
 
 --
 -- AUTO_INCREMENT for table `gender_tbl`
@@ -681,7 +679,7 @@ ALTER TABLE `manager_tbl`
 -- AUTO_INCREMENT for table `order_info_tbl`
 --
 ALTER TABLE `order_info_tbl`
-  MODIFY `order_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000005;
+  MODIFY `order_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
 
 --
 -- AUTO_INCREMENT for table `payment_status_tbl`
@@ -699,7 +697,7 @@ ALTER TABLE `payment_type_tbl`
 -- AUTO_INCREMENT for table `person_tbl`
 --
 ALTER TABLE `person_tbl`
-  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000013;
+  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000010;
 
 --
 -- AUTO_INCREMENT for table `staff_tbl`
