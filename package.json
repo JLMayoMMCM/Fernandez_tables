@@ -9,10 +9,12 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "base-64": "^1.0.0",
     "body-parser": "^1.20.3",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "fernandez": "file:",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "path": "^0.12.7"
   }
 }

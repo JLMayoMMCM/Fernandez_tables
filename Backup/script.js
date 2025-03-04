@@ -34,14 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     sections.forEach(({ sectionClass }) => {
       const section = document.querySelector(`.${sectionClass}`);
       if (section) {
-        if (sectionClass === activeSectionClass) {
-          section.classList.add("active");
-          if (sectionClass === "content_active_orders") {
-            populateActiveOrders();
-          }
-        } else {
-          section.classList.remove("active");
-        }
+        section.classList.toggle("active", sectionClass === activeSectionClass);
       }
     });
   }
@@ -51,11 +44,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (button) {
       button.addEventListener("click", () => {
         toggleSection(sectionClass);
-        document.getElementById("panel-title").textContent = button.textContent;
+        const panelTitle = document.getElementById("panel-title");
+        if (panelTitle) {
+          panelTitle.textContent = button.textContent;
+        }
       });
     }
   });
 
+
+
+
+  // ---------- Logout Functionality ----------
 
 
 
