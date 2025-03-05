@@ -8,6 +8,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Dashboard</title>
         <link rel="stylesheet" href="../design/dashboard_style_main.css">
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            fetch('/checkSession')
+              .then(response => response.json())
+              .then(data => {
+                if (!data.loggedIn) {
+                  window.location.href = '/login';
+                }
+              })
+              .catch(error => {
+                console.error('Error checking session:', error);
+                window.location.href = '/login';
+              });
+          });
+        </script>
     </head>
     <!-- HTML BODY -->
     <body>
@@ -257,8 +272,6 @@
 
                 <!-- ACTIVE ORDERS PANEL - CONTAINS ACTIVE ORDERS AND MANIPULATIONS-->
                 <section class="content_active_order">
-
-                    <!-- ACTIVE ORDERS CONTAINER-->
                     <div class="table_wrapper">
                         <table id="active_order_table">
                             <thead>
@@ -267,14 +280,40 @@
                                     <th>Event Name</th>
                                     <th>Customer Name</th>
                                     <th>Order Status</th>
-                                    <th>Order Date</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Manager</th>
                                     <th>Order Total</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <!-- EMPTY BODY FOR IMPORT-->
                             <tbody></tbody>
                         </table>
+                    </div>
+                </section>
+
+                <!-- Popup for viewing order items -->
+                <section class="view_order_item_popup">
+                    <div class="popup-content">
+                        <h3>Order Items</h3>
+                        <div class="table_wrapper">
+                            <table id="order_items_table">
+                                <thead>
+                                    <tr>
+                                        <th>Item ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <h4>Total: <span id="order_items_total">0.00</span></h4>
+                        <h4 id="days_rented">Days Rented: 0</h4>
+                        <button id="content_active_order">Return</button>
                     </div>
                 </section>
 
@@ -476,7 +515,8 @@
                             </div>
                         </div>
                         <div class="order_total">
-                            <h5>Total: <span id="item_subTotal">0.00</span></h5>
+                            <h3>Item Cost: <span id="subtotal_price">0.00</span></h3>
+                            <h3>Total Cost: <span id="total_price">0.00</span></h3>
                         </div>
                     </div>
                 </section>
@@ -551,9 +591,10 @@
                             </table>
                         </div>
                     </section>
-                    
-                    <section id="view_order_history_popup" class="popup_view">
-                        <div class="popup-content">
+
+
+                    <section class="view_order_item_history">
+                        <div class="popup-view">
                           <h3>Order Items</h3>
                           <div class="table_wrapper">
                             <table id="order_History_Items_Table">
@@ -624,7 +665,7 @@
                     </section>
 
                     <!-- Popup for Stock Input -->
-                    <section id="stock_input_container" class="popup_view">
+                    <section class="view_stock_input">
                         <div class="popup-content">
                             <h3>Add Stock</h3>
                             <div class="input_row">
@@ -651,7 +692,7 @@
                     </section>
 
                     <!-- Popup for Item Input -->
-                    <section id="item_input_container" class="popup_view">
+                    <section class="view_item_input"">
                         <div class="popup-content">
                             <h3>Add Item</h3>
 

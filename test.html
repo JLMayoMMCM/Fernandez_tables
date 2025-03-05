@@ -3,26 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Number Input</title>
-
+    <title>Flushed Scrollbar Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .table-container {
+            width: 100%;
+            max-height: 300px; /* Set max height for scrolling */
+        /* Enable vertical scrolling */
+            border: 2px solid black;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        thead {
+            background: red;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        tbody {
+            display: block;
+            max-height: 250px; /* Adjust height to fit */
+            overflow-y: auto;
+            background: gold;
+        }
+        tr {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+    </style>
 </head>
 <body>
-    <label for="phoneNumber">Phone Number:</label>
-    <input type="text" id="phoneNumber" name="phoneNumber">
+    <button id="addrow">Add Row</button>
+    <button id="removerow">Remove Row</button>
 
-    <button id="submit">Submit</button>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Header 1</th>
+                    <th>Header 2</th>
+                    <th>Header 3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example rows -->
+                <tr><td>Row 1</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 2</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 3</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 4</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 5</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 6</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 7</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 8</td><td>Data</td><td>More Data</td></tr>
+                <tr><td>Row 9</td><td>Data</td><td>More Data</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <script>
-        document.getElementById('submit').addEventListener('click', function() {
-            var phoneNumber = document.getElementById('phoneNumber').value;
-            var phoneNumberPattern = /^\d{10}$/;
-            if (phoneNumber.match(phoneNumberPattern)) {
-                alert('Valid phone number');
-            } else {
-                alert('Invalid phone number');
+        const addRowButton = document.getElementById('addrow');
+        const removeRowButton = document.getElementById('removerow');
+        const tableBody = document.querySelector('tbody');
+
+        addRowButton.addEventListener('click', () => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>New Row</td>
+                <td>Data</td>
+                <td>More Data</td>
+            `;
+            tableBody.appendChild(newRow);
+        });
+
+        removeRowButton.addEventListener('click', () => {
+            const lastRow = tableBody.lastElementChild;
+            if (lastRow) {
+                tableBody.removeChild(lastRow);
             }
         });
     </script>
-</body>
 
+</body>
 </html>

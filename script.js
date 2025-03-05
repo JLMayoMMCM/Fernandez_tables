@@ -69,6 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const page = this.getAttribute("data-page");
       showPage(page);
+      if (page === 'content_active_order') {
+        fetchActiveOrders();
+      }
+      if (page === 'content_order_history') {
+        fetchOrderHistory();
+      }
     });
   });
 
@@ -105,9 +111,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Populate manager selector
         populateSelector(managers, 'assigned_manager');
+        populateSelector(managers, 'modify_assigned_manager');
 
         // Populate gender selector
         populateSelector(genders, 'gender');
+        populateSelector(genders, 'modify_gender');
       })
       .catch(error => console.error('Error importing data:', error));
   }
@@ -164,7 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  document.getElementById('event_duration').addEventListener('input', updateSubtotal);
+  const eventDurationElement = document.getElementById('event_duration');
+  if (eventDurationElement) {
+    eventDurationElement.addEventListener('input', updateSubtotal);
+  }
   document.getElementById('extra_fees').addEventListener('input', updateSubtotal);
 
 
@@ -222,27 +233,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const orderData = getOrderData();
-
-      // const orderData = {
-      //   event_name: document.getElementById('event_name').value,
-      //   event_timestamp: document.getElementById('event_timestamp').value,
-      //   event_duration: document.getElementById('event_duration').value,
-      //   assigned_manager: document.getElementById('assigned_manager').value,
-      //   street: document.getElementById('street').value,
-      //   barangay: document.getElementById('barangay').value,
-      //   city: document.getElementById('city').value,
-      //   first_name: document.getElementById('first_name').value,
-      //   middle_name: document.getElementById('middle_name').value,
-      //   last_name: document.getElementById('last_name').value,
-      //   phone_number: document.getElementById('phone_number').value,
-      //   age: document.getElementById('age').value,
-      //   gender: document.getElementById('gender').value,
-      //   extra_fees: document.getElementById('extra_fees').value,
-      //   items: getSelectedItems(),
-      //   workers: getSelectedWorkers()
-      // };
-
-
 
     fetch('/addOrder', {
       method: 'POST',
@@ -308,8 +298,368 @@ document.addEventListener('DOMContentLoaded', function() {
     return workers;
   }
 
+  function fetchActiveOrders() {
+    fetch('/getActiveOrders')
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('active_order_table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        data.forEach(order => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${order.order_ID}</td>
+            <td>${order.event_Name}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.order_status}</td>
+            <td>${order.event_date}</td>
+            <td>${order.end_event_date}</td>
+            <td>${order.manager_name}</td>
+            <td>${order.total_amount}</td>
+            <td>
+              <button class="view-order" data-id="${order.order_ID}">View</button>
+              <button class="modify-order" data-id="${order.order_ID}">Modify</button>
+              <button class="delete-order" data-id="${order.order_ID}">Delete</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        document.querySelectorAll('.view-order').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            showPage('view_order_item_popup');
+            fetchOrderItems(orderId);
+          });
+        });
+
+        document.querySelectorAll('.modify-order').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            showPage('content_modify_order');
+            fetchOrderDetails(orderId);
+          });
+        });
+
+        document.querySelectorAll('.delete-order').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            deleteOrder(orderId);
+          });
+        });
+      })
+      .catch(error => console.error('Error fetching active orders:', error));
+  }
+
+  function deleteOrder(orderId) {
+    fetch(`/deleteOrder/${orderId}`, { method: 'DELETE' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Order deleted successfully');
+          fetchActiveOrders();
+        } else {
+          alert('Error deleting order');
+        }
+      })
+      .catch(error => console.error('Error deleting order:', error));
+  }
+
+  function fetchOrderItems(orderId) {
+    fetch(`/getOrderItems/${orderId}`)
+      .then(response => response.json())
+      .then(data => {
+        const { items, daysRented } = data;
+        const tableBody = document.getElementById('order_items_table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        let total = 0;
+        items.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.item_ID}</td>
+            <td>${item.item_name}</td>
+            <td>${item.item_description}</td>
+            <td>${item.item_price}</td>
+            <td>${item.item_quantity}</td>
+            <td>${item.subtotal.toFixed(2)}</td>
+          `;
+          tableBody.appendChild(row);
+          total += item.subtotal;
+        });
+
+        document.getElementById('order_items_total').textContent = total.toFixed(2);
+        document.getElementById('days_rented').textContent = `Days Rented: ${daysRented}`;
+      })
+      .catch(error => console.error('Error fetching order items:', error));
+  }
+
+  function fetchOrderDetails(orderId) {
+    fetch(`/getOrderDetails/${orderId}`)
+      .then(response => response.json())
+      .then(data => {
+        const { order, items, workers } = data;
+
+        // Fill event information
+        document.getElementById('modify_event_name').value = order.event_name;
+        document.getElementById('modify_event_timestamp').value = order.event_timestamp.slice(0, 16);
+        document.getElementById('modify_event_duration').value = order.event_duration;
+        document.getElementById('modify_assigned_manager').value = order.assigned_manager;
+        document.getElementById('modify_street').value = order.street;
+        document.getElementById('modify_barangay').value = order.barangay;
+        document.getElementById('modify_city').value = order.city;
+
+        // Fill customer information
+        document.getElementById('modify_first_name').value = order.first_name;
+        document.getElementById('modify_middle_name').value = order.middle_name;
+        document.getElementById('modify_last_name').value = order.last_name;
+        document.getElementById('modify_phone_number').value = order.phone_number;
+        document.getElementById('modify_age').value = order.age;
+        document.getElementById('modify_gender').value = order.gender;
+        document.getElementById('modify_extra_fees').value = order.extra_fees;
+
+        // Populate item and worker tables
+        populateModifyTable(items, 'modify_tables_Container', orderId);
+        populateModifyTable(items, 'modify_chairs_Container', orderId);
+        populateModifyTable(items, 'modify_misc_Container', orderId);
+        populateWorkersTable(workers, 'modify_workers_Container');
+      })
+      .catch(error => console.error('Error fetching order details:', error));
+  }
+
+  function populateModifyTable(items, tableId) {
+    const tableBody = document.getElementById(tableId).querySelector('tbody');
+    tableBody.innerHTML = '';
+  
+    items.forEach(item => {
+      // The item is considered selected if order_selected is not null
+      const isSelected = item.order_selected !== null;
+      // Use the selected_quantity if available, otherwise 0
+      const quantity = isSelected ? (item.selected_quantity || 0) : 0;
+      // available_stock is the total stock available from item_stock_tbl
+      const availableStock = item.available_stock;
+  
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <input type="checkbox" class="item-select" 
+            data-id="${item.item_ID}" 
+            data-price="${item.item_price}" 
+            data-stock="${availableStock}"
+            ${isSelected ? 'checked' : ''}>
+        </td>
+        <td>${item.item_name}</td>
+        <td>${item.item_price}</td>
+        <td>${availableStock}</td>
+        <td>
+          <input type="number" class="item-quantity" min="0" max="${availableStock}"
+            value="${quantity}" ${!isSelected ? 'disabled' : ''}>
+        </td>
+        <td class="item-subtotal">${(item.item_price * quantity).toFixed(2)}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  
+    // Attach event listeners for checkbox and quantity input to update totals
+    tableBody.querySelectorAll('.item-select').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const row = this.closest('tr');
+        const quantityInput = row.querySelector('.item-quantity');
+        if (this.checked) {
+          quantityInput.disabled = false;
+          if (parseFloat(quantityInput.value) === 0) {
+            quantityInput.value = 1; // default if not set
+          }
+        } else {
+          quantityInput.disabled = true;
+          quantityInput.value = 0;
+        }
+        updateModifySubtotal();
+      });
+    });
+  
+    tableBody.querySelectorAll('.item-quantity').forEach(input => {
+      input.addEventListener('input', updateModifySubtotal);
+    });
+  }
+  
+  function populateModifyWorkersTable(workers, tableId) {
+    const tableBody = document.getElementById(tableId).querySelector('tbody');
+    tableBody.innerHTML = '';
+  
+    workers.forEach(worker => {
+      const isSelected = worker.selected === 1;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <input type="checkbox" class="worker-select" data-id="${worker.worker_ID}"
+            ${isSelected ? 'checked' : ''}>
+        </td>
+        <td>${worker.worker_name}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  
+
+
+
+
+  
+
+  function updateModifySubtotal() {
+  let subtotal = 0;
+  // Loop through each selected item row
+  document.querySelectorAll('#modify_tables_Container .item-select:checked, #modify_chairs_Container .item-select:checked, #modify_misc_Container .item-select:checked').forEach(checkbox => {
+    const row = checkbox.closest('tr');
+    const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+    const price = parseFloat(checkbox.dataset.price) || 0;
+    const itemSubtotal = quantity * price;
+    row.querySelector('.item-subtotal').textContent = itemSubtotal.toFixed(2);
+    subtotal += itemSubtotal;
+  });
+  
+  // Optionally, apply any event duration or extra fees if needed; here we simply update the display:
+  document.getElementById('subtotal_price').textContent = subtotal.toFixed(2);
+  // For example, if extra fees are applied:
+  const extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+  const total = subtotal + extraFees;
+  document.getElementById('total_price').textContent = total.toFixed(2);
+}
+
+
+  function saveModifiedOrder(orderId) {
+    const orderData = getOrderData();
+
+    fetch(`/modifyOrder/${orderId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Order modified successfully');
+          showPage('content_active_order');
+          fetchActiveOrders();
+        } else {
+          alert('Error modifying order');
+        }
+      })
+      .catch(error => console.error('Error modifying order:', error));
+  }
+
+  // Function to fetch and display order history
+  function fetchOrderHistory() {
+    fetch('/getOrderHistory')
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('order_History_Table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        data.forEach(order => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${order.order_ID}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.event_Name}</td>
+            <td>${new Date(order.event_date).toLocaleDateString()}</td>
+            <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
+            <td>${order.total_amount}</td>
+            <td>${order.order_status}</td>
+            <td>${order.manager_name}</td>
+            <td>${order.address}</td>
+            <td>
+              <button class="view-history-order" data-id="${order.order_ID}">View</button>
+              <button class="delete-history-order" data-id="${order.order_ID}">Delete</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        // Add event listeners to the view and delete buttons
+        document.querySelectorAll('.view-history-order').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            showOrderHistoryDetails(orderId);
+          });
+        });
+
+        document.querySelectorAll('.delete-history-order').forEach(button => {
+          button.addEventListener('click', function() {
+            const orderId = this.dataset.id;
+            if (confirm('Are you sure you want to delete this order?')) {
+              deleteOrder(orderId);
+              fetchOrderHistory(); // Refresh the table after deletion
+            }
+          });
+        });
+
+        // Add search functionality
+        setupOrderHistorySearch();
+      })
+      .catch(error => console.error('Error fetching order history:', error));
+  }
+
+  // Function to show order history item details
+  function showOrderHistoryDetails(orderId) {
+    const popup = document.querySelector('.view_order_item_history');
+    popup.classList.add('active');
+    
+    fetch(`/getOrderItems/${orderId}`)
+      .then(response => response.json())
+      .then(data => {
+        const { items, daysRented } = data;
+        const tableBody = document.getElementById('order_History_Items_Table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        let total = 0;
+        items.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.item_ID}</td>
+            <td>${item.item_name}</td>
+            <td>${item.item_description || 'N/A'}</td>
+            <td>${item.item_price}</td>
+            <td>${item.item_quantity}</td>
+            <td>${item.subtotal.toFixed(2)}</td>
+          `;
+          tableBody.appendChild(row);
+          total += item.subtotal;
+        });
+
+        document.getElementById('order_history-items-total').textContent = total.toFixed(2);
+      })
+      .catch(error => console.error('Error fetching order items:', error));
+  }
+
+  // Function to set up search functionality for order history
+  function setupOrderHistorySearch() {
+    const searchInput = document.getElementById('orderHistorySearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.getElementById('order_History_Table').querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+          const orderId = row.cells[0].textContent.toLowerCase();
+          const customerName = row.cells[1].textContent.toLowerCase();
+          
+          if (orderId.includes(searchTerm) || customerName.includes(searchTerm)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  }
+
   // Initial page load
-  showPage("content_add_order");
+  showPage('content_add_order');
   importData();
 
   // LOGOUT FUNCTIONALITY
@@ -335,5 +685,51 @@ document.addEventListener('DOMContentLoaded', function() {
   if (addOrderButton) {
     addOrderButton.addEventListener('click', addOrder);
   }
+
+  document.querySelectorAll('.view-order').forEach(button => {
+    button.addEventListener('click', function() {
+      const orderId = this.dataset.id;
+      fetchOrderItems(orderId);
+      document.querySelector('.view_order_item_popup').classList.add('active');
+    });
+  });
+
+  document.getElementById('content_active_order').addEventListener('click', function() {
+    document.querySelector('.view_order_item_popup').classList.remove('active');
+    showPage('content_active_order');
+    fetchActiveOrders();
+  });
+
+  document.querySelectorAll('.modify-order').forEach(button => {
+    button.addEventListener('click', function() {
+      const orderId = this.dataset.id;
+      showPage('content_modify_order');
+      fetchOrderDetails(orderId);
+    });
+  });
+
+  const modifyItemOrderButton = document.getElementById('modify_item_order');
+    if (modifyItemOrderButton) {
+    modifyItemOrderButton.addEventListener('click', function() {
+    showPage('content_modify_item_order');
+  });
+  }
+
+  // When clicking the "Back to Order Info" button on modify item order page
+  const backToModifyOrderButton = document.getElementById('back_to_modify_order');
+  if (backToModifyOrderButton) {
+    backToModifyOrderButton.addEventListener('click', function() {
+    showPage('content_modify_order');
+  });
+  } 
+  document.getElementById('save_modify_order').addEventListener('click', function() {
+    const orderId = document.querySelector('.modify-order.active').dataset.id;
+    saveModifiedOrder(orderId);
+  });
+
+  // Add event listener for the return button in order history view
+  document.getElementById('order_history_items_return').addEventListener('click', function() {
+    document.querySelector('.view_order_item_history').classList.remove('active');
+  });
 
 });

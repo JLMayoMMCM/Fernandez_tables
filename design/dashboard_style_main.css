@@ -1,4 +1,15 @@
 /* DEVELOPED BY JONATHAN LANCE MAYO */
+:root {
+  --outline-color: rgb(0, 0, 0);
+  --header-color: rgb(51, 65, 92);
+  --header--content-color: rgb(103, 144, 226);
+  --panel-color: rgb(122, 132, 221);
+  --content-panel-color: rgb(206, 208, 212);
+
+  --default-color: rgb(255, 255, 255);
+  --table-color: rgb(206, 208, 212);
+}
+
 
 /* DEFAULT STYLES  FOR BODY */
 body {
@@ -8,7 +19,7 @@ body {
   width: 100vw;
   margin: 0;
   padding: 0;
-  color: #ffffff;
+  color: var(--default-color);
   font-size: 20px;
   font-family: 'Roboto', sans-serif;
 }
@@ -17,7 +28,7 @@ body {
 /* DEFAULT STYLES FOR BUTTONS */
 button {
   background-color: rgb(57, 81, 124);
-  color: #fff;
+  color: var(--default-color);
   border: none;
   padding: 15px 20px;
   font-size: 18px;
@@ -36,8 +47,8 @@ button:hover {
 .header {
   width: 100%;
   height: 8%;
-  background-color: rgb(27, 38, 59);
-  color: #fff;
+  background-color: var(--header-color);
+  color: var(--default-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -60,7 +71,7 @@ button:hover {
   font-size: 20px;
   font-weight: 50;
   text-align: center;
-  background-color: rgb(125, 150, 200); 
+  background-color: var(--header--content-color); 
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 0px 25px;
   border-radius: 25px;
@@ -81,9 +92,9 @@ button:hover {
   flex-direction: column;
   height: 100%;
   width: 12%;
-  background-color: rgb(27, 38, 59);
+  background-color: var(--header-color);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  color: #fff;
+  color: var(--default-color);
   transition: width 0.3s ease; /* Add transition for width */
 }
 
@@ -99,7 +110,7 @@ button:hover {
   font-weight: bold;
   text-align: center;
   margin: 10px 0;
-  color: #fff;
+  color: var(--default-color);
   text-decoration: none;
   transition: 0.3s;
 }
@@ -115,8 +126,9 @@ button:hover {
 
 .sidebar #logout {
   position: absolute;
+  align-self: center;
   bottom: 20px;
-  width: 90%;
+  width: 200px;
 }
 
 
@@ -127,14 +139,14 @@ button:hover {
   margin: 25px;
   padding: 25px;
   border-radius: 10px;
-  background-color: rgb(160, 175, 200);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: var(--panel-color);
+  border: 1px solid var(--outline-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
   flex: 1;
 
 }
 
-/* STYLES FOR NAVIGATION CONTENT */
-
+/* STYLES FOR DEFAULT CONTENT */
 .content_add_order,
 .content_add_item_order,
 .content_active_order,
@@ -142,13 +154,13 @@ button:hover {
 .content_modify_item_order,
 .content_payment_order,
 .content_order_history,
-.view_order_history_popup,
 .content_inventory_stock,
 .stock_input_container,
 .item_input_container {
   display:none;
 }
 
+/* STYLES FOR ACTIVE CONTENT */
 .content_add_order.active ,
 .content_add_item_order.active,
 .content_active_order.active,
@@ -156,7 +168,6 @@ button:hover {
 .content_modify_item_order.active,
 .content_payment_order.active,
 .content_order_history.active,
-.view_order_history_popup.active,
 .content_inventory_stock.active,
 .stock_input_container.active,
 .item_input_container.active {
@@ -167,6 +178,32 @@ button:hover {
   height: 100%;
 }
 
+
+/* STYLES FOR POPUP WINDOWS */
+.view_order_item_popup,
+.view_order_item_history,
+.view_stock_input,
+.view_item_input{
+  display: none;
+}
+
+/* STYLES FOR ACTIVE POPUP WINDOWS */
+.view_order_item_popup.active,
+.view_order_item_history.active,
+.view_stock_input.active,
+.view_item_input.active {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+
+  background-color: rgba(0, 0, 0, 0.8);
+}
 
 
 .add_order_container, .modify_order_container {
@@ -201,7 +238,7 @@ h1, h2 {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background-color: rgb(125, 150, 200);
+  background-color: var(--content-panel-color);
   border-radius: 10px;
   padding: 25px;
   width: 720px;
@@ -257,8 +294,6 @@ h1, h2 {
 
 .table_wrapper {
   background-color: rgb(206, 208, 212);
-
-  overflow-y: auto;
   overflow-x: hidden;
   width: 720px;
   height: 240px;
@@ -334,20 +369,33 @@ h1, h2 {
 
 /* STYLES FOR ACTIVE TABLE */
 
-.content_active_orders .table_wrapper
+.content_active_order table {
+  border-collapse: collapse;
+}
+
+.content_active_order .table_wrapper
  {
-  height: 100%;
+  height: 100vh;
   width: 100%;
   border-radius: 10px;
+  overflow-y: hidden;
+  overflow-x: hidden;
 }
-.content_active_orders table {
+
+.content_active_order tr {
+  display: table;
+  width: 100%;
+}
+.content_active_order table {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
   background-color: rgb(206, 208, 212);
 }
-.content_active_orders table th {
-  font-size: 28px;
+
+.content_active_order table th {
+  font-size: 24px;
+  height: 6vh;
   background-color: rgb(57, 81, 124);
   font-weight: 500;
   text-align: center;
@@ -355,84 +403,64 @@ h1, h2 {
   top: 0;
 }
 
-.content_active_orders table th:nth-child(1) {
-  width: 180px;
-}
-.content_active_orders table th:nth-child(2) {
-  width: 180px;
-}
-.content_active_orders table th:nth-child(3) {
-  width: 180px;
-}
-.content_active_orders table th:nth-child(4) {
-  width: 120px;
-}
-.content_active_orders table th:nth-child(5) {
-  width: 160px;
-}
-.content_active_orders table th:nth-child(6) {
-  width: 160px;
-}
-
-.content_active_orders table td {
+.content_active_order table td {
   color:#000;
-  font-size: 24px;
+  font-size: 16px;
   font-weight: 20;
   height: 20px;
   text-align: center;
+}
+
+.content_active_order table tbody {
+  height: 75vh;
+  width: 100%;
+  display: block;
+  overflow-y:scroll   ;
+}
+
+.content_active_order table th:nth-child(1),
+.content_active_order table td:nth-child(1){
+  width: 120px;
+}
+.content_active_order table th:nth-child(2),
+.content_active_order table td:nth-child(2) {
+  width: 150px;
+}
+.content_active_order table th:nth-child(3),
+.content_active_order table td:nth-child(3) {
+  width: 220px;
+}
+.content_active_order table th:nth-child(4),
+.content_active_order table td:nth-child(4) {
+  width: 100px;
+}
+.content_active_order table th:nth-child(5),
+.content_active_order table td:nth-child(5) {
+  width: 160px;
+}
+.content_active_order table th:nth-child(6),
+.content_active_order table td:nth-child(6) {
+  width: 160px;
+}
+
+.content_active_order table th:nth-child(7),
+.content_active_order table td:nth-child(7) {
+  width: 220px;
+}
+
+.content_active_order table th:nth-child(8),
+.content_active_order table td:nth-child(8) {
+  width: 120px;
+}
+
+.content_active_order table th:nth-child(9),
+.content_active_order table td:nth-child(9) {
+  width: auto;
 }
 /* END OF ACTIVE TABLE STYLES */
 
 /* STYLES FOR MODIFY SY */
 
-
-
-/* View Popup Modal Styles */
-.popup_view {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 1000;
-}
-.popup_view .popup-content {
-  position: fixed;
-    top: 150px;
-    left: 400px;
-  background-color: #fff;
-  color: #000;
-  padding: 20px;
-  border-radius: 8px;
-  width: 1280px;
-  height: 600px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
-.popup_view .close {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  font-size: 30px;
-  cursor: pointer;
-  color: #000;
-}
-
-.popup-content .table_wrapper {
-  background-color: rgb(206, 208, 212);
-  border: 1px solid black;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 1240px;
-  height: 480px;
-}
 
 #orderItemsTable {
   width: 100%;
@@ -440,6 +468,8 @@ h1, h2 {
   border-radius: 5px;
   background-color: rgb(206, 208, 212);
 }
+
+
 
 #orderItemsTable th {
   border: 1px solid black;
@@ -467,6 +497,7 @@ h1, h2 {
   width: 100%;
   border-radius: 10px;
 }
+
 
 .content_order_history table {
   width: 100%;
@@ -534,4 +565,18 @@ h1, h2 {
   font-size: 18px;
   height: 20px;
   text-align: center;
+}
+
+
+/* STYLES FOR POPUP WINDOWS */
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  height: 60%;
+  width: 60%;
+  justify-content: space-evenly;
+  background-color: var(--panel-color);
+
 }
