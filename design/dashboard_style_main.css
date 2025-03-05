@@ -84,10 +84,15 @@ button:hover {
   background-color: rgb(27, 38, 59);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   color: #fff;
+  transition: width 0.3s ease; /* Add transition for width */
+}
+
+.sidebar.collapsed {
+  width: 5%; /* Adjust width when collapsed */
 }
 
 /* SIDEBAR NAVIGATION STYLES */
-.sidebar a {
+.sidebar .nav-button {
   display: block;
   padding: 10px 20px;
   font-size: 20px;
@@ -98,17 +103,22 @@ button:hover {
   text-decoration: none;
   transition: 0.3s;
 }
-.sidebar a:hover {
+.sidebar .nav-button:hover {
   background-color: rgb(125, 150, 200);
 }
 
-.sidebar button {
-  position: absolute;
-  align-self: center;
-  bottom: 50px;
-  width: 200px;
-  margin-top: auto;
+.nav-button.active {
+  background-color: rgb(125, 200, 250) !important;
+  color: black !important;
 }
+
+
+.sidebar #logout {
+  position: absolute;
+  bottom: 20px;
+  width: 90%;
+}
+
 
 /* CONTENT STYLES */
 .content_panel {
@@ -125,19 +135,31 @@ button:hover {
 
 /* STYLES FOR NAVIGATION CONTENT */
 
-.content_add_orders,
-.content_active_orders,
-.content_payment,
-.content_history,
-.content_inventory_stock {
-  display: none;
+.content_add_order,
+.content_add_item_order,
+.content_active_order,
+.content_modify_order,
+.content_modify_item_order,
+.content_payment_order,
+.content_order_history,
+.view_order_history_popup,
+.content_inventory_stock,
+.stock_input_container,
+.item_input_container {
+  display:none;
 }
 
-.content_add_orders.active,
-.content_active_orders.active,
-.content_payment.active,
-.content_history.active,
-.content_inventory_stock.active {
+.content_add_order.active ,
+.content_add_item_order.active,
+.content_active_order.active,
+.content_modify_order.active,
+.content_modify_item_order.active,
+.content_payment_order.active,
+.content_order_history.active,
+.view_order_history_popup.active,
+.content_inventory_stock.active,
+.stock_input_container.active,
+.item_input_container.active {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
@@ -153,7 +175,7 @@ button:hover {
   justify-content: space-evenly;
 }
 
-.content_history.active,
+.content_order_history.active,
 .content_inventory_stock.active {
   display: flex;
   flex-direction: column;
@@ -233,7 +255,7 @@ h1, h2 {
   margin: 10px;
 }
 
-.table_Wrapper {
+.table_wrapper {
   background-color: rgb(206, 208, 212);
 
   overflow-y: auto;
@@ -241,6 +263,16 @@ h1, h2 {
   width: 720px;
   height: 240px;
 }
+
+.item_and_worker_info
+{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  width: 100%;
+  height: 100%;
+}
+
 
 .item_and_worker_info table {
   height: 100%;
@@ -302,7 +334,7 @@ h1, h2 {
 
 /* STYLES FOR ACTIVE TABLE */
 
-.content_active_orders .table_Wrapper
+.content_active_orders .table_wrapper
  {
   height: 100%;
   width: 100%;
@@ -393,7 +425,7 @@ h1, h2 {
   color: #000;
 }
 
-.popup-content .table_Wrapper {
+.popup-content .table_wrapper {
   background-color: rgb(206, 208, 212);
   border: 1px solid black;
   overflow-y: auto;
@@ -430,20 +462,20 @@ h1, h2 {
   font-size: 16px;
 }
 
-.content_history .table_Wrapper {
+.content_order_history .table_wrapper {
   height: 600px;
   width: 100%;
   border-radius: 10px;
 }
 
-.content_history table {
+.content_order_history table {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
   background-color: rgb(206, 208, 212);
 }
 
-.content_history table th {
+.content_order_history table th {
   border: 1px solid black;
   background-color: rgb(57, 81, 124);
   font-weight: 600;
@@ -452,14 +484,14 @@ h1, h2 {
   top: 0;
 }
 
-.content_history table td {
+.content_order_history table td {
   border: 1px solid black;
   font-size: 18px;
   height: 20px;
   text-align: center;
 }
 
-.content_history table th:nth-child(1) {
+.content_order_history table th:nth-child(1) {
   width: 120px;
 }
 
@@ -477,7 +509,7 @@ h1, h2 {
 }
 
 
-.inventory_tables .table_Wrapper {
+.inventory_tables .table_wrapper {
   height: 200px;
   width: 100%;
   border-radius: 10px;
