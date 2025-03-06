@@ -36,3 +36,21 @@ DROP TABLE item_stock_tbl;
 DROP TABLE item_tbl;
 DROP TABLE item_type_TBL;
 DROP TABLE liability_tbl;
+
+
+UPDATE staff_tbl
+SET staff_password = 'WVhOa1ptYz0=';
+
+
+CREATE TABLE liabilities_tbl (
+    finance_ID INT(8) NOT NULL,
+    liability_title VARCHAR(50) NOT NULL,
+    item_ID INT(8) NOT NULL,
+    item_quantity INT NOT NULL,
+    liability_description VARCHAR(100) NOT NULL,
+    liability_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    manager_ID INT NOT NULL,
+    FOREIGN KEY (manager_ID) REFERENCES manager_tbl (manager_ID),
+    FOREIGN KEY (item_ID) REFERENCES item_tbl (item_ID),
+    FOREIGN KEY (finance_ID) REFERENCES finance_tbl (finance_ID)
+);

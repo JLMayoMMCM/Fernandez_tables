@@ -293,23 +293,31 @@ app.get('/getOrderItems/:orderId', (req, res) => {
     WHERE od.order_ID = ?
   `;
 
-
   db.query(query, [orderId], (err, results) => {
     if (err) throw err;
 
-    const eventQuery = `
-      SELECT event_date, end_event_date
-      FROM event_info_tbl
-      WHERE order_ID = ?
+    const orderInfoQuery = `
+      SELECT e.event_date, e.end_event_date, f.extra_Fee
+      FROM event_info_tbl e
+      JOIN finance_tbl f ON e.order_ID = f.order_ID
+      WHERE e.order_ID = ?
     `;
 
-    db.query(eventQuery, [orderId], (err, eventResults) => {
+    db.query(orderInfoQuery, [orderId], (err, orderResults) => {
       if (err) throw err;
 
-      const { event_date, end_event_date } = eventResults[0];
+      if (orderResults.length === 0) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      const { event_date, end_event_date, extra_Fee } = orderResults[0];
       const daysRented = Math.ceil((new Date(end_event_date) - new Date(event_date)) / (1000 * 60 * 60 * 24));
 
-      res.json({ items: results, daysRented });
+      res.json({ 
+        items: results, 
+        daysRented, 
+        extraFees: extra_Fee 
+      });
     });
   });
 });
@@ -1015,13 +1023,221 @@ app.post('/addStock', (req, res) => {
   });
 });
 
+// Get staff information - corrected version with proper address relationship
+app.get('/getStaffInfo', (req, res) => {
+  const query = `
+SELECT 
+    s.staff_id, 
+    CONCAT(p.first_Name, ' ', IFNULL(p.middle_Name, ''), ' ', p.last_Name) AS worker_name,
+    p.age,
+    p.phone_Number,
+    w.worker_ID,
+    CASE 
+        WHEN a.address_ID IS NOT NULL THEN CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name)
+        ELSE 'No address available'
+    END AS address
+    FROM worker_tbl w
+    JOIN staff_tbl s ON w.staff_ID = s.staff_id
+    JOIN person_tbl p ON s.person_ID = p.person_id
+    LEFT JOIN address_tbl a ON a.address_ID = p.person_id
+    ORDER BY s.staff_id
+
+  `;
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching staff information:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    console.log('Staff info results:', results);
+    res.json(results);
+  });
+});
+
+// Endpoint to fire a worker
+app.delete('/fireWorker/:workerId', (req, res) => {
+  const workerId = req.params.workerId;
+
+  db.beginTransaction(err => {
+    if (err) throw err;
+
+    // First, retrieve all IDs we need to delete at the end
+    const getIdsQuery = `
+      SELECT s.staff_id, s.person_ID
+      FROM worker_tbl w
+      JOIN staff_tbl s ON w.staff_ID = s.staff_id
+      WHERE w.worker_ID = ?
+    `;
+
+    db.query(getIdsQuery, [workerId], (err, idResults) => {
+      if (err) return db.rollback(() => { throw err; });
+      
+      if (idResults.length === 0) {
+        return db.rollback(() => res.status(404).json({ success: false, message: 'Worker not found' }));
+      }
+
+      const { staff_id, person_ID } = idResults[0];
+
+      // Delete from assigned_worker_tbl first
+      const deleteAssignedWorkersQuery = 'DELETE FROM assigned_worker_tbl WHERE worker_ID = ?';
+      db.query(deleteAssignedWorkersQuery, [workerId], (err) => {
+        if (err) return db.rollback(() => { throw err; });
+
+        // Delete from worker_tbl
+        const deleteWorkerQuery = 'DELETE FROM worker_tbl WHERE worker_ID = ?';
+        db.query(deleteWorkerQuery, [workerId], (err) => {
+          if (err) return db.rollback(() => { throw err; });
+
+          // Delete from staff_tbl
+          const deleteStaffQuery = 'DELETE FROM staff_tbl WHERE staff_id = ?';
+          db.query(deleteStaffQuery, [staff_id], (err) => {
+            if (err) return db.rollback(() => { throw err; });
+
+            // Finally delete the person record
+            const deletePersonQuery = 'DELETE FROM person_tbl WHERE person_id = ?';
+            db.query(deletePersonQuery, [person_ID], (err) => {
+              if (err) return db.rollback(() => { throw err; });
+
+              db.commit(err => {
+                if (err) return db.rollback(() => { throw err; });
+                res.json({ success: true, message: 'Worker and all related records deleted successfully' });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
+// Get assigned orders for a worker
+app.get('/getAssignedOrders/:workerId', (req, res) => {
+  const workerId = req.params.workerId;
+  
+  const query = `
+    SELECT 
+      o.order_ID, 
+      e.event_Name, 
+      e.event_date, 
+      e.end_event_date
+    FROM assigned_worker_tbl aw
+    JOIN order_info_tbl o ON aw.order_ID = o.order_ID
+    JOIN event_info_tbl e ON o.order_ID = e.order_ID
+    WHERE aw.worker_ID = ? 
+    AND e.end_event_date > NOW()
+    ORDER BY e.event_date DESC
+  `;
+  
+  db.query(query, [workerId], (err, results) => {
+    if (err) {
+      console.error('Error fetching assigned orders:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// Get genders (for worker form)
+app.get('/getGenders', (req, res) => {
+  const query = 'SELECT gender_ID AS id, gender_Name AS name FROM gender_tbl';
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching genders:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    res.json(results);
+  });
+});
+
+// Add new worker
+app.post('/addWorker', (req, res) => {
+  const {
+    first_name, middle_name, last_name, phone_number,
+    age, gender, password
+  } = req.body;
+  
+  if (!first_name || !last_name || !phone_number || !age || !gender || !password) {
+    return res.status(400).json({ 
+      success: false, 
+      message: 'All required fields must be provided' 
+    });
+  }
+  
+  db.beginTransaction(err => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    
+    // 1. Insert person record
+    const personQuery = 'INSERT INTO person_tbl (first_Name, last_Name, middle_Name, phone_Number, age, gender_ID) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(personQuery, [first_name, last_name, middle_name, phone_number, age, gender], (err, personResult) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error('Error adding person:', err);
+          res.status(500).json({ success: false, message: err.message });
+        });
+      }
+      
+      const personId = personResult.insertId;
+      const encryptedPassword = Buffer.from(Buffer.from(password).toString('base64')).toString('base64');
+      
+      // 2. Insert staff record
+      const staffQuery = 'INSERT INTO staff_tbl (staff_Password, person_ID, date_hired) VALUES (?, ?, NOW())';
+      db.query(staffQuery, [encryptedPassword, personId], (err, staffResult) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error('Error adding staff:', err);
+            res.status(500).json({ success: false, message: err.message });
+          });
+        }
+        
+        const staffId = staffResult.insertId;
+        
+        // 3. Insert worker record
+        const workerQuery = 'INSERT INTO worker_tbl (staff_ID) VALUES (?)';
+        db.query(workerQuery, [staffId], (err, workerResult) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error('Error adding worker:', err);
+              res.status(500).json({ success: false, message: err.message });
+            });
+          }
+          
+          // Commit the transaction
+          db.commit(err => {
+            if (err) {
+              return db.rollback(() => {
+                console.error('Error committing transaction:', err);
+                res.status(500).json({ success: false, message: err.message });
+              });
+            }
+            
+            res.json({ 
+              success: true, 
+              message: 'Worker added successfully',
+              workerId: workerResult.insertId,
+              staffId: staffId
+            });
+          });
+        });
+      });
+    });
+  });
+});
+
 // NAVIGATION
 app.get('/', (_, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/dashboard', (_, res) => {
-  res.sendFile(__dirname + '/mainPage/dashboard_main.html');
+app.get('/dashboard', (req, res) => {
+  if (req.session.userID) {
+    res.sendFile(path.join(__dirname, '/mainPage/dashboard_main.html'));
+  } else {
+    res.redirect('/login');
+  }
 });
 
 app.get('/login', (_, res) => {

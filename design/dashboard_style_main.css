@@ -5,9 +5,15 @@
   --header--content-color: #778DA9;
   --panel-color: #a7d0ff;
   --content-panel-color: #d9ebff;
-
-  --default-color: rgb(255, 255, 255);
+  --default-color: rgb(0, 0, 0);
   --table-color: rgb(206, 208, 212);
+  --button-bg-color: rgb(57, 81, 124);
+  --button-hover-bg-color: rgb(125, 150, 200);
+  --button-active-bg-color: rgb(125, 200, 250);
+  --table-header-bg-color: rgb(57, 81, 124);
+  --popup-bg-color: rgba(0, 0, 0, 0.8);
+  --table-row-bg-color: rgb(206, 208, 212);
+  --table-header-color: white;
 }
 
 
@@ -27,7 +33,7 @@ body {
 
 /* DEFAULT STYLES FOR BUTTONS */
 button {
-  background-color: rgb(57, 81, 124);
+  background-color: var(--button-bg-color);
   color: var(--default-color);
   border: none;
   padding: 15px 20px;
@@ -40,7 +46,7 @@ button {
 
 /* VISUAL RESPONSE FOR BUTTON HOVER */
 button:hover {
-  background-color: rgb(125, 150, 200);
+  background-color: var(--button-hover-bg-color);
 }
 
 /* TOP HEADER STYLES */
@@ -115,11 +121,11 @@ button:hover {
   transition: 0.3s;
 }
 .sidebar .nav-button:hover {
-  background-color: rgb(125, 150, 200);
+  background-color: var(--button-hover-bg-color);
 }
 
 .nav-button.active {
-  background-color: rgb(125, 200, 250) !important;
+  background-color: var(--button-active-bg-color) !important;
   color: black !important;
 }
 
@@ -155,6 +161,7 @@ button:hover {
 .content_payment_order,
 .content_order_history,
 .content_inventory_stock,
+.content_staff_info,
 .stock_input_container,
 .item_input_container {
   display:none;
@@ -169,6 +176,7 @@ button:hover {
 .content_payment_order.active,
 .content_order_history.active,
 .content_inventory_stock.active,
+.content_staff_info.active,
 .stock_input_container.active,
 .item_input_container.active {
   display: flex;
@@ -183,7 +191,9 @@ button:hover {
 .view_order_item_popup,
 .view_order_item_history,
 .view_stock_input,
-.view_item_input{
+.view_item_input,
+.view_assigned_orders_popup,
+.view_add_worker_popup {
   display: none;
 }
 
@@ -191,8 +201,10 @@ button:hover {
 .view_order_item_popup.active,
 .view_order_item_history.active,
 .view_stock_input.active,
-.view_item_input.active {
-  display: flex;
+.view_item_input.active,
+.view_assigned_orders_popup.active,
+.view_add_worker_popup.active {
+  display: flex;  
   position: fixed;
   top: 0;
   left: 0;
@@ -201,8 +213,7 @@ button:hover {
   align-content: center;
   align-items: center;
   justify-content: center;
-
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: var(--popup-bg-color);
 }
 
 
@@ -293,7 +304,7 @@ h1, h2 {
 }
 
 .table_wrapper {
-  background-color: rgb(206, 208, 212);
+  background-color: var(--table-color);
   overflow-x: hidden;
   width: 720px;
   height: 240px;
@@ -316,7 +327,7 @@ h1, h2 {
   border-collapse: collapse;
 }
 .item_and_worker_info table th {
-  background-color: rgb(115, 118, 124);
+  background-color: var(--table-header-bg-color);
   height: 20px;
   font-weight: 600;
   text-align: center;
@@ -346,7 +357,7 @@ h1, h2 {
   width: 100px;
 }
 
-.item_and_worker_info table th:nth-child(6) {
+item_and_worker_info table th:nth-child(6) {
   width: 100px;
 }
 
@@ -390,13 +401,14 @@ h1, h2 {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
-  background-color: rgb(206, 208, 212);
+  background-color: var(--table-row-bg-color);
 }
 
 .content_active_order table th {
   font-size: 24px;
   height: 6vh;
-  background-color: rgb(57, 81, 124);
+  background-color: var(--table-header-bg-color);
+  color: var(--table-header-color);
   font-weight: 500;
   text-align: center;
   position: sticky;
@@ -404,7 +416,7 @@ h1, h2 {
 }
 
 .content_active_order table td {
-  color:#000;
+  color: var(--default-color);
   font-size: 16px;
   font-weight: 20;
   height: 20px;
@@ -466,14 +478,14 @@ h1, h2 {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
-  background-color: rgb(206, 208, 212);
+  background-color: var(--table-row-bg-color);
 }
 
 
 
 #orderItemsTable th {
-  border: 1px solid black;
-  background-color: rgb(57, 81, 124);
+  border: 1px solid var(--outline-color);
+  background-color: var(--table-header-bg-color);
   font-weight: 600;
   text-align: center;
   position: sticky;
@@ -481,7 +493,7 @@ h1, h2 {
 }
 
 #orderItemsTable td {
-  border: 1px solid black;
+  border: 1px solid var(--outline-color);
   font-size: 18px;
   height: 20px;
   text-align: center;
@@ -503,12 +515,12 @@ h1, h2 {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
-  background-color: rgb(206, 208, 212);
+  background-color: var(--table-row-bg-color);
 }
 
 .content_order_history table th {
-  border: 1px solid black;
-  background-color: rgb(57, 81, 124);
+  border: 1px solid var(--outline-color);
+  background-color: var(--table-header-bg-color);
   font-weight: 600;
   text-align: center;
   position: sticky;
@@ -516,7 +528,7 @@ h1, h2 {
 }
 
 .content_order_history table td {
-  border: 1px solid black;
+  border: 1px solid var(--outline-color);
   font-size: 18px;
   height: 20px;
   text-align: center;
@@ -550,11 +562,11 @@ h1, h2 {
   width: 100%;
   border-collapse: collapse;
   border-radius: 5px;
-  background-color: rgb(206, 208, 212);
+  background-color: var(--table-row-bg-color);
 }
 
 .inventory_tables table th {
-  background-color: rgb(57, 81, 124);
+  background-color: var(--table-header-bg-color);
   font-weight: 600;
   text-align: center;
   position: sticky;
@@ -579,4 +591,85 @@ h1, h2 {
   justify-content: space-evenly;
   background-color: var(--panel-color);
 
+}
+
+/* STYLES FOR STAFF INFO TABLE */
+.content_staff_info .table_wrapper {
+  height: 600px;
+  width: 100%;
+  border-radius: 10px;
+  overflow-y: auto;
+}
+
+.content_staff_info table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: var(--table-color);
+}
+
+.content_staff_info table th {
+  background-color: var(--table-header-bg-color);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  padding: 10px;
+}
+
+.content_staff_info table td {
+  font-size: 16px;
+  height: 32px;
+  text-align: center;
+  padding: 8px;
+}
+
+/* STYLES FOR ASSIGNED ORDERS TABLE */
+#assigned_orders_table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#assigned_orders_table th {
+  background-color: var(--table-header-bg-color);
+  padding: 10px;
+  text-align: center;
+}
+
+#assigned_orders_table td {
+  padding: 8px;
+  text-align: center;
+}
+
+/* STYLES FOR ADD WORKER FORM */
+.add_worker_container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.worker_info {
+  background-color: var(--content-panel-color);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.worker_info h4 {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+
+.order_cost_summary {
+  background-color: var(--content-panel-color);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.order_cost_summary h4 {
+  margin: 5px 0;
+  font-size: 16px;
 }

@@ -8,14 +8,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const userID = document.getElementById('userID').value;
       const staffPassword = document.getElementById('staffPassword').value;
-      const encryptedPassword = btoa(staffPassword);
-
+      
+      // Don't double-encode the password here, send it as-is and let server handle encryption
       fetch('/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'application/json'  // Change to JSON content type
         },
-        body: `userID=${userID}&staffPassword=${encryptedPassword}`
+        body: JSON.stringify({  // Use JSON.stringify instead of urlencoded format
+          userID: userID,
+          staffPassword: staffPassword
+        })
       })
       .then(response => {
         if (!response.ok) {
@@ -26,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(data => {
         if (data.success) {
           alert('Login successful');
-          window.location.href = data.redirectUrl;
+          window.location.href = data.redirectUrl;  // This should work now
         } else {
           alert('Invalid login credentials');
         }
@@ -79,6 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchInventoryItems();
         fetchStockInfo();
       }
+      if (page === 'content_staff_info') {
+        fetchStaffInfo();
+      }
     });
   });
 
@@ -87,6 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (addItemOrderButton) {
     addItemOrderButton.addEventListener('click', function() {
       showPage('content_add_item_order');
+      setTimeout(function() {
+        // Ensure subtotal is updated when page is shown
+        updateSubtotal();
+      }, 100);
     });
   }
 
@@ -95,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (backToAddOrder) {
     backToAddOrder.addEventListener('click', function() {
       showPage('content_add_order');
+      setTimeout(function() {
+        // Ensure subtotal is updated when page is shown
+        updateSubtotal();
+      }, 100);
     });
   }
 
@@ -131,22 +145,28 @@ document.addEventListener('DOMContentLoaded', function() {
     items.forEach(item => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td><input type="checkbox" class="item-select" data-id="${item.item_ID}" data-price="${item.item_price}" data-stock="${item.item_quantity}"></td>
-        <td>${item.item_name}</td>
-        <td>${item.item_price}</td>
+        <td class="item-id" data-id="${item.item_ID}">${item.item_name}</td>
+        <td class="item-price">${item.item_price}</td>
         <td>${item.item_quantity}</td>
-        <td><input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0"></td>
+        <td><input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0" data-id="${item.item_ID}" data-price="${item.item_price}"></td>
         <td class="item-subtotal">0.00</td>
       `;
       tableBody.appendChild(row);
     });
 
-    // Add event listeners for quantity inputs and checkboxes
-    tableBody.querySelectorAll('.item-select').forEach(checkbox => {
-      checkbox.addEventListener('change', updateSubtotal);
-    });
+    // Add event listeners for quantity inputs with validation
     tableBody.querySelectorAll('.item-quantity').forEach(input => {
-      input.addEventListener('input', updateSubtotal);
+      input.addEventListener('input', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
+        updateSubtotal();
+      });
+      
+      input.addEventListener('blur', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
+        updateSubtotal();
+      });
     });
   }
 
@@ -176,45 +196,98 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  const eventDurationElement = document.getElementById('event_duration');
-  if (eventDurationElement) {
-    eventDurationElement.addEventListener('input', updateSubtotal);
-  }
   document.getElementById('extra_fees').addEventListener('input', updateSubtotal);
 
+  // Add input validation to ensure values are within acceptable ranges
+  function validateNumericInput(input, minValue, maxValue) {
+    let value = parseFloat(input.value);
+    
+    if (isNaN(value) || value < minValue) {
+      input.value = minValue;
+      return minValue;
+    } else if (value > maxValue) {
+      input.value = maxValue;
+      return maxValue;
+    }
+    
+    return value;
+  }
 
+  // Updated updateSubtotal function to properly target elements across add order pages
   function updateSubtotal() {
     let subtotal = 0;
-    const checkboxes = document.querySelectorAll('#tables_Container .item-select:checked, #chairs_Container .item-select:checked, #misc_Container .item-select:checked');
+    const quantityInputs = document.querySelectorAll('#tables_Container .item-quantity, #chairs_Container .item-quantity, #misc_Container .item-quantity');
     
-    checkboxes.forEach(checkbox => {
-      const row = checkbox.closest('tr');
-      const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-      const price = parseFloat(checkbox.dataset.price) || 0;
+    quantityInputs.forEach(input => {
+      const quantity = parseFloat(input.value) || 0;
+      const price = parseFloat(input.dataset.price) || 0;
+      const row = input.closest('tr');
       const subtotalCell = row.querySelector('.item-subtotal');
       
       const itemSubtotal = quantity * price;
       subtotalCell.textContent = itemSubtotal.toFixed(2);
-      subtotal += itemSubtotal;
+      if (quantity > 0) {
+        subtotal += itemSubtotal;
+      }
     });
     
+    // Get event duration value
     const eventDuration = parseFloat(document.getElementById('event_duration').value) || 1;
     const subtotalPrice = subtotal * eventDuration;
     
-    // Update the subtotal element in Add Order form
-    const subtotalElement = document.querySelector('.content_add_order #subtotal_price, .content_add_item_order #subtotal_price');
-    if (subtotalElement) {
-      subtotalElement.textContent = subtotalPrice.toFixed(2);
-    }
-    
+    // Get extra fees value
     const extraFees = parseFloat(document.getElementById('extra_fees').value) || 0;
     const totalPrice = subtotalPrice + extraFees;
     
-    // Update the total price element in Add Order form
-    const totalElement = document.querySelector('.content_add_order #total_price, .content_add_item_order #total_price');
-    if (totalElement) {
-      totalElement.textContent = totalPrice.toFixed(2);
-    }
+    // Update all subtotal and total price elements in add order pages
+    const subtotalElements = document.querySelectorAll('#add_subtotal_price');
+    subtotalElements.forEach(el => {
+      if (el) el.textContent = subtotalPrice.toFixed(2);
+    });
+    
+    const totalElements = document.querySelectorAll('#add_total_price');
+    totalElements.forEach(el => {
+      if (el) el.textContent = totalPrice.toFixed(2);
+    });
+  }
+
+  // Updated updateModifySubtotal function to properly target elements across modify order pages
+  function updateModifySubtotal() {
+    let subtotal = 0;
+    // Loop over every quantity input in modify item containers
+    document.querySelectorAll(
+      '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
+    ).forEach(input => {
+      const quantity = parseFloat(input.value) || 0;
+      const price = parseFloat(input.dataset.price) || 0;
+      const row = input.closest('tr');
+      const subtotalCell = row.querySelector('.item-subtotal');
+      
+      const itemSubtotal = quantity * price;
+      subtotalCell.textContent = itemSubtotal.toFixed(2);
+      if (quantity > 0) {
+        subtotal += itemSubtotal;
+      }
+    });
+    
+    // Get event duration for modify order form
+    const eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+    const subtotalPrice = subtotal * eventDuration;
+    
+    // Get extra fees from the modify order extra fees input
+    const extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+    const totalPrice = subtotalPrice + extraFees;
+    
+    // Update all subtotal and total price elements in modify order pages
+    const subtotalElements = document.querySelectorAll('#modify_subtotal_Price');
+    subtotalElements.forEach(el => {
+      if (el) el.textContent = subtotalPrice.toFixed(2);
+    });
+    
+    const totalElements = document.querySelectorAll('#modify_total_Price');
+    totalElements.forEach(el => {
+      if (el) el.textContent = totalPrice.toFixed(2);
+    });
   }
 
   function getOrderData() {
@@ -281,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const selectedItems = getSelectedItems();
-    if (selectedItems.length === 0 || !selectedItems.some(item => item.quantity > 0)) {
+    if (selectedItems.length === 0) {
       return false;
     }
 
@@ -295,12 +368,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function getSelectedItems() {
     const items = [];
-    document.querySelectorAll('.item-select:checked').forEach(checkbox => {
-      const row = checkbox.closest('tr');
-      const itemId = checkbox.dataset.id;
-      const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-      const price = parseFloat(checkbox.dataset.price) || 0;
-      items.push({ item_id: itemId, quantity, price });
+    document.querySelectorAll('#tables_Container .item-quantity, #chairs_Container .item-quantity, #misc_Container .item-quantity').forEach(input => {
+      const quantity = parseFloat(input.value) || 0;
+      if (quantity > 0) {
+        const itemId = input.dataset.id;
+        const price = parseFloat(input.dataset.price) || 0;
+        items.push({ item_id: itemId, quantity, price });
+      }
     });
     return items;
   }  
@@ -409,11 +483,11 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch(`/getOrderItems/${orderId}`)
       .then(response => response.json())
       .then(data => {
-        const { items, daysRented } = data;
+        const { items, daysRented, extraFees } = data;
         const tableBody = document.getElementById('order_items_table').querySelector('tbody');
         tableBody.innerHTML = '';
 
-        let total = 0;
+        let itemsSubtotal = 0;
         items.forEach(item => {
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -425,11 +499,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <td>${item.subtotal.toFixed(2)}</td>
           `;
           tableBody.appendChild(row);
-          total += item.subtotal;
+          itemsSubtotal += item.subtotal;
         });
 
-        document.getElementById('order_items_total').textContent = total.toFixed(2);
+        // Calculate the costs
+        const subtotalWithDays = itemsSubtotal * daysRented;
+        const totalPrice = subtotalWithDays + parseFloat(extraFees || 0);
+
+        // Display the cost information
         document.getElementById('days_rented').textContent = `Days Rented: ${daysRented}`;
+        document.getElementById('order_items_subtotal').textContent = itemsSubtotal.toFixed(2);
+        document.getElementById('order_subtotal_with_days').textContent = subtotalWithDays.toFixed(2);
+        document.getElementById('order_extra_fees').textContent = (extraFees || 0).toFixed(2);
+        document.getElementById('order_items_total').textContent = totalPrice.toFixed(2);
       })
       .catch(error => console.error('Error fetching order items:', error));
   }
@@ -489,45 +571,28 @@ document.addEventListener('DOMContentLoaded', function() {
   
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>
-          <input type="checkbox" class="item-select" 
-            data-id="${item.item_ID}" 
-            data-price="${item.item_price}" 
-            data-stock="${availableStock}"
-            ${isSelected ? 'checked' : ''}>
-        </td>
-        <td>${item.item_name}</td>
-        <td>${item.item_price}</td>
+        <td class="item-id" data-id="${item.item_ID}">${item.item_name}</td>
+        <td class="item-price">${item.item_price}</td>
         <td>${availableStock}</td>
-        <td>
-          <input type="number" class="item-quantity" min="0" max="${availableStock}"
-            value="${quantity}" ${!isSelected ? 'disabled' : ''}>
-        </td>
+        <td><input type="number" class="item-quantity" min="0" max="${availableStock}" value="${quantity}" data-id="${item.item_ID}" data-price="${item.item_price}"></td>
         <td class="item-subtotal">${(item.item_price * quantity).toFixed(2)}</td>
       `;
       tableBody.appendChild(row);
     });
   
-    // Attach event listeners for checkbox and quantity input to update totals
-    tableBody.querySelectorAll('.item-select').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const row = this.closest('tr');
-        const quantityInput = row.querySelector('.item-quantity');
-        if (this.checked) {
-          quantityInput.disabled = false;
-          if (parseFloat(quantityInput.value) === 0) {
-            quantityInput.value = 1; // default if not set
-          }
-        } else {
-          quantityInput.disabled = true;
-          quantityInput.value = 0;
-        }
+    // Attach event listeners for quantity input to update totals
+    tableBody.querySelectorAll('.item-quantity').forEach(input => {
+      input.addEventListener('input', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
         updateModifySubtotal();
       });
-    });
-  
-    tableBody.querySelectorAll('.item-quantity').forEach(input => {
-      input.addEventListener('input', updateModifySubtotal);
+      
+      input.addEventListener('blur', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
+        updateModifySubtotal();
+      });
     });
   }
   
@@ -551,40 +616,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateModifySubtotal() {
     let subtotal = 0;
-    // Loop over every row in all modify item containers
+    // Loop over every quantity input in modify item containers
     document.querySelectorAll(
-      '#modify_tables_Container tbody tr, #modify_chairs_Container tbody tr, #modify_misc_Container tbody tr'
-    ).forEach(row => {
-      const checkbox = row.querySelector('.item-select');
-      const quantityInput = row.querySelector('.item-quantity');
+      '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
+    ).forEach(input => {
+      const quantity = parseFloat(input.value) || 0;
+      const price = parseFloat(input.dataset.price) || 0;
+      const row = input.closest('tr');
       const subtotalCell = row.querySelector('.item-subtotal');
       
-      if (checkbox && checkbox.checked) {
-        const quantity = parseFloat(quantityInput.value) || 0;
-        const price = parseFloat(checkbox.dataset.price) || 0;
-        const itemSubtotal = quantity * price;
-        subtotalCell.textContent = itemSubtotal.toFixed(2);
+      const itemSubtotal = quantity * price;
+      subtotalCell.textContent = itemSubtotal.toFixed(2);
+      if (quantity > 0) {
         subtotal += itemSubtotal;
-      } else {
-        subtotalCell.textContent = '0.00';
       }
     });
     
-    // Get event duration for modify order form
-    const eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+    // Get event duration for modify order form (use explicit ID)
+    let eventDuration;
+    if (document.querySelector('.content_modify_order.active')) {
+      eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+    } else if (document.querySelector('.content_modify_item_order.active')) {
+      eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+    } else {
+      eventDuration = 1;
+    }
+    
     const subtotalPrice = subtotal * eventDuration;
     
-    // Get extra fees from the modify order extra fees input
-    const extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+    // Get extra fees from the modify order extra fees input (use explicit ID)
+    let extraFees;
+    if (document.querySelector('.content_modify_order.active')) {
+      extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+    } else if (document.querySelector('.content_modify_item_order.active')) {
+      extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+    } else {
+      extraFees = 0;
+    }
+    
     const totalPrice = subtotalPrice + extraFees;
     
-    // Update the modify order form subtotal and total
-    const subtotalElements = document.querySelectorAll('.content_modify_order #subtotal_Price, .content_modify_item_order #subtotal_price');
+    // Update the modify order form subtotal and total (fix ID discrepancies)
+    const subtotalElements = document.querySelectorAll(
+      '.content_modify_order.active #subtotal_Price, ' + 
+      '.content_modify_order.active #subtotal_price, ' +
+      '.content_modify_item_order.active #subtotal_Price, ' +
+      '.content_modify_item_order.active #subtotal_price'
+    );
+    
     subtotalElements.forEach(element => {
       if (element) element.textContent = subtotalPrice.toFixed(2);
     });
     
-    const totalElements = document.querySelectorAll('.content_modify_order #total_Price, .content_modify_item_order #total_price');
+    const totalElements = document.querySelectorAll(
+      '.content_modify_order.active #total_Price, ' +
+      '.content_modify_order.active #total_price, ' +
+      '.content_modify_item_order.active #total_Price, ' +
+      '.content_modify_item_order.active #total_price'
+    );
+    
     totalElements.forEach(element => {
       if (element) element.textContent = totalPrice.toFixed(2);
     });
@@ -684,11 +774,11 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch(`/getOrderItems/${orderId}`)
       .then(response => response.json())
       .then(data => {
-        const { items, daysRented } = data;
+        const { items, daysRented, extraFees } = data;
         const tableBody = document.getElementById('order_History_Items_Table').querySelector('tbody');
         tableBody.innerHTML = '';
 
-        let total = 0;
+        let itemsSubtotal = 0;
         items.forEach(item => {
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -700,10 +790,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <td>${item.subtotal.toFixed(2)}</td>
           `;
           tableBody.appendChild(row);
-          total += item.subtotal;
+          itemsSubtotal += item.subtotal;
         });
 
-        document.getElementById('order_history-items-total').textContent = total.toFixed(2);
+        // Calculate the costs
+        const subtotalWithDays = itemsSubtotal * daysRented;
+        const totalPrice = subtotalWithDays + parseFloat(extraFees || 0);
+
+        // Display the cost information
+        document.getElementById('history_days_rented').textContent = `Days Rented: ${daysRented}`;
+        document.getElementById('history_items_subtotal').textContent = itemsSubtotal.toFixed(2);
+        document.getElementById('history_subtotal_with_days').textContent = subtotalWithDays.toFixed(2);
+        document.getElementById('history_extra_fees').textContent = (extraFees || 0).toFixed(2);
+        document.getElementById('order_history-items-total').textContent = totalPrice.toFixed(2);
       })
       .catch(error => console.error('Error fetching order items:', error));
   }
@@ -1005,6 +1104,237 @@ document.addEventListener('DOMContentLoaded', function() {
   showPage('content_add_order');
   importData();
 
+  // STAFF INFO FUNCTIONALITY
+  
+  // Function to fetch and display staff info
+  function fetchStaffInfo() {
+    console.log("Fetching staff info...");
+    fetch('/getStaffInfo')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Staff data received:", data);
+        const tableBody = document.getElementById('staff_info_table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td colspan="5">No staff information found</td>`;
+          tableBody.appendChild(row);
+          return;
+        }
+
+        data.forEach(staff => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${staff.staff_id || 'N/A'}</td>
+            <td>${staff.worker_name || 'N/A'}</td>
+            <td>${staff.age || 'N/A'}</td>
+            <td>${staff.phone_Number || 'N/A'}</td>
+            <td>
+              <button class="view-assigned-orders" data-worker-id="${staff.worker_ID}">View Assigned Orders</button>
+              <button class="fire-worker" data-worker-id="${staff.worker_ID}">Fire Worker</button>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        // Add event listeners to the view assigned orders buttons
+        document.querySelectorAll('.view-assigned-orders').forEach(button => {
+          button.addEventListener('click', function() {
+            const workerId = this.dataset.workerId;
+            showAssignedOrders(workerId);
+          });
+        });
+
+        // Add event listeners to the fire worker buttons
+        document.querySelectorAll('.fire-worker').forEach(button => {
+          button.addEventListener('click', function() {
+            const workerId = this.dataset.workerId;
+            if (confirm('Are you sure you want to fire this worker? This action cannot be undone.')) {
+              fireWorker(workerId);
+            }
+          });
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching staff information:', error);
+        const tableBody = document.getElementById('staff_info_table').querySelector('tbody');
+        tableBody.innerHTML = `<tr><td colspan="5">Error loading staff information: ${error.message}</td></tr>`;
+      });
+  }
+
+  // Function to show assigned orders
+  function showAssignedOrders(workerId) {
+    document.querySelector('.view_assigned_orders_popup').classList.add('active');
+    
+    fetch(`/getAssignedOrders/${workerId}`)
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.getElementById('assigned_orders_table').querySelector('tbody');
+        tableBody.innerHTML = '';
+
+        if (data.length === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = `<td colspan="4">No orders assigned to this worker</td>`;
+          tableBody.appendChild(row);
+        } else {
+          data.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${order.order_ID}</td>
+              <td>${order.event_Name}</td>
+              <td>${new Date(order.event_date).toLocaleDateString()}</td>
+              <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        }
+      })
+      .catch(error => console.error('Error fetching assigned orders:', error));
+  }
+
+  // Function to fire a worker
+  function fireWorker(workerId) {
+    fetch(`/fireWorker/${workerId}`, { method: 'DELETE' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Worker fired successfully');
+          fetchStaffInfo(); // Refresh the staff table
+        } else {
+          alert(`Error firing worker: ${data.message}`);
+        }
+      })
+      .catch(error => {
+        console.error('Error firing worker:', error);
+        alert('An error occurred while firing the worker.');
+      });
+  }
+
+  // Add event listener for return button in assigned orders popup
+  document.getElementById('assigned_orders_return').addEventListener('click', function() {
+    document.querySelector('.view_assigned_orders_popup').classList.remove('active');
+  });
+
+  // Add event listener for add worker button
+  document.getElementById('add_worker_btn').addEventListener('click', function() {
+    // Populate gender dropdown first
+    populateWorkerGenderDropdown();
+    document.querySelector('.view_add_worker_popup').classList.add('active');
+  });
+
+  // Function to populate gender dropdown in add worker form
+  function populateWorkerGenderDropdown() {
+    fetch('/getGenders')
+      .then(response => response.json())
+      .then(data => {
+        const selector = document.getElementById('worker_gender');
+        selector.innerHTML = '';
+        
+        data.forEach(gender => {
+          const option = document.createElement('option');
+          option.value = gender.id;
+          option.textContent = gender.name;
+          selector.appendChild(option);
+        });
+      })
+      .catch(error => console.error('Error fetching genders:', error));
+  }
+
+  // Add event listener for cancel button in add worker popup
+  document.getElementById('worker_cancel_btn').addEventListener('click', function() {
+    document.querySelector('.view_add_worker_popup').classList.remove('active');
+  });
+
+  // Add event listener for save worker button
+  document.getElementById('worker_save_btn').addEventListener('click', function() {
+    // Validate form fields
+    if (!validateWorkerForm()) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Collect form data
+    const workerData = {
+      first_name: document.getElementById('worker_first_name').value.trim(),
+      middle_name: document.getElementById('worker_middle_name').value.trim(),
+      last_name: document.getElementById('worker_last_name').value.trim(),
+      phone_number: document.getElementById('worker_phone_number').value.trim(),
+      age: document.getElementById('worker_age').value,
+      gender: document.getElementById('worker_gender').value,
+      password: document.getElementById('worker_password').value
+    };
+
+    // Send data to server
+    fetch('/addWorker', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(workerData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Worker added successfully');
+        document.querySelector('.view_add_worker_popup').classList.remove('active');
+        fetchStaffInfo(); // Refresh the staff table
+        clearWorkerForm(); // Clear the form fields
+      } else {
+        alert(`Error adding worker: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error('Error adding worker:', error);
+      alert('An error occurred while adding the worker.');
+    });
+  });
+
+  // Function to validate the worker form
+  function validateWorkerForm() {
+    const requiredFields = [
+      'worker_first_name', 
+      'worker_last_name', 
+      'worker_phone_number', 
+      'worker_age', 
+      'worker_gender',
+      'worker_password'
+    ];
+
+    for (const field of requiredFields) {
+      if (!document.getElementById(field).value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Function to clear the worker form
+  function clearWorkerForm() {
+    document.getElementById('worker_first_name').value = '';
+    document.getElementById('worker_middle_name').value = '';
+    document.getElementById('worker_last_name').value = '';
+    document.getElementById('worker_phone_number').value = '';
+    document.getElementById('worker_age').value = '';
+    document.getElementById('worker_password').value = '';
+  }
+
+  // If content_staff_info is active, fetch the staff info
+  document.querySelectorAll('.nav-button').forEach(button => {
+    button.addEventListener('click', function() {
+      const page = this.getAttribute("data-page");
+      showPage(page);
+      if (page === 'content_staff_info') {
+        fetchStaffInfo();
+      }
+    });
+  });
+
   // LOGOUT FUNCTIONALITY
   const logoutButton = document.getElementById('logout');
   if (logoutButton) {
@@ -1162,13 +1492,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function getModifySelectedItems() {
     const items = [];
     // Assuming your modify tables have the same structure and class names as the add order tables
-    document.querySelectorAll('#modify_tables_Container .item-select, #modify_chairs_Container .item-select, #modify_misc_Container .item-select')
-      .forEach(checkbox => {
-        if (checkbox.checked) {
-          const row = checkbox.closest('tr');
-          const itemId = checkbox.dataset.id;
-          const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-          const price = parseFloat(checkbox.dataset.price) || 0;
+    document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity')
+      .forEach(input => {
+        const quantity = parseFloat(input.value) || 0;
+        if (quantity > 0) {
+          const itemId = input.dataset.id;
+          const price = parseFloat(input.dataset.price) || 0;
           items.push({ item_id: itemId, quantity, price });
         }
       });
@@ -1187,27 +1516,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function getModifiedSelectedItems() {
-    const items = [];
-    document.querySelectorAll(
-      '#modify_tables_Container tbody tr, #modify_chairs_Container tbody tr, #modify_misc_Container tbody tr'
-    ).forEach(row => {
-      const checkbox = row.querySelector('.item-select');
-      if (checkbox && checkbox.checked) {
-        const itemId = checkbox.dataset.id;
-        const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-        const price = parseFloat(checkbox.dataset.price) || 0;
-        items.push({ item_id: itemId, quantity, price });
-      }
-    });
-    return items;
-  }
-  
-  function getModifiedSelectedWorkers() {
-    const workers = [];
-    document.querySelectorAll('#modify_workers_Container .worker-select:checked').forEach(checkbox => {
-      workers.push(checkbox.dataset.id);
-    });
-    return workers;
+    return getModifySelectedItems(); // These functions do the same thing now
   }
   
   function saveModifyOrder() {
@@ -1253,11 +1562,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Add listeners for duration and extra fees on modify order form
-  const modifyEventDurationInput = document.getElementById('modify_event_duration');
-  if (modifyEventDurationInput) {
-    modifyEventDurationInput.addEventListener('input', updateModifySubtotal);
-  }
   
   const modifyExtraFeesInput = document.getElementById('modify_extra_fees');
   if (modifyExtraFeesInput) {
@@ -1267,26 +1571,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Fix listeners for modify item order page
   function setupModifyItemOrderListeners() {
     // For the tables
-    document.querySelectorAll(
-      '#modify_tables_Container .item-select, #modify_chairs_Container .item-select, #modify_misc_Container .item-select'
-    ).forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const row = this.closest('tr');
-        const quantityInput = row.querySelector('.item-quantity');
-        if (this.checked) {
-          quantityInput.disabled = false;
-          if (parseFloat(quantityInput.value) === 0) {
-            quantityInput.value = 1;
-          }
-        } else {
-          quantityInput.disabled = true;
-          quantityInput.value = 0;
-        }
-        updateModifySubtotal();
-      });
-    });
-
-    // For quantity inputs
     document.querySelectorAll(
       '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
     ).forEach(input => {
@@ -1299,10 +1583,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (modifyItemOrderButton) {
     modifyItemOrderButton.addEventListener('click', function() {
       showPage('content_modify_item_order');
-      // Run this after the page is shown to ensure elements are available
-      setTimeout(setupModifyItemOrderListeners, 100);
-      // Make sure the totals are updated
-      updateModifySubtotal();
+      setTimeout(function() {
+        // Ensure subtotal is updated when page is shown
+        updateModifySubtotal();
+      }, 100);
     });
   }
 
@@ -1321,45 +1605,28 @@ document.addEventListener('DOMContentLoaded', function() {
   
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>
-          <input type="checkbox" class="item-select" 
-            data-id="${item.item_ID}" 
-            data-price="${item.item_price}" 
-            data-stock="${availableStock}"
-            ${isSelected ? 'checked' : ''}>
-        </td>
-        <td>${item.item_name}</td>
-        <td>${item.item_price}</td>
+        <td class="item-id" data-id="${item.item_ID}">${item.item_name}</td>
+        <td class="item-price">${item.item_price}</td>
         <td>${availableStock}</td>
-        <td>
-          <input type="number" class="item-quantity" min="0" max="${availableStock}"
-            value="${quantity}" ${!isSelected ? 'disabled' : ''}>
-        </td>
+        <td><input type="number" class="item-quantity" min="0" max="${availableStock}" value="${quantity}" data-id="${item.item_ID}" data-price="${item.item_price}"></td>
         <td class="item-subtotal">${(item.item_price * quantity).toFixed(2)}</td>
       `;
       tableBody.appendChild(row);
     });
   
-    // Attach event listeners for checkbox and quantity input to update totals
-    tableBody.querySelectorAll('.item-select').forEach(checkbox => {
-      checkbox.addEventListener('change', function() {
-        const row = this.closest('tr');
-        const quantityInput = row.querySelector('.item-quantity');
-        if (this.checked) {
-          quantityInput.disabled = false;
-          if (parseFloat(quantityInput.value) === 0) {
-            quantityInput.value = 1; // default if not set
-          }
-        } else {
-          quantityInput.disabled = true;
-          quantityInput.value = 0;
-        }
+    // Attach event listeners for quantity input to update totals
+    tableBody.querySelectorAll('.item-quantity').forEach(input => {
+      input.addEventListener('input', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
         updateModifySubtotal();
       });
-    });
-  
-    tableBody.querySelectorAll('.item-quantity').forEach(input => {
-      input.addEventListener('input', updateModifySubtotal);
+      
+      input.addEventListener('blur', function() {
+        const max = parseInt(this.getAttribute('max'));
+        validateNumericInput(this, 0, max);
+        updateModifySubtotal();
+      });
     });
   }
 
@@ -1431,6 +1698,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // CALLS FUNCTION TO REPLACE USERNAME ON STARTUP
   fetchCurrentUser();
+
+  // Add validation for event duration in add order form
+  const eventDurationElement = document.getElementById('event_duration');
+  if (eventDurationElement) {
+    eventDurationElement.addEventListener('input', function() {
+      validateNumericInput(this, 1, 60);
+      updateSubtotal();
+    });
+    
+    eventDurationElement.addEventListener('blur', function() {
+      validateNumericInput(this, 1, 60);
+      updateSubtotal();
+    });
+  }
+
+  // Add validation for event duration in modify order form
+  const modifyEventDurationInput = document.getElementById('modify_event_duration');
+  if (modifyEventDurationInput) {
+    modifyEventDurationInput.addEventListener('input', function() {
+      validateNumericInput(this, 1, 60);
+      updateModifySubtotal();
+    });
+    
+    modifyEventDurationInput.addEventListener('blur', function() {
+      validateNumericInput(this, 1, 60);
+      updateModifySubtotal();
+    });
+  }
 
 });
 
