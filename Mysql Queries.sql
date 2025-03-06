@@ -56,5 +56,10 @@ CREATE TABLE liabilities_tbl (
     FOREIGN KEY (finance_ID) REFERENCES finance_tbl (finance_ID)
 );
 
+ALTER TABLE liabilities_tbl
+ADD liability_amount DECIMAL(10,2) NOT NULL AFTER item_quantity;
+
+
 UPDATE worker_tbl
 SET manager_ID = 30000001;
+

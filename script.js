@@ -1709,4 +1709,434 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('worker_password').value = '';
     }
 
+    // PAYMENT ORDER FUNCTIONALITY
+    
+    // Function to fetch payment order data
+    function fetchPaymentOrders() {
+        fetch('/getPaymentOrders')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('payment_order_table').querySelector('tbody');
+                tableBody.innerHTML = '';
+
+                data.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${order.finance_ID}</td>
+                        <td>${order.order_ID}</td>
+                        <td>${order.customer_name}</td>
+                        <td>${new Date(order.event_date).toLocaleDateString()}</td>
+                        <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
+                        <td>${parseFloat(order.item_subtotal).toFixed(2)}</td>
+                        <td>${parseFloat(order.extra_fees).toFixed(2)}</td>
+                        <td>${parseFloat(order.total_amount).toFixed(2)}</td>
+                        <td>${parseFloat(order.balance).toFixed(2)}</td>
+                        <td>
+                            <button class="create-transaction" data-id="${order.finance_ID}" data-orderid="${order.order_ID}" data-balance="${order.balance}">Create Transaction</button>
+                            <button class="add-liability" data-id="${order.finance_ID}" data-orderid="${order.order_ID}">Add Liability</button>
+                            <button class="view-transactions" data-id="${order.finance_ID}" data-orderid="${order.order_ID}">View Transactions</button>
+                            <button class="view-liabilities" data-id="${order.finance_ID}" data-orderid="${order.order_ID}">View Liabilities</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Add event listeners to buttons
+                addPaymentButtonListeners();
+            })
+            .catch(error => console.error('Error fetching payment orders:', error));
+    }
+
+    // Function to add event listeners to payment order buttons
+    function addPaymentButtonListeners() {
+        // Create Transaction button
+        document.querySelectorAll('.create-transaction').forEach(button => {
+            button.addEventListener('click', function() {
+                const financeId = this.dataset.id;
+                const orderId = this.dataset.orderid;
+                const balance = this.dataset.balance;
+                fetchPaymentTypes();
+                document.getElementById('transaction_order_id').value = orderId;
+                const paymentAmountInput = document.getElementById('payment_amount');
+                paymentAmountInput.max = balance;
+                paymentAmountInput.value = balance;
+                
+                document.getElementById('submit_transaction_btn').dataset.financeId = financeId;
+                
+                
+                
+                // Show the popup
+                document.querySelector('.view_create_transaction_popup').classList.add('active');
+            });
+        });
+
+        // Add Liability button
+        document.querySelectorAll('.add-liability').forEach(button => {
+            button.addEventListener('click', function() {
+                const financeId = this.dataset.id;
+                const orderId = this.dataset.orderid;
+                
+                document.getElementById('liability_order_id').value = orderId;
+                document.getElementById('submit_liability_btn').dataset.orderId = orderId;
+                
+                // Fetch order items for the dropdown
+                fetchOrderItemsForLiability(orderId);
+                
+                // Set default date to current date and time
+                const now = new Date();
+                const dateTimeStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16);
+                document.getElementById('liability_date').value = dateTimeStr;
+                
+                // Show the popup
+                document.querySelector('.view_add_liability_popup').classList.add('active');
+            });
+        });
+
+        // View Transactions button
+        document.querySelectorAll('.view-transactions').forEach(button => {
+            button.addEventListener('click', function() {
+                const financeId = this.dataset.id;
+                
+                // Fetch transactions for this finance ID
+                fetchTransactions(financeId);
+                
+                // Show the popup
+                document.querySelector('.view_transactions_popup').classList.add('active');
+            });
+        });
+
+        // View Liabilities button
+        document.querySelectorAll('.view-liabilities').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.dataset.orderid;
+                
+                // Fetch liabilities for this order ID
+                fetchLiabilities(orderId);
+                
+                // Show the popup
+                document.querySelector('.view_liabilities_popup').classList.add('active');
+            });
+        });
+    }
+
+    // Function to fetch payment types for dropdown
+    function fetchPaymentTypes() {
+        fetch('/getPaymentTypes')
+            .then(response => response.json())
+            .then(data => {
+                const selector = document.getElementById('payment_type');
+                selector.innerHTML = '';
+                
+                data.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    selector.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching payment types:', error));
+    }
+
+    // Function to fetch order items for liability dropdown
+    function fetchOrderItemsForLiability(orderId) {
+        fetch(`/getOrderItemsForLiability/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                const selector = document.getElementById('liability_item_id');
+                selector.innerHTML = '';
+                
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.item_ID;
+                    option.textContent = item.item_name;
+                    option.dataset.maxQuantity = item.item_quantity;
+                    selector.appendChild(option);
+                });
+                
+                // Add change event to update max quantity
+                selector.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption) {
+                        const maxQuantity = selectedOption.dataset.maxQuantity;
+                        const quantityInput = document.getElementById('liability_quantity');
+                        quantityInput.max = maxQuantity;
+                        quantityInput.value = maxQuantity > 0 ? 1 : 0;
+                    }
+                });
+                
+                // Trigger change event to set initial max quantity
+                if (selector.options.length > 0) {
+                    selector.dispatchEvent(new Event('change'));
+                }
+            })
+            .catch(error => console.error('Error fetching order items for liability:', error));
+    }
+
+    // Function to fetch transactions for a finance ID
+    function fetchTransactions(financeId) {
+        fetch(`/getTransactions/${financeId}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('transactions_table').querySelector('tbody');
+                tableBody.innerHTML = '';
+                
+                if (data.transactions.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="4">No transactions found.</td>';
+                    tableBody.appendChild(row);
+                } else {
+                    data.transactions.forEach(transaction => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${transaction.payment_type}</td>
+                            <td>${parseFloat(transaction.payment_amount).toFixed(2)}</td>
+                            <td>${transaction.payment_reference_No || 'N/A'}</td>
+                            <td>${new Date(transaction.date_of_payment).toLocaleString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+                
+                // Update remaining balance
+                document.getElementById('remaining_balance').textContent = parseFloat(data.balance).toFixed(2);
+            })
+            .catch(error => console.error('Error fetching transactions:', error));
+    }
+
+    // Function to fetch liabilities for an order ID
+    function fetchLiabilities(orderId) {
+        fetch(`/getLiabilities/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('liabilities_table').querySelector('tbody');
+                tableBody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="6">No liabilities found.</td>';
+                    tableBody.appendChild(row);
+                } else {
+                    data.forEach(liability => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${liability.liability_title}</td>
+                            <td>${liability.item_name}</td>
+                            <td>${liability.item_quantity}</td>
+                            <td>${parseFloat(liability.liability_amount).toFixed(2)}</td>
+                            <td>${liability.liability_description}</td>
+                            <td>${new Date(liability.liability_date).toLocaleString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching liabilities:', error));
+    }
+
+    // Function to validate transaction form
+    function validateTransactionForm() {
+        const paymentAmount = parseFloat(document.getElementById('payment_amount').value);
+        const paymentType = document.getElementById('payment_type').value;
+        const maxAmount = parseFloat(document.getElementById('payment_amount').max);
+        
+        if (!paymentType) {
+            alert('Please select a payment type');
+            return false;
+        }
+        
+        if (isNaN(paymentAmount) || paymentAmount <= 0) {
+            alert('Please enter a valid payment amount (greater than 0)');
+            return false;
+        }
+        
+        if (paymentAmount > maxAmount) {
+            alert(`Maximum payment amount is ${maxAmount}`);
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Function to validate liability form
+    function validateLiabilityForm() {
+        const title = document.getElementById('liability_title').value.trim();
+        const itemId = document.getElementById('liability_item_id').value;
+        const quantity = parseInt(document.getElementById('liability_quantity').value);
+        const amount = parseFloat(document.getElementById('liability_amount').value);
+        const description = document.getElementById('liability_description').value.trim();
+        const date = document.getElementById('liability_date').value;
+        
+        if (!title) {
+            alert('Please enter a liability title');
+            return false;
+        }
+        
+        if (!itemId) {
+            alert('Please select an item');
+            return false;
+        }
+        
+        if (isNaN(quantity) || quantity <= 0) {
+            alert('Please enter a valid quantity (greater than 0)');
+            return false;
+        }
+        
+        const maxQuantity = parseInt(document.getElementById('liability_item_id').options[
+            document.getElementById('liability_item_id').selectedIndex
+        ].dataset.maxQuantity);
+        
+        if (quantity > maxQuantity) {
+            alert(`Maximum quantity is ${maxQuantity}`);
+            return false;
+        }
+        
+        if (isNaN(amount) || amount <= 0) {
+            alert('Please enter a valid amount (greater than 0)');
+            return false;
+        }
+        
+        if (!description) {
+            alert('Please enter a description');
+            return false;
+        }
+        
+        if (!date) {
+            alert('Please select a date');
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Add event listeners for the payment forms
+    document.getElementById('submit_transaction_btn').addEventListener('click', function() {
+        if (!validateTransactionForm()) {
+            return;
+        }
+        
+        const financeId = this.dataset.financeId;
+        const paymentTypeId = document.getElementById('payment_type').value;
+        const paymentAmount = document.getElementById('payment_amount').value;
+        const referenceNumber = document.getElementById('payment_reference').value;
+        
+        fetch('/addTransaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                financeId,
+                paymentTypeId,
+                paymentAmount,
+                referenceNumber
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                document.querySelector('.view_create_transaction_popup').classList.remove('active');
+                fetchPaymentOrders(); // Refresh the payment orders table
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding transaction:', error);
+            alert('An error occurred while adding the transaction.');
+        });
+    });
+
+    document.getElementById('submit_liability_btn').addEventListener('click', function() {
+        if (!validateLiabilityForm()) {
+            return;
+        }
+        
+        const orderId = this.dataset.orderId;
+        const title = document.getElementById('liability_title').value;
+        const itemId = document.getElementById('liability_item_id').value;
+        const quantity = document.getElementById('liability_quantity').value;
+        const amount = document.getElementById('liability_amount').value;
+        const description = document.getElementById('liability_description').value;
+        const date = document.getElementById('liability_date').value;
+        
+        fetch('/addLiability', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                orderId,
+                title,
+                itemId,
+                quantity,
+                amount,
+                description,
+                date
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                document.querySelector('.view_add_liability_popup').classList.remove('active');
+                fetchPaymentOrders(); // Refresh the payment orders table
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error adding liability:', error);
+            alert('An error occurred while adding the liability.');
+        });
+    });
+
+    // Add input validation for payment amount
+    document.getElementById('payment_amount').addEventListener('input', function() {
+        const max = parseFloat(this.max) || 1000000;
+        validateNumericInput(this, 1, max);
+    });
+
+    // Add input validation for liability quantity
+    document.getElementById('liability_quantity').addEventListener('input', function() {
+        const max = parseFloat(this.max) || 1000;
+        validateNumericInput(this, 1, max);
+    });
+
+    // Add input validation for liability amount
+    document.getElementById('liability_amount').addEventListener('input', function() {
+        validateNumericInput(this, 1, 1000000);
+    });
+
+    // Add event listeners for popup buttons
+    document.getElementById('cancel_transaction_btn').addEventListener('click', function() {
+        document.querySelector('.view_create_transaction_popup').classList.remove('active');
+    });
+
+    document.getElementById('cancel_liability_btn').addEventListener('click', function() {
+        document.querySelector('.view_add_liability_popup').classList.remove('active');
+    });
+
+    document.getElementById('transactions_return_btn').addEventListener('click', function() {
+        fetchPaymentOrders()
+        document.querySelector('.view_transactions_popup').classList.remove('active');
+
+    });
+
+    document.getElementById('liabilities_return_btn').addEventListener('click', function() {
+        document.querySelector('.view_liabilities_popup').classList.remove('active');
+    });
+
+    // Load payment orders when the page is shown
+    document.querySelectorAll('.nav-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const page = this.getAttribute("data-page");
+            if (page === 'content_payment_order') {
+                fetchPaymentOrders();
+            }
+        });
+    });
+
 });

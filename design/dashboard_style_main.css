@@ -216,6 +216,84 @@ button:hover {
   background-color: var(--popup-bg-color);
 }
 
+/* STYLES FOR PAYMENT POPUP WINDOWS */
+.view_create_transaction_popup,
+.view_add_liability_popup,
+.view_transactions_popup,
+.view_liabilities_popup {
+    display: none;
+}
+
+/* STYLES FOR ACTIVE PAYMENT POPUP WINDOWS */
+.view_create_transaction_popup.active,
+.view_add_liability_popup.active,
+.view_transactions_popup.active,
+.view_liabilities_popup.active {
+    display: flex;  
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--popup-bg-color);
+}
+
+/* PAYMENT ORDER TABLE */
+.content_payment_order .table_wrapper {
+    height: 600px;
+    width: 100%;
+    border-radius: 10px;
+    overflow-y: auto;
+}
+
+.content_payment_order table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+    background-color: var(--table-row-bg-color);
+}
+
+.content_payment_order table th {
+    background-color: var(--table-header-bg-color);
+    color: var(--table-header-color);
+    font-weight: 600;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    padding: 8px 4px;
+}
+
+.content_payment_order table td {
+    padding: 6px 4px;
+    text-align: center;
+}
+
+.content_payment_order table td button {
+    margin: 2px;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+/* PAYMENT SUMMARY */
+.payment_summary {
+    background-color: var(--content-panel-color);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+/* TEXTAREA STYLING */
+textarea {
+    width: 320px;
+    min-height: 100px;
+    resize: vertical;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 16px;
+}
 
 .add_order_container, .modify_order_container {
   display: flex;
@@ -672,4 +750,49 @@ item_and_worker_info table th:nth-child(6) {
 .order_cost_summary h4 {
   margin: 5px 0;
   font-size: 16px;
+}
+
+#payment_order_table {
+  font-size: 16px;
+}
+
+#payment_order_table th:nth-child(1),
+#payment_order_table td:nth-child(1) {
+  width: 100px;
+}
+#payment_order_table th:nth-child(2),
+#payment_order_table td:nth-child(2) {
+  width: 100px;
+}
+#payment_order_table th:nth-child(3),
+#payment_order_table td:nth-child(3) {
+  width: 200px;
+}
+#payment_order_table th:nth-child(4),
+#payment_order_table td:nth-child(4) {
+  width: 100px;
+}
+#payment_order_table th:nth-child(5),
+#payment_order_table td:nth-child(5) {
+  width: 100px;
+}
+#payment_order_table th:nth-child(6),
+#payment_order_table td:nth-child(6) {
+  width: 120px;
+}
+#payment_order_table th:nth-child(7),
+#payment_order_table td:nth-child(7) {
+  width: 120px;
+}
+#payment_order_table th:nth-child(8),
+#payment_order_table td:nth-child(8) {
+  width: 120px;
+}
+#payment_order_table th:nth-child(9),
+#payment_order_table td:nth-child(9) {
+  width: 120px;
+}
+#payment_order_table th:nth-child(10),
+#payment_order_table td:nth-child(10) {
+  width: auto;
 }

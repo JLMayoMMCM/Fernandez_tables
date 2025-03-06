@@ -1173,6 +1173,237 @@ app.post('/addWorker', (req, res) => {
 
 
 
+// RETREIVES ALL PAYMENT ORDERS THAT ARE EITHER ACTIVE, PARTIAL, OR PENDING
+app.get('/getPaymentOrders', (req, res) => {
+    const query = `
+        SELECT 
+            f.finance_ID, 
+            o.order_ID, 
+            CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
+            e.event_date,
+            e.end_event_date,
+            od.item_subtotal,
+            f.extra_Fee AS extra_fees,
+            (f.extra_Fee + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
+            ((f.extra_Fee + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)))
+            - IFNULL(pmt.total_payment, 0)) AS balance,
+            '' AS actions
+        FROM finance_tbl f
+        JOIN order_info_tbl o ON f.order_ID = o.order_ID
+        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
+        JOIN person_tbl p ON c.person_ID = p.person_id
+        JOIN event_info_tbl e ON o.order_ID = e.order_ID
+        JOIN (
+            SELECT od.order_ID, SUM(od.item_quantity * i.item_price) AS item_subtotal
+            FROM order_details_tbl od
+            JOIN item_tbl i ON od.item_ID = i.item_ID
+            GROUP BY od.order_ID
+        ) od ON o.order_ID = od.order_ID
+        LEFT JOIN (
+            SELECT finance_ID, SUM(payment_amount) AS total_payment
+            FROM payment_tbl
+            GROUP BY finance_ID
+        ) pmt ON f.finance_ID = pmt.finance_ID
+        WHERE f.payment_status_id IN (301, 302, 303)
+        ORDER BY f.finance_ID DESC;
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching payment orders:', err);
+            return res.status(500).json({ error: 'Failed to fetch payment orders' });
+        }
+        res.json(results);
+    });
+});
+
+// Get payment types
+app.get('/getPaymentTypes', (req, res) => {
+    const query = 'SELECT payment_type_ID AS id, payment_type AS name FROM payment_type_tbl';
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching payment types:', err);
+            return res.status(500).json({ error: 'Failed to fetch payment types' });
+        }
+        res.json(results);
+    });
+});
+
+// Get order items for liability dropdown
+app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    
+    const query = `
+        SELECT od.item_ID, i.item_name, od.item_quantity
+        FROM order_details_tbl od
+        JOIN item_tbl i ON od.item_ID = i.item_ID
+        WHERE od.order_ID = ?
+    `;
+    
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Error fetching order items for liability:', err);
+            return res.status(500).json({ error: 'Failed to fetch order items' });
+        }
+        res.json(results);
+    });
+});
+
+// Get transactions for a finance ID
+app.get('/getTransactions/:financeId', (req, res) => {
+    const { financeId } = req.params;
+    
+    const transactionsQuery = `
+        SELECT p.payment_ID, pt.payment_type_name AS payment_type, 
+               p.payment_amount, p.payment_reference_No, 
+               p.date_of_payment
+        FROM payment_tbl p
+        JOIN payment_type_tbl pt ON p.payment_type_ID = pt.payment_type_ID
+        WHERE p.finance_ID = ?
+        ORDER BY p.date_of_payment DESC
+    `;
+    
+    const balanceQuery = `
+        SELECT f.total_amount,
+               (f.total_amount - IFNULL((SELECT SUM(payment_amount) 
+                                       FROM payment_tbl 
+                                       WHERE finance_ID = f.finance_ID), 0) +
+                IFNULL((SELECT SUM(liability_amount) 
+                       FROM liabilities_tbl 
+                       WHERE order_ID = f.order_ID), 0)) AS balance
+        FROM finance_tbl f
+        WHERE f.finance_ID = ?
+    `;
+    
+    db.query(transactionsQuery, [financeId], (err, transactions) => {
+        if (err) {
+            console.error('Error fetching transactions:', err);
+            return res.status(500).json({ error: 'Failed to fetch transactions' });
+        }
+        
+        db.query(balanceQuery, [financeId], (err, balanceResult) => {
+            if (err) {
+                console.error('Error calculating balance:', err);
+                return res.status(500).json({ error: 'Failed to calculate balance' });
+            }
+            
+            res.json({
+                transactions,
+                balance: balanceResult.length > 0 ? balanceResult[0].balance : 0
+            });
+        });
+    });
+});
+
+// Get liabilities for an order
+app.get('/getLiabilities/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    
+    const query = `
+        SELECT l.liability_ID, l.liability_title, i.item_name, 
+               l.item_quantity, l.liability_amount, 
+               l.liability_description, l.liability_date
+        FROM liabilities_tbl l
+        JOIN item_tbl i ON l.item_ID = i.item_ID
+        WHERE l.order_ID = ?
+        ORDER BY l.liability_date DESC
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching liabilities:', err);
+            return res.status(500).json({ error: 'Failed to fetch liabilities' });
+        }
+        res.json(results);
+    });
+});
+
+// Add a new transaction
+app.post('/addTransaction', (req, res) => {
+    const { financeId, paymentTypeId, paymentAmount, referenceNumber } = req.body;
+    
+    if (!financeId || !paymentTypeId || !paymentAmount) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Finance ID, payment type, and payment amount are required' 
+        });
+    }
+    
+    const query = `
+        INSERT INTO payment_tbl 
+            (finance_ID, payment_type_ID, payment_amount, payment_reference_No, date_of_payment) 
+        VALUES (?, ?, ?, ?, NOW())
+    `;
+    
+    db.query(query, [financeId, paymentTypeId, paymentAmount, referenceNumber || null], (err, result) => {
+        if (err) {
+            console.error('Error adding transaction:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        
+        // Update payment status if fully paid
+        const updateStatusQuery = `
+            UPDATE finance_tbl f
+            SET f.payment_status_id = 
+                CASE 
+                    WHEN (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID) >= f.total_amount 
+                    THEN 302 
+                    ELSE 301 
+                END
+            WHERE f.finance_ID = ?
+        `;
+        
+        db.query(updateStatusQuery, [financeId], (err) => {
+            if (err) {
+                console.error('Error updating payment status:', err);
+                // Don't return error response here, payment was still added successfully
+            }
+            
+            res.json({ 
+                success: true, 
+                message: 'Transaction added successfully', 
+                paymentId: result.insertId 
+            });
+        });
+    });
+});
+
+// Add a new liability
+app.post('/addLiability', (req, res) => {
+    const { 
+        orderId, title, itemId, quantity, amount, description, date 
+    } = req.body;
+    
+    if (!orderId || !title || !itemId || !quantity || !amount || !description || !date) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'All fields are required' 
+        });
+    }
+    
+    const query = `
+        INSERT INTO liabilities_tbl 
+            (order_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    db.query(query, [orderId, title, itemId, quantity, amount, description, date], (err, result) => {
+        if (err) {
+            console.error('Error adding liability:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Liability added successfully', 
+            liabilityId: result.insertId 
+        });
+    });
+});
+
+
+
 // WEBSITE LOCALHOST NAVIGATION
 app.get('/', (_, res) => {
     res.sendFile(__dirname + '/index.html');
