@@ -654,8 +654,8 @@
                                 <select id="stock_manager_select"></select>
                             </div>
                             <div class="input_row">
-                                <label for="stock_supplier_id">Supplier ID:</label>
-                                <input type="text" id="stock_supplier_id">
+                                <label for="stock_supplier_id">Supplier:</label>
+                                <select id="stock_supplier_id" required></select>
                             </div>
                             <div class="inventory_buttons">
                                 <button id="stock_return_btn">Return to Stock Inventory</button>
@@ -775,6 +775,11 @@
                                     <div class="input_row">
                                         <label for="worker_gender">Gender:</label>
                                         <select id="worker_gender" required></select>
+                                    </div>
+
+                                    <div class="input_row">
+                                        <label for="worker_manager">Assigned Manager:</label>
+                                        <select id="worker_manager" required></select>
                                     </div>
                                     
                                     <h4>Account Information</h4>

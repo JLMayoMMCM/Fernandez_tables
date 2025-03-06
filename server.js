@@ -1023,7 +1023,7 @@ app.post('/addStock', (req, res) => {
   });
 });
 
-// Get staff information - corrected version with proper address relationship
+// Get staff information - removed address relationship
 app.get('/getStaffInfo', (req, res) => {
   const query = `
 SELECT 
@@ -1031,17 +1031,11 @@ SELECT
     CONCAT(p.first_Name, ' ', IFNULL(p.middle_Name, ''), ' ', p.last_Name) AS worker_name,
     p.age,
     p.phone_Number,
-    w.worker_ID,
-    CASE 
-        WHEN a.address_ID IS NOT NULL THEN CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name)
-        ELSE 'No address available'
-    END AS address
+    w.worker_ID
     FROM worker_tbl w
     JOIN staff_tbl s ON w.staff_ID = s.staff_id
     JOIN person_tbl p ON s.person_ID = p.person_id
-    LEFT JOIN address_tbl a ON a.address_ID = p.person_id
     ORDER BY s.staff_id
-
   `;
   
   db.query(query, (err, results) => {
@@ -1150,80 +1144,64 @@ app.get('/getGenders', (req, res) => {
   });
 });
 
-// Add new worker
 app.post('/addWorker', (req, res) => {
-  const {
-    first_name, middle_name, last_name, phone_number,
-    age, gender, password
-  } = req.body;
-  
-  if (!first_name || !last_name || !phone_number || !age || !gender || !password) {
-    return res.status(400).json({ 
-      success: false, 
-      message: 'All required fields must be provided' 
-    });
-  }
-  
-  db.beginTransaction(err => {
+  // Fix the parameter name to match what the client is sending (manager_id instead of manager)
+  const { first_name, middle_name, last_name, phone_number, age, gender, manager_id, password } = req.body;
+
+  // Insert new person record
+  const personQuery = `
+    INSERT INTO person_tbl (first_Name, middle_Name, last_Name, phone_Number, age, gender_ID)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  db.query(personQuery, [first_name, middle_name, last_name, phone_number, age, gender], (err, personResult) => {
     if (err) {
-      console.error('Error starting transaction:', err);
-      return res.status(500).json({ success: false, message: err.message });
+      console.error('Error adding person:', err);
+      return res.json({ success: false, message: 'Error adding person' });
     }
+    const personId = personResult.insertId;
     
-    // 1. Insert person record
-    const personQuery = 'INSERT INTO person_tbl (first_Name, last_Name, middle_Name, phone_Number, age, gender_ID) VALUES (?, ?, ?, ?, ?, ?)';
-    db.query(personQuery, [first_name, last_name, middle_name, phone_number, age, gender], (err, personResult) => {
+    // Use the provided password or a default, and only encode once
+    const passwordToUse = password || 'password';
+    const encryptedPassword = Buffer.from(passwordToUse).toString('base64');
+    
+    // Insert new staff record
+    const staffQuery = 'INSERT INTO staff_tbl (staff_password, person_ID) VALUES (?, ?)';
+    db.query(staffQuery, [encryptedPassword, personId], (err, staffResult) => {
       if (err) {
-        return db.rollback(() => {
-          console.error('Error adding person:', err);
-          res.status(500).json({ success: false, message: err.message });
-        });
+        console.error('Error adding staff:', err);
+        return res.json({ success: false, message: 'Error adding staff' });
       }
+      const staffId = staffResult.insertId;
       
-      const personId = personResult.insertId;
-      const encryptedPassword = Buffer.from(Buffer.from(password).toString('base64')).toString('base64');
-      
-      // 2. Insert staff record
-      const staffQuery = 'INSERT INTO staff_tbl (staff_Password, person_ID, date_hired) VALUES (?, ?, NOW())';
-      db.query(staffQuery, [encryptedPassword, personId], (err, staffResult) => {
+      // Fix the SQL query to include both staff_ID and manager_ID columns
+      const workerQuery = 'INSERT INTO worker_tbl (staff_ID, manager_ID) VALUES (?, ?)';
+      db.query(workerQuery, [staffId, manager_id], (err, workerResult) => {
         if (err) {
-          return db.rollback(() => {
-            console.error('Error adding staff:', err);
-            res.status(500).json({ success: false, message: err.message });
-          });
+          console.error('Error adding worker:', err);
+          return res.json({ success: false, message: 'Error adding worker' });
         }
-        
-        const staffId = staffResult.insertId;
-        
-        // 3. Insert worker record
-        const workerQuery = 'INSERT INTO worker_tbl (staff_ID) VALUES (?)';
-        db.query(workerQuery, [staffId], (err, workerResult) => {
-          if (err) {
-            return db.rollback(() => {
-              console.error('Error adding worker:', err);
-              res.status(500).json({ success: false, message: err.message });
-            });
-          }
-          
-          // Commit the transaction
-          db.commit(err => {
-            if (err) {
-              return db.rollback(() => {
-                console.error('Error committing transaction:', err);
-                res.status(500).json({ success: false, message: err.message });
-              });
-            }
-            
-            res.json({ 
-              success: true, 
-              message: 'Worker added successfully',
-              workerId: workerResult.insertId,
-              staffId: staffId
-            });
-          });
-        });
+        res.json({ success: true, message: 'Worker added successfully' });
       });
     });
+  });
+});
+
+// New endpoint to get only managers for worker form
+app.get('/getManagers', (req, res) => {
+  const query = `
+    SELECT m.manager_ID AS id, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS name
+    FROM manager_tbl m
+    JOIN staff_tbl s ON m.staff_ID = s.staff_id
+    JOIN person_tbl p ON s.person_ID = p.person_id
+    ORDER BY name
+  `;
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching managers:', err);
+      return res.status(500).json({ success: false, message: err.message });
+    }
+    res.json(results);
   });
 });
 

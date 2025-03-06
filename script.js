@@ -187,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function populateSelector(data, selectorId) {
     const selector = document.getElementById(selectorId);
     selector.innerHTML = '';
-
     data.forEach(item => {
       const option = document.createElement('option');
       option.value = item.id;
@@ -962,24 +961,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Function to populate managers and suppliers dropdowns for stock entry
   function populateStockSelectors() {
-    // Reuse existing manager data
-    fetch('/getItemsAndWorkers')
+    // Get managers for the stock manager dropdown
+    fetch('/getManagers')
       .then(response => response.json())
       .then(data => {
         // Populate manager selector
         const managerSelector = document.getElementById('stock_manager_select');
         managerSelector.innerHTML = '';
         
-        data.managers.forEach(manager => {
+        // Add a default/empty option
+        const defaultOption = document.createElement('option');
+        managerSelector.appendChild(defaultOption);
+        
+        data.forEach(manager => {
           const option = document.createElement('option');
           option.value = manager.id;
           option.textContent = manager.name;
           managerSelector.appendChild(option);
         });
       })
-      .catch(error => console.error('Error fetching managers:', error));
+      .catch(error => console.error('Error fetching managers for stocks:', error));
     
-    // Get item dropdown for stock entry
+    // Get item dropdown for stock entry - unchanged
     fetch('/getInventoryItems')
       .then(response => response.json())
       .then(data => {
@@ -995,21 +998,26 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .catch(error => console.error('Error fetching items for stock selector:', error));
       
-    // Get suppliers
+    // Get suppliers - unchanged
     fetch('/getSuppliers')
       .then(response => response.json())
       .then(data => {
-        const supplierIdInput = document.getElementById('stock_supplier_id');
-        // Convert to datalist for autocomplete
-        let datalistHTML = '<datalist id="supplier_list">';
-        data.forEach(supplier => {
-          datalistHTML += `<option value="${supplier.id}">${supplier.name}</option>`;
-        });
-        datalistHTML += '</datalist>';
+        const supplierSelector = document.getElementById('stock_supplier_id');
+        supplierSelector.innerHTML = '';
         
-        // Insert datalist after the input
-        supplierIdInput.insertAdjacentHTML('afterend', datalistHTML);
-        supplierIdInput.setAttribute('list', 'supplier_list');
+        // Add a placeholder/default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = '-- Select Supplier --';
+        supplierSelector.appendChild(defaultOption);
+        
+        // Add all suppliers from the data
+        data.forEach(supplier => {
+          const option = document.createElement('option');
+          option.value = supplier.id;
+          option.textContent = `${supplier.name} (ID: ${supplier.id})`;
+          supplierSelector.appendChild(option);
+        });
       })
       .catch(error => console.error('Error fetching suppliers:', error));
   }
@@ -1223,13 +1231,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Add event listener for add worker button
   document.getElementById('add_worker_btn').addEventListener('click', function() {
-    // Populate gender dropdown first
-    populateWorkerGenderDropdown();
+    // Call a new combined function to populate all dropdown fields
+    populateWorkerForm();
     document.querySelector('.view_add_worker_popup').classList.add('active');
   });
 
-  // Function to populate gender dropdown in add worker form
-  function populateWorkerGenderDropdown() {
+  // New function to populate worker form dropdowns with both gender and manager data
+  function populateWorkerForm() {
+    // Fetch genders for the dropdown
     fetch('/getGenders')
       .then(response => response.json())
       .then(data => {
@@ -1244,55 +1253,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
       })
       .catch(error => console.error('Error fetching genders:', error));
+
+    // Fetch managers for the dropdown
+    fetch('/getManagers')
+      .then(response => response.json())
+      .then(data => {
+        const selector = document.getElementById('worker_manager');
+        selector.innerHTML = '';
+        
+        // Add a default empty option
+        const defaultOption = document.createElement('option');
+        selector.appendChild(defaultOption);
+        
+        data.forEach(manager => {
+          const option = document.createElement('option');
+          option.value = manager.id;
+          option.textContent = manager.name;
+          selector.appendChild(option);
+        });
+      })
+      .catch(error => console.error('Error fetching managers:', error));
   }
 
   // Add event listener for cancel button in add worker popup
   document.getElementById('worker_cancel_btn').addEventListener('click', function() {
     document.querySelector('.view_add_worker_popup').classList.remove('active');
-  });
-
-  // Add event listener for save worker button
-  document.getElementById('worker_save_btn').addEventListener('click', function() {
-    // Validate form fields
-    if (!validateWorkerForm()) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    // Collect form data
-    const workerData = {
-      first_name: document.getElementById('worker_first_name').value.trim(),
-      middle_name: document.getElementById('worker_middle_name').value.trim(),
-      last_name: document.getElementById('worker_last_name').value.trim(),
-      phone_number: document.getElementById('worker_phone_number').value.trim(),
-      age: document.getElementById('worker_age').value,
-      gender: document.getElementById('worker_gender').value,
-      password: document.getElementById('worker_password').value
-    };
-
-    // Send data to server
-    fetch('/addWorker', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(workerData)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert('Worker added successfully');
-        document.querySelector('.view_add_worker_popup').classList.remove('active');
-        fetchStaffInfo(); // Refresh the staff table
-        clearWorkerForm(); // Clear the form fields
-      } else {
-        alert(`Error adding worker: ${data.message}`);
-      }
-    })
-    .catch(error => {
-      console.error('Error adding worker:', error);
-      alert('An error occurred while adding the worker.');
-    });
   });
 
   // Function to validate the worker form
@@ -1303,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', function() {
       'worker_phone_number', 
       'worker_age', 
       'worker_gender',
+      'worker_manager',
       'worker_password'
     ];
 
@@ -1321,6 +1307,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('worker_last_name').value = '';
     document.getElementById('worker_phone_number').value = '';
     document.getElementById('worker_age').value = '';
+    document.getElementById('worker_gender').value = '';
+    document.getElementById('worker_manager').value = '';
     document.getElementById('worker_password').value = '';
   }
 
@@ -1727,5 +1715,86 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-});
+  // Modify the add worker button event listener to populate both gender and manager dropdowns
+  document.getElementById('add_worker_btn').addEventListener('click', function() {
+    document.querySelector('.view_add_worker_popup').classList.add('active');
+  });
 
+  // Function to populate worker form dropdowns
+
+  // Update the validateWorkerForm function to include manager field validation
+  function validateWorkerForm() {
+    const requiredFields = [
+      'worker_first_name', 
+      'worker_last_name', 
+      'worker_phone_number', 
+      'worker_age', 
+      'worker_gender',
+      'worker_manager',
+      'worker_password'
+    ];
+
+    for (const field of requiredFields) {
+      if (!document.getElementById(field).value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Update the worker_save_btn event listener to include manager ID
+  document.getElementById('worker_save_btn').addEventListener('click', function() {
+    if (!validateWorkerForm()) {
+      return;
+    }
+
+    // Collect form data including manager
+    const workerData = {
+      first_name: document.getElementById('worker_first_name').value.trim(),
+      middle_name: document.getElementById('worker_middle_name').value.trim(),
+      last_name: document.getElementById('worker_last_name').value.trim(),
+      phone_number: document.getElementById('worker_phone_number').value.trim(),
+      age: document.getElementById('worker_age').value,
+      gender: document.getElementById('worker_gender').value,
+      manager_id: document.getElementById('worker_manager').value,
+      password: document.getElementById('worker_password').value
+    };
+
+    // Send data to server
+    fetch('/addWorker', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(workerData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Worker added successfully');
+        document.querySelector('.view_add_worker_popup').classList.remove('active');
+        fetchStaffInfo(); // Refresh the staff table
+        clearWorkerForm(); // Clear the form fields
+      } else {
+        alert(`Error adding worker: ${data.message}`);
+      }
+    })
+    .catch(error => {
+      console.error('Error adding worker:', error);
+      alert('An error occurred while adding the worker.');
+    });
+  });
+
+  // Update the clearWorkerForm function to clear manager field
+  function clearWorkerForm() {
+    document.getElementById('worker_first_name').value = '';
+    document.getElementById('worker_middle_name').value = '';
+    document.getElementById('worker_last_name').value = '';
+    document.getElementById('worker_phone_number').value = '';
+    document.getElementById('worker_age').value = '';
+    document.getElementById('worker_gender').value = '';
+    document.getElementById('worker_manager').value = '';
+    document.getElementById('worker_password').value = '';
+  }
+
+});

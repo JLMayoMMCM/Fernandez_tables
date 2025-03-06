@@ -5,6 +5,7 @@ ALTER TABLE customer_tbl AUTO_INCREMENT = 10000001;
 DELETE FROM assigned_worker_tbl;
 ALTER TABLE assigned_worker_tbl AUTO_INCREMENT = 10000001;
 
+
 DELETE FROM event_info_tbl;
 ALTER TABLE event_info_tbl AUTO_INCREMENT = 10000001;
 
@@ -54,3 +55,6 @@ CREATE TABLE liabilities_tbl (
     FOREIGN KEY (item_ID) REFERENCES item_tbl (item_ID),
     FOREIGN KEY (finance_ID) REFERENCES finance_tbl (finance_ID)
 );
+
+UPDATE worker_tbl
+SET manager_ID = 30000001;
