@@ -40,24 +40,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function showPage(pageId) {
     // Hide all sections
-    document.querySelectorAll(".content_panel > section").forEach(section => {
-      section.classList.remove("active");
+    document.querySelectorAll("main > section").forEach(section => {
+        section.style.display = "none";
     });
 
     // Show the selected section
     const activeSection = document.querySelector(`.${pageId}`);
     if (activeSection) {
-      activeSection.classList.add("active");
+        activeSection.style.display = "grid"; // or "block" depending on layout
     } else {
-      console.error(`Section with class '${pageId}' not found.`);
+        console.error(`Section with class '${pageId}' not found.`);
     }
 
     // Update panel title
     const panelTitle = document.getElementById("panel-title");
     if (panelTitle) {
-      panelTitle.textContent = pageId.replace("content_", "").replace("_", " ").toUpperCase();
+        panelTitle.textContent = pageId.replace("content_", "").replace("_", " ").toUpperCase();
     }
-  }
+}
 
   //button navigation listener
 

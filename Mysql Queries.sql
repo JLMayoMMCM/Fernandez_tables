@@ -36,3 +36,6 @@ DROP TABLE item_stock_tbl;
 DROP TABLE item_tbl;
 DROP TABLE item_type_TBL;
 DROP TABLE liability_tbl;
+
+UPDATE staff_tbl 
+set staff_password = 'WVhOa1ptYz0=' ;
