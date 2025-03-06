@@ -1,10 +1,10 @@
 /* DEVELOPED BY JONATHAN LANCE MAYO */
 :root {
   --outline-color: rgb(0, 0, 0);
-  --header-color: rgb(51, 65, 92);
-  --header--content-color: rgb(103, 144, 226);
-  --panel-color: rgb(122, 132, 221);
-  --content-panel-color: rgb(206, 208, 212);
+  --header-color: #415A77;
+  --header--content-color: #778DA9;
+  --panel-color: #a7d0ff;
+  --content-panel-color: #d9ebff;
 
   --default-color: rgb(255, 255, 255);
   --table-color: rgb(206, 208, 212);
