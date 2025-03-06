@@ -54,11 +54,20 @@ app.post('/login', (req, res) => {
   const { userID, staffPassword } = req.body;
   const encryptedPassword = Buffer.from(staffPassword).toString('base64');
 
-  const query = 'SELECT staff_id, staff_password FROM staff_tbl WHERE staff_id = ? AND staff_password = ?';
+  // Modified query to also fetch user's name
+  const query = `
+    SELECT s.staff_id, s.staff_password, CONCAT(p.first_Name, ' ', p.last_Name) AS fullName
+    FROM staff_tbl s
+    JOIN person_tbl p ON s.person_ID = p.person_id
+    WHERE s.staff_id = ? AND s.staff_password = ?
+  `;
+  
   db.query(query, [userID, encryptedPassword], (err, results) => {
     if (err) throw err;
     if (results.length > 0) {
-      req.session.userID = userID; // Set session userID
+      // Store both user ID and name in session
+      req.session.userID = userID;
+      req.session.userName = results[0].fullName;
       console.log('Login successful');
       res.send({ success: true, redirectUrl: '/dashboard' });
     } else {
@@ -68,6 +77,46 @@ app.post('/login', (req, res) => {
   });
 });
 
+// New endpoint to get current user information
+app.get('/getCurrentUser', (req, res) => {
+  if (req.session.userID) {
+    // Query to get full name from the database using proper table relationships
+    const query = `
+      SELECT s.staff_id, 
+             CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS fullName
+      FROM staff_tbl s
+      JOIN person_tbl p ON s.person_ID = p.person_id
+      WHERE s.staff_id = ?
+    `;
+    
+    db.query(query, [req.session.userID], (err, results) => {
+      if (err) {
+        console.error('Error fetching user data:', err);
+        return res.json({ 
+          loggedIn: true, 
+          userID: req.session.userID,
+          userName: 'User' // Default name in case of error
+        });
+      }
+      
+      if (results.length > 0) {
+        res.json({ 
+          loggedIn: true, 
+          userID: req.session.userID,
+          userName: results[0].fullName || 'User'
+        });
+      } else {
+        res.json({ 
+          loggedIn: true, 
+          userID: req.session.userID,
+          userName: 'User' // Default name if user not found
+        });
+      }
+    });
+  } else {
+    res.json({ loggedIn: false });
+  }
+});
 
 // RETRIEVES ITEMS, WORKERS, MANAGERS, AND GENDER AND POPULATES THE DROPDOWNS AND TABLES
 app.get('/getItemsAndWorkers', (req, res) => {

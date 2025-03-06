@@ -1404,11 +1404,33 @@ document.addEventListener('DOMContentLoaded', function() {
     itemSubmitBtn.addEventListener('click', addItem);
   }
   
-  // Initialize inventory if we're on that page
+  // 
   if (document.querySelector('.content_inventory_stock.active')) {
     fetchInventoryItems();
     fetchStockInfo();
   }
+
+  // REPLACES USERNAME ON DASHBOARD
+  function fetchCurrentUser() {
+    fetch('/getCurrentUser')
+      .then(response => response.json())
+      .then(data => {
+        if (data.loggedIn) {
+          const usernameElement = document.getElementById('dashboard_Username');
+          if (usernameElement) {
+            usernameElement.textContent = data.userName;
+          }
+        } else {
+          window.location.href = '/login';
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching user information:', error);
+      });
+  }
+
+  // CALLS FUNCTION TO REPLACE USERNAME ON STARTUP
+  fetchCurrentUser();
 
 });
 
