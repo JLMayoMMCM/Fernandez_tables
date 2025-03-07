@@ -1,4 +1,3 @@
-/* DEVELOPED BY JONATHAN LANCE MAYO */
 :root {
   --outline-color: rgb(0, 0, 0);
   --header-color: #1b263b;
@@ -12,42 +11,52 @@
 
 
 /* DEFAULT STYLES  FOR BODY */
-/* DEVELOPED BY JONATHAN LANCE MAYO */
+
 * {
   font-family: 'Overpass Mono';
   margin: 0;
 }
 /* DEFAULT STYLES  FOR BODY */
 body {
-  display: grid;
-  grid-template-columns: 300px auto; /* Sidebar and main content */
-  grid-template-rows: 60px auto; /* Header and content */
-  grid-template-areas: 
-    "side header"
-    "side main";
-  width: 100vw;
+  font-family: 'Overpass Mono';
   height: 100vh;
-  overflow: hidden; /* Prevent scrolling */
+  margin: 0;
+
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 60px 1fr;
+  grid-template-areas: 
+  "side header" 
+  "side main";
 }
 
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE and Edge */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
 
 /* MAIN STYLES */
 
 .dashboard_container {
+  background: #F5F5F5;
+
+  padding: 25px;
+  overflow: auto;
   grid-area: main;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  overflow: hidden; /* Prevent scrolling */
-  padding: 20px; /* Adjust as needed */
-  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
 
 /* TOP HEADER STYLES */
 .header {
-  background-color: #415A77;
+  background-color: #1b263b;
   grid-area: header;
   display: flex;
   align-items: center;
@@ -72,32 +81,36 @@ body {
   width: 600px;
 }
 
+#dashboard_Username {
+  color: white;
+  font-weight: bold;
+}
+
 /* SIDEBAR STYLES */
 .sidebar {
-  background-color: #1B263B;
-  height: 100vh;
+  background-color: #0d1b2a;
   grid-area: side;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
 }
 
 /* SIDEBAR NAVIGATION STYLES */
 .nav-button {
   width: 100%;
-  padding: 20px 0;
-  margin: 10px 0;
+  padding: 25px;
+  margin: 0; /* Remove margin to extend to the edges */
   text-align: center;
-  background-color: #415A77;
+  background-color: #0d1b2a;
   color: white;
   text-decoration: none;
   font-weight: bold;
   transition: background-color 0.3s, transform 0.2s;
   display: block;
+  border: none; /* Remove the border */
 }
 .nav-button:hover {
-  background-color: rgb(125, 150, 200);
+  background-color: #415A77;
 }
 
 .nav-button.active {
@@ -108,6 +121,7 @@ body {
 .sidebar_img {
   width: 150px;
   height: auto;
+  margin-top: 20px;
   margin-bottom: 20px;
 }
 
@@ -121,7 +135,7 @@ body {
   width: 80%;
   cursor: pointer;
   position: relative;
-  bottom: 20px;
+  bottom: 25px;
 }
 #logout:hover {
   background-color: red;
@@ -135,20 +149,19 @@ body {
   grid-template-rows: auto auto;
   gap: 20px;
   width: 100%;
-  justify-content: space-evenly;
+  justify-content: center;
 }
 
 .card-add-orders {
   display: flex;
   flex-direction: column;
-  height: 455px;
-  width: 100%;
-  max-width: 525px;
+  height: 565px;
+  width: 500px;
   background-color: white;
   border-radius: 20px;
   box-shadow: #1B263B 0px 0px 10px;
   padding: 25px;
-  margin: 20px 0;
+  margin: 20px;
 }
 
 .card-add-orders {
@@ -214,7 +227,7 @@ body {
 }
 
 #add_item_order:hover, #add_order_button:hover, #modify_item_order:hover, #save_modify_order:hover {
-  background-color: rgb(125, 150, 200);
+  background-color: #7d96c8;
 }
 
 /* Buttons */
@@ -230,11 +243,14 @@ body {
   border-radius: 50px;
   font-size: 16px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
 }
 
-
+#back_to_add_order:hover {
+  background-color: #7d96c8;
+}
 
 @media (max-width: 925px) {
 
@@ -260,13 +276,18 @@ body {
 .card_item_container {
   display: flex;
   flex-direction: column;
-  height: 565px;
+  height: 345px;
   width: 1120px;
   background-color: white;
   border-radius: 20px;
   box-shadow: #1B263B 0px 0px 10px;
   padding: 25px;
   margin: 20px 0;
+}
+
+.card_item_container h3 {
+  margin-bottom: 3px;
+  padding-bottom: 0;
 }
 
 .card_item_container {
@@ -278,6 +299,144 @@ body {
   flex-direction: column;
   gap: 15px; /* Adds even spacing between input fields */
 }
+
+.table_wrapper {
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+  width: 1120px;
+  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
+  height: 345px; /* Matches the height of the cards */
+  border-radius: 20px; /* Optional: adds rounded corners */
+  margin: 10px 0; /* Optional: adds margin for spacing */
+}
+
+.table_wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures the table layout is fixed */
+  border: none; /* Remove the border */
+}
+
+.table_wrapper th, .table_wrapper td {
+  text-align: center;
+  padding: 8px;
+  border: none; /* Remove the border */
+  vertical-align: middle; /* Aligns items to the center vertically */
+}
+.table_wrapper thead {
+  background-color: #415A77;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table_wrapper tbody tr.active {
+  background-color: #e0f7fa; /* Light up the active row */
+}
+
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-control button {
+  background-color: #778DA9;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.quantity-control button:hover {
+  background-color: #778DA9;
+  transform: scale(1.1);
+}
+
+.quantity-control button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.quantity-control input {
+  width: 50px;
+  text-align: center;
+  border: 1px solid #ccc;
+  margin: 0 5px;
+  -moz-appearance: textfield; /* Hide the up and down buttons in Firefox */
+}
+
+.quantity-control input::-webkit-outer-spin-button,
+.quantity-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* Hide the up and down buttons in Chrome, Safari, and Edge */
+  margin: 0;
+}
+
+/* Modal styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: none;
+  border-radius: 30px;
+  height: 200px;
+  width: 300px; /* Could be more or less, depending on screen size */
+  display: flex; /* Use flexbox to center the content */
+  flex-direction: column; /* Arrange content vertically */
+  align-items: center; /* Center content horizontally */
+  justify-content: center; /* Center content vertically */
+  position: relative; /* Position relative to place the close button */
+}
+
+.modal-message {
+  text-align: center; /* Center text inside the modal */
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.close-button {
+  color: #aaa;
+  position: absolute; /* Position absolute to place it in the top right corner */
+  top: 10px;
+  right: 10px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-content i {
+  margin-top: 20px; /* Add top margin for the <i> class */
+}
+
+
+
+
+
 
 
 

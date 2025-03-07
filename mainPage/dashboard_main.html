@@ -7,6 +7,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href='https://fonts.googleapis.com/css?family=Overpass Mono' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <title>Dashboard</title>
         <link rel="stylesheet" href="../design/dashboard_style_main.css">
         <script>
@@ -174,6 +175,17 @@
                 <!-- NAVIGATION BUTTONS-->
                     <button type="button" id="add_item_order">ITEM LIST</button>
                     <button type="button" id="add_order_button">ADD ORDER</button>
+
+                <!-- Validation Modal -->
+                <div id="validationModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button">&times;</span>
+                        <i class='fas fa-exclamation-triangle' style='font-size:48px;color:red'></i>
+                            <div class="modal-message">
+                                <p id="validationMessage"></p>
+                            </div>
+                    </div>
+                </div>  
             </section>
 
 
@@ -193,82 +205,83 @@
 
             <!-- ADD ITEMS ORDER PANEL - CONTAINS SUBPANEL FOR TABLE SELECTION-->
             <section class="content_add_item_order">                     
-                    <!-- TABLES SELECTION-->
-                    <div class="card_item_container">
-                        <h3>Tables</h3>
-                            <table id="tables_Container">
-                                <thead>
-                                    <tr>
+                <div class="card_item_container">
+                    <h3>Tables</h3>
+                    <div class="table_wrapper">
+                        <table id="tables_Container">
+                            <thead>
+                                <tr>
                                     <th>Sel</th>
                                     <th>Name</th>
                                     <th>Price</th>
                                     <th>Stock</th>
                                     <th>Qty</th>
                                     <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                            <!-- EMPTY BODY FOR IMPORT-->
+                                </tr>
+                            </thead>
                             <tbody></tbody>
-                            </table>
+                        </table>
                     </div>
-
-
-                    <!-- CHAIRS SELECTION-->
-                    <div class="card_item_container">
-                        <h3>Chairs</h3>
+                </div>
+            
+                <!-- CHAIRS SELECTION-->
+                <div class="card_item_container">
+                    <h3>Chairs</h3>
+                    <div class="table_wrapper">
                         <table id="chairs_Container">
                             <thead>
                                 <tr>
-                                <th>Sel</th>
-                                <th>Name</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Qty</th>
-                                <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <!-- EMPTY BODY FOR IMPORT-->
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- MISCELLANEOUS SELECTION-->
-                    <div class="card_item_container">
-                        <h3>Miscellaneous</h3>
-                            <table id="misc_Container">
-                                <thead>
-                                    <tr>
                                     <th>Sel</th>
                                     <th>Name</th>
                                     <th>Price</th>
                                     <th>Stock</th>
                                     <th>Qty</th>
                                     <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <!-- EMPTY BODY FOR IMPORT-->
-                                <tbody></tbody>
-                            </table>
-                        </div>
-
-                    <!-- WORKERS SELECTION-->
-                    <div class="card_item_container">
-                        <h3>Workers</h3>
-                            <table id="workers_Container">
-                                <thead>
-                                    <tr>
-                                        <th>Sel</th>
-                                        <th>Worker Name</th>
-                                    </tr>
-                                </thead>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
-
-                <div class = "order_total">
-                    <h3>Item Cost: <span id="subtotal_price">0.00</span></h3>
-                    <h3>Total Cost: <span id="total_price">0.00</span></h3>
                 </div>
+                
+                <!-- MISCELLANEOUS SELECTION-->
+                <div class="card_item_container">
+                    <h3>Miscellaneous</h3>
+                    <div class="table_wrapper">
+                        <table id="misc_Container">
+                            <thead>
+                                <tr>
+                                    <th>Sel</th>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Qty</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            
+                <!-- WORKERS SELECTION-->
+                <div class="card_item_container">
+                    <h3>Workers</h3>
+                    <div class="table_wrapper">
+                        <table id="workers_Container">
+                            <thead>
+                                <tr>
+                                    <th>Sel</th>
+                                    <th>Worker Name</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h3>Item Cost: <span id="subtotal_price">0.00</span></h3>
+                <h3>Total Cost: <span id="total_price">0.00</span></h3>
 
                 <!-- REVERTS BACK TO THE ADD ORDERS PAGE-->
                     <button type="button" id="back_to_add_order">Back to Order</button>
@@ -777,14 +790,6 @@
                                 <input type="number" id="item_price_input" step="0.01" min="0">
                             </div>
 
-                            <div class="input_row">
-                                <label for="item_type_select">Item Type:</label>
-                                <select id="item_type_select"></select>
-                            </div>
-
-                            <div class="order_navigation">
-                                <button id="item_return_btn">Return to Stock Inventory</button>
-                                <button id="item_submit_btn">Add Item</button>
                             </div>
                         </div>  
                     </section>

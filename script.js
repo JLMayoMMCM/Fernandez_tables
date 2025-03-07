@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function populateTable(items, tableId) {
     const tableBody = document.getElementById(tableId).querySelector('tbody');
     tableBody.innerHTML = '';
-
+  
     items.forEach(item => {
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -135,18 +135,49 @@ document.addEventListener('DOMContentLoaded', function() {
         <td>${item.item_name}</td>
         <td>${item.item_price}</td>
         <td>${item.item_quantity}</td>
-        <td><input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0"></td>
+        <td>
+          <div class="quantity-control">
+            <button class="quantity-decrease">-</button>
+            <input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0">
+            <button class="quantity-increase">+</button>
+          </div>
+        </td>
         <td class="item-subtotal">0.00</td>
       `;
       tableBody.appendChild(row);
     });
-
+  
     // Add event listeners for quantity inputs and checkboxes
     tableBody.querySelectorAll('.item-select').forEach(checkbox => {
-      checkbox.addEventListener('change', updateSubtotal);
+      checkbox.addEventListener('change', function() {
+        const row = this.closest('tr');
+        if (this.checked) {
+          row.classList.add('active');
+        } else {
+          row.classList.remove('active');
+        }
+        updateSubtotal();
+      });
     });
-    tableBody.querySelectorAll('.item-quantity').forEach(input => {
-      input.addEventListener('input', updateSubtotal);
+  
+    tableBody.querySelectorAll('.quantity-decrease').forEach(button => {
+      button.addEventListener('click', function() {
+        const input = this.nextElementSibling;
+        if (parseInt(input.value) > 0) {
+          input.value = parseInt(input.value) - 1;
+          updateSubtotal();
+        }
+      });
+    });
+  
+    tableBody.querySelectorAll('.quantity-increase').forEach(button => {
+      button.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        if (parseInt(input.value) < parseInt(input.max)) {
+          input.value = parseInt(input.value) + 1;
+          updateSubtotal();
+        }
+      });
     });
   }
 
@@ -161,6 +192,18 @@ document.addEventListener('DOMContentLoaded', function() {
         <td>${worker.worker_name}</td>
       `;
       tableBody.appendChild(row);
+    });
+
+    // Add event listeners for worker checkboxes
+    tableBody.querySelectorAll('.worker-select').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const row = this.closest('tr');
+        if (this.checked) {
+          row.classList.add('active');
+        } else {
+          row.classList.remove('active');
+        }
+      });
     });
   }
 
@@ -217,33 +260,96 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function getOrderData() {
+    // Function to clear the form fields
+    function clearForm() {
+      const formFields = [
+        'event_name', 'event_timestamp', 'event_duration', 'assigned_manager',
+        'street', 'barangay', 'city', 'first_name', 'middle_name', 'last_name',
+        'phone_number', 'age', 'gender', 'extra_fees'
+      ];
   
-    const getValue = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+      formFields.forEach(field => {
+        const element = document.getElementById(field);
+        if (element) {
+          element.value = '';
+        }
+      });
+  
+      // Clear item selections
+      document.querySelectorAll('.item-select').forEach(checkbox => {
+        checkbox.checked = false;
+        const row = checkbox.closest('tr');
+        const quantityInput = row.querySelector('.item-quantity');
+        if (quantityInput) {
+          quantityInput.value = 0;
+        }
+        const subtotalCell = row.querySelector('.item-subtotal');
+        if (subtotalCell) {
+          subtotalCell.textContent = '0.00';
+        }
+      });
+  
+      // Clear worker selections
+      document.querySelectorAll('.worker-select').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+  
+      // Reset subtotal and total price
+      document.querySelectorAll('#subtotal_price, #total_price').forEach(element => {
+        element.textContent = '0.00';
+      });
+    }
+  
+    // Function to show validation message
+    function showValidationMessage(message) {
+      const modal = document.getElementById('validationModal');
+      const messageElement = document.getElementById('validationMessage');
+      const closeButton = document.querySelector('.close-button');
+  
+      messageElement.textContent = message;
+      modal.style.display = 'flex';
+  
+      closeButton.onclick = function() {
+        modal.style.display = 'none';
+      };
+  
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      };
+    }
 
-  return { event_name: getValue('event_name'), 
-    event_timestamp: getValue('event_timestamp'), 
-    event_duration: getValue('event_duration') || 1, 
-    assigned_manager: getValue('assigned_manager'), 
-    street: getValue('street'), 
-    barangay: getValue('barangay'), 
-    city: getValue('city'), 
-    first_name: getValue('first_name'), 
-    middle_name: getValue('middle_name'), 
-    last_name: getValue('last_name'), 
-    phone_number: getValue('phone_number'), 
-    age: getValue('age') || 0, 
-    gender: getValue('gender'), 
-    extra_fees: getValue('extra_fees') || 0, 
-    items: getSelectedItems(), 
-    workers: getSelectedWorkers() };
-  }
+    function getOrderData() {
+      const getValue = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  
+      return {
+        event_name: getValue('event_name'),
+        event_timestamp: getValue('event_timestamp'),
+        event_duration: getValue('event_duration') || 1,
+        assigned_manager: getValue('assigned_manager'),
+        street: getValue('street'),
+        barangay: getValue('barangay'),
+        city: getValue('city'),
+        first_name: getValue('first_name'),
+        middle_name: getValue('middle_name'),
+        last_name: getValue('last_name'),
+        phone_number: getValue('phone_number'),
+        age: getValue('age') || 0,
+        gender: getValue('gender'),
+        extra_fees: getValue('extra_fees') || 0,
+        items: getSelectedItems(),
+        workers: getSelectedWorkers()
+      };
+    }
 
+  
+  // Function to handle adding an order
   // Function to handle adding an order
   function addOrder() {
     // Validate form fields
     if (!validateForm()) {
-      alert('Please fill in all required fields and ensure at least one item and one worker are selected.');
+      showValidationMessage('Please fill in all required fields and ensure at least one item and one worker are selected.');
       return;
     }
 
@@ -261,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (data.success) {
         alert('Order added successfully');
         showPage('content_add_order');
+        clearForm(); // Clear the form after successful order addition
       } else {
         alert('Error adding order');
       }
@@ -268,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .catch(error => console.error('Error adding order:', error));
   }
 
-  function validateForm() {
+function validateForm() {
     const requiredFields = [
       'event_name', 'event_timestamp', 'event_duration', 'assigned_manager',
       'street', 'barangay', 'city', 'first_name', 'last_name', 'phone_number', 'gender'
@@ -531,23 +638,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Function to populate modify workers table with event listeners
   function populateModifyWorkersTable(workers, tableId) {
     const tableBody = document.getElementById(tableId).querySelector('tbody');
     tableBody.innerHTML = '';
-  
+
     workers.forEach(worker => {
       const isSelected = worker.selected === 1;
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>
-          <input type="checkbox" class="worker-select" data-id="${worker.worker_ID}"
-            ${isSelected ? 'checked' : ''}>
-        </td>
+        <td><input type="checkbox" class="worker-select" data-id="${worker.worker_ID}" ${isSelected ? 'checked' : ''}></td>
         <td>${worker.worker_name}</td>
       `;
       tableBody.appendChild(row);
+
+      if (isSelected) {
+        row.classList.add('active');
+      }
     });
-  }
+
+        // Add event listeners for worker checkboxes
+        tableBody.querySelectorAll('.worker-select').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            if (this.checked) {
+              row.classList.add('active');
+            } else {
+              row.classList.remove('active');
+            }
+          });
+        });
+      }
 
     function updateModifySubtotal() {
     let subtotal = 0;
@@ -630,7 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('/getOrderHistory')
       .then(response => response.json())
       .then(data => {
-        const tableBody = document.getElementById('order_History_Table').querySelector('tbody');
+        const tableBody = document.getElementById('order_History_Table ').querySelector('tbody');
         tableBody.innerHTML = '';
 
         data.forEach(order => {
