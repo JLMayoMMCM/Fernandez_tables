@@ -28,12 +28,16 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     alert('Login successful');
-                    // Fix: Use window.location.replace instead of window.location.href
-                    window.location.replace(data.redirectUrl);
-                    // As a fallback in case replace doesn't work
-                    setTimeout(function() {
-                        window.location.href = data.redirectUrl;
-                    }, 500);
+                    
+                    // Create absolute URL if needed
+                    const redirectUrl = data.redirectUrl.startsWith('http') 
+                        ? data.redirectUrl 
+                        : window.location.origin + data.redirectUrl;
+                    
+                    console.log("Redirecting to:", redirectUrl);
+                    
+                    // Use direct assignment for most reliable redirect
+                    window.location.href = redirectUrl;
                 } else {
                     alert('Invalid login credentials');
                 }
@@ -113,12 +117,25 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/getItemsAndWorkers')
             .then(response => response.json())
             .then(data => {
-                const { items, workers, managers, genders, suppliers } = data;
+                const { items, workers, managers, genders, suppliers, selector} = data;
+
+                // Aggregate item quantities by item ID
+                const aggregateQuantities = items => {
+                    const itemMap = new Map();
+                    items.forEach(item => {
+                        if (itemMap.has(item.id)) {
+                            itemMap.get(item.id).item_quantity += item.item_quantity;
+                        } else {
+                            itemMap.set(item.id, { ...item });
+                        }
+                    });
+                    return Array.from(itemMap.values());
+                };
 
                 // Populate item tables
-                populateTable(items.tables, 'tables_Container');
-                populateTable(items.chairs, 'chairs_Container');
-                populateTable(items.miscellaneous, 'misc_Container');
+                populateTable(aggregateQuantities(items.tables), 'tables_Container');
+                populateTable(aggregateQuantities(items.chairs), 'chairs_Container');
+                populateTable(aggregateQuantities(items.miscellaneous), 'misc_Container');
 
                 // Populate workers table
                 populateWorkersTable(workers, 'workers_Container');
@@ -137,6 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
                              
                 // POPULATE STOCK SUPPLIERS
                 populateSelector(suppliers, 'stock_supplier_id');
+
+                // Populate stock item selector
+
+                populateSelector(selector, 'stock_item_select');
             })
             .catch(error => console.error('Error importing data:', error));
     }
@@ -194,8 +215,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selector.innerHTML = '';
         data.forEach(item => {
             const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.name;
+            option.value = item.id; 
+            option.textContent = item.name || item.item_name; // Ensure text is set correctly
             selector.appendChild(option);
         });
     }
@@ -275,23 +296,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Get event duration for modify order form
-        const eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+        // Get event duration for modify order form (use explicit ID)
+        let eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
+        
         const subtotalPrice = subtotal * eventDuration;
         
-        // Get extra fees from the modify order extra fees input
-        const extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+        // Get extra fees from the modify order extra fees input (use explicit ID)
+        let extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
+        
         const totalPrice = subtotalPrice + extraFees;
         
-        // Update all subtotal and total price elements in modify order pages
-        const subtotalElements = document.querySelectorAll('#modify_subtotal_Price');
-        subtotalElements.forEach(el => {
-            if (el) el.textContent = subtotalPrice.toFixed(2);
+        // Update the modify order form subtotal and total (fix ID discrepancies)
+        const subtotalElements = document.querySelectorAll(
+            '#modify_subtotal_Price'
+        );
+        
+        subtotalElements.forEach(element => {
+            if (element) element.textContent = subtotalPrice.toFixed(2);
         });
         
-        const totalElements = document.querySelectorAll('#modify_total_Price');
-        totalElements.forEach(el => {
-            if (el) el.textContent = totalPrice.toFixed(2);
+        const totalElements = document.querySelectorAll(
+            '#modify_total_Price'
+        );
+        
+        totalElements.forEach(element => {
+            if (element) element.textContent = totalPrice.toFixed(2);
         });
     }
 
@@ -548,10 +577,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('modify_gender').value = order.gender || '';
                 document.getElementById('modify_extra_fees').value = order.extra_fees || 0;
                 
-                // Populate item tables with pre-sorted items from the server
-                populateModifyTable(itemsByType.tables, 'modify_tables_Container');
-                populateModifyTable(itemsByType.chairs, 'modify_chairs_Container');
-                populateModifyTable(itemsByType.misc, 'modify_misc_Container');
+                // Aggregate item quantities by item ID
+                const aggregateQuantities = items => {
+                    const itemMap = new Map();
+                    items.forEach(item => {
+                        if (itemMap.has(item.item_ID)) {
+                            itemMap.get(item.item_ID).available_stock += item.available_stock;
+                        } else {
+                            itemMap.set(item.item_ID, { ...item });
+                        }
+                    });
+                    return Array.from(itemMap.values());
+                };
+
+                // Populate modify item tables
+                populateModifyTable(aggregateQuantities(itemsByType.tables), 'modify_tables_Container');
+                populateModifyTable(aggregateQuantities(itemsByType.chairs), 'modify_chairs_Container');
+                populateModifyTable(aggregateQuantities(itemsByType.misc), 'modify_misc_Container');
                 
                 // Populate workers table
                 populateModifyWorkersTable(workers, 'modify_workers_Container');
@@ -616,72 +658,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${worker.worker_name}</td>
             `;
             tableBody.appendChild(row);
-        });
-    }
-
-        function updateModifySubtotal() {
-        let subtotal = 0;
-        // Loop over every quantity input in modify item containers
-        document.querySelectorAll(
-            '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
-        ).forEach(input => {
-            const quantity = parseFloat(input.value) || 0;
-            const price = parseFloat(input.dataset.price) || 0;
-            const row = input.closest('tr');
-            const subtotalCell = row.querySelector('.item-subtotal');
-            
-            const itemSubtotal = quantity * price;
-            subtotalCell.textContent = itemSubtotal.toFixed(2);
-            if (quantity > 0) {
-                subtotal += itemSubtotal;
-            }
-        });
-        
-        // Get event duration for modify order form (use explicit ID)
-        let eventDuration;
-        if (document.querySelector('.content_modify_order.active')) {
-            eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
-        } else if (document.querySelector('.content_modify_item_order.active')) {
-            eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
-        } else {
-            eventDuration = 1;
-        }
-        
-        const subtotalPrice = subtotal * eventDuration;
-        
-        // Get extra fees from the modify order extra fees input (use explicit ID)
-        let extraFees;
-        if (document.querySelector('.content_modify_order.active')) {
-            extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
-        } else if (document.querySelector('.content_modify_item_order.active')) {
-            extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
-        } else {
-            extraFees = 0;
-        }
-        
-        const totalPrice = subtotalPrice + extraFees;
-        
-        // Update the modify order form subtotal and total (fix ID discrepancies)
-        const subtotalElements = document.querySelectorAll(
-            '.content_modify_order.active #subtotal_Price, ' + 
-            '.content_modify_order.active #subtotal_price, ' +
-            '.content_modify_item_order.active #subtotal_Price, ' +
-            '.content_modify_item_order.active #subtotal_price'
-        );
-        
-        subtotalElements.forEach(element => {
-            if (element) element.textContent = subtotalPrice.toFixed(2);
-        });
-        
-        const totalElements = document.querySelectorAll(
-            '.content_modify_order.active #total_Price, ' +
-            '.content_modify_order.active #total_price, ' +
-            '.content_modify_item_order.active #total_Price, ' +
-            '.content_modify_item_order.active #total_price'
-        );
-        
-        totalElements.forEach(element => {
-            if (element) element.textContent = totalPrice.toFixed(2);
         });
     }
 
@@ -974,7 +950,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const itemType = document.getElementById('item_type_select').value;
         
         if (!name || !price || !itemType) {
-            alert('Please fill in all required fields (name, price, item type)');
+            alert('Please fill in all required fields.');
             return;
         }
         
@@ -993,14 +969,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                document.getElementById('item_name_input').value = '';
-                document.getElementById('item_description_input').value = '';
-                document.getElementById('item_price_input').value = '';
-                showPage('content_inventory_stock');
+                alert('Item added successfully.');
                 fetchInventoryItems();
             } else {
-                alert(`Error: ${data.message}`);
+                alert('Error adding item: ' + data.message);
             }
         })
         .catch(error => {
@@ -1464,29 +1436,39 @@ document.addEventListener('DOMContentLoaded', function() {
         modifyExtraFeesInput.addEventListener('input', updateModifySubtotal);
     }
 
-    // Fix listeners for modify item order page
     function setupModifyItemOrderListeners() {
-        // For the tables
+
         document.querySelectorAll(
             '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
         ).forEach(input => {
-            input.addEventListener('input', updateModifySubtotal);
+            // Remove any existing listeners to avoid duplicates
+            const oldElement = input.cloneNode(true);
+            input.parentNode.replaceChild(oldElement, input);
+            
+
+            oldElement.addEventListener('input', updateModifySubtotal);
+            oldElement.addEventListener('blur', function() {
+                const max = parseInt(this.getAttribute('max'));
+                validateNumericInput(this, 0, max);
+                updateModifySubtotal();
+            });
         });
     }
 
-    // Update listeners when switching to modify item order page
+
     const modifyItemOrderButton = document.getElementById('modify_item_order');
     if (modifyItemOrderButton) {
         modifyItemOrderButton.addEventListener('click', function() {
             showPage('content_modify_item_order');
             setTimeout(function() {
-                // Ensure subtotal is updated when page is shown
+
+                setupModifyItemOrderListeners();
+
                 updateModifySubtotal();
             }, 100);
         });
     }
 
-    // Also attach listeners right after populating tables
     function populateModifyTable(items, tableId) {
         const tableBody = document.getElementById(tableId).querySelector('tbody');
         tableBody.innerHTML = '';
@@ -1613,6 +1595,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modifyEventDurationInput) {
         modifyEventDurationInput.addEventListener('input', function() {
             validateNumericInput(this, 1, 60);
+            console.log('Input event duration:', this.value);
             updateModifySubtotal();
         });
         
@@ -1621,6 +1604,12 @@ document.addEventListener('DOMContentLoaded', function() {
             updateModifySubtotal();
         });
     }
+
+
+
+
+
+
 
     // Modify the add worker button event listener to populate both gender and manager dropdowns
     document.getElementById('add_worker_btn').addEventListener('click', function() {
@@ -2141,6 +2130,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchPaymentOrders(); // Refresh payment orders after closing
     });
 
+
+
     // Load payment orders when the page is shown
     document.querySelectorAll('.nav-button').forEach(button => {
         button.addEventListener('click', function() {
@@ -2150,5 +2141,4 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
 });

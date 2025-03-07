@@ -21,11 +21,19 @@ ALTER TABLE payment_tbl AUTO_INCREMENT = 10000001;
 DELETE FROM PERSON_tbl WHERE person_ID > 10000008;
 ALTER TABLE person_tbl AUTO_INCREMENT = 10000009;
 
-DELETE FROM finance_tbl WHERE finance_ID > 10000000;
+DELETE FROM liabilities_tbl;
+ALTER TABLE liabilities_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM payment_tbl;
+ALTER TABLE payment_tbl AUTO_INCREMENT = 10000001;
+
+DELETE FROM finance_tbl;
 ALTER TABLE finance_tbl AUTO_INCREMENT = 10000001;
 
 DELETE FROM customer_tbl;
 ALTER TABLE customer_tbl AUTO_INCREMENT = 10000001;
+
+
 
 
 --Drop all tables

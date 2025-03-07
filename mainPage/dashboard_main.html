@@ -14,7 +14,7 @@
               .then(response => response.json())
               .then(data => {
                 if (!data.loggedIn) {
-                  window.location.href = '/login';
+                  window.location.href = '/login'; // Redirect to login if not logged in
                 }
               })
               .catch(error => {
@@ -780,7 +780,10 @@
                             <h3>Add Stock</h3>
                             <div class="input_row">
                                 <label for="stock_item_select">Item:</label>
-                                <select id="stock_item_select"></select>
+                                <select id="stock_item_select" size="5" style="overflow-y: scroll;">
+                                    <!-- Ensure options have valid values -->
+                                    <option value="" disabled selected>Select an item</option>
+                                </select>
                             </div>
                             <div class="input_row">
                                 <label for="stock_quantity">Quantity:</label>

@@ -1,16 +1,17 @@
+// ------------------ SERVER-SIDE JAVASCRIPT ------------------ //
+//BY: JONATHAN LANCE MAYO
+
+// ------------------ NODE MODULES ------------------ //
+//IMPORTS
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const path = require('path');
 const session = require('express-session');
 
-
-
 // CREATE EXPRESS APP
 const app = express();
 const port = 4000;
-
-
 
 // MIDDLEWARE FOR STATIC FILES
 app.use("/mainPage", express.static(__dirname + "/mainPage"));
@@ -18,13 +19,9 @@ app.use("/design", express.static(__dirname + "/design"));
 app.use("/assets", express.static(__dirname + "/Assets"));
 app.use(express.static(__dirname));
 
-
-
 // MIDDLEWARE FOR BODY PARSER
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-
 
 // MIDDLEWARE FOR SESSION 
 app.use(session({
@@ -33,8 +30,6 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false }
 }));
-
-
 
 // CONNECTION TO MYSQL DATABASE
 const db = mysql.createConnection({
@@ -45,8 +40,6 @@ const db = mysql.createConnection({
     multipleStatements: true
 });
 
-
-
 // CONNECT TO DATABASE
 db.connect((err) => {
     if (err) throw err;
@@ -55,38 +48,54 @@ db.connect((err) => {
 
 
 
-// CHECK IF USER IS LOGGED IN. FORCES /dashboard TO /login IF NOT
-app.get('/checkSession', (req, res) => {
-    if (req.session.userID) { res.json({ loggedIn: true });
-} else { res.json({ loggedIn: false }); } });
-
-
+// ------------------ SERVER LISTENING ------------------ //
 
 // LOGIN USER AND SET SESSION VARIABLES
 app.post('/login', (req, res) => {
     const { userID, staffPassword } = req.body;
+
     const encryptedPassword = Buffer.from(staffPassword).toString('base64');
 
     const query = `
-        SELECT s.staff_id, s.staff_password, CONCAT(p.first_Name, ' ', p.last_Name) AS fullName
+        SELECT s.staff_id, s.staff_password, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS fullName
         FROM staff_tbl s
         JOIN person_tbl p ON s.person_ID = p.person_id
         WHERE s.staff_id = ? AND s.staff_password = ?
     `;
     
     db.query(query, [userID, encryptedPassword], (err, results) => {
-        if (err) throw err;
+        if (err) {
+            console.error('Database error during login:', err);
+            return res.status(500).json({ success: false, message: 'Internal server error' });
+        }
+        
         if (results.length > 0) {
             req.session.userID = userID;
             req.session.userName = results[0].fullName;
             console.log('Login successful');
-            res.send({ success: true, redirectUrl: '/dashboard' });
+            res.json({ success: true, redirectUrl: '/dashboard' });
         } else {
             console.log('Invalid login credentials');
-            res.send({ success: false, message: 'Invalid credentials' });
+            res.json({ success: false, message: 'Invalid credentials' });
         }
     });
 });
+
+
+
+// CHECK SESSION STATUS
+app.get('/checkSession', (req, res) => {
+    if (req.session.userID) {
+        res.json({ loggedIn: true });
+    } else {
+        res.json({ loggedIn: false });
+    }
+});
+
+
+
+
+// --------------------------------- DASHBOARD ROUTES --------------------------------- //
 
 
 
@@ -136,10 +145,11 @@ app.get('/getCurrentUser', (req, res) => {
 // RETRIEVES ITEMS, WORKERS, MANAGERS, AND GENDER AND POPULATES THE DROPDOWNS AND TABLES
 app.get('/getItemsAndWorkers', (req, res) => {
     const itemsQuery = `
-        SELECT i.item_ID, i.item_name, i.item_price, s.item_quantity, t.item_type_name
+        SELECT i.item_ID AS id, i.item_name, i.item_price, COALESCE(SUM(s.item_quantity), 0) AS item_quantity, t.item_type_name
         FROM item_tbl i
-        JOIN item_stock_tbl s ON i.item_ID = s.item_ID
+        LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
         JOIN item_type_tbl t ON i.item_type_ID = t.item_type_ID
+        GROUP BY i.item_ID, i.item_name, i.item_price, t.item_type_name
     `;
     const workersQuery = `
         SELECT w.worker_ID, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name
@@ -159,18 +169,22 @@ app.get('/getItemsAndWorkers', (req, res) => {
     `;
     const suppliersQuery = `
         SELECT supplier_ID as id, supplier_source_name as name 
-	FROM supplier_tbl
+        FROM supplier_tbl
+    `;
+    const selectorQuery = `
+        SELECT item_id as id, item_name AS name
+        FROM item_tbl
     `;
 
-    db.query(`${itemsQuery}; ${workersQuery}; ${managersQuery}; ${gendersQuery}; ${suppliersQuery};`, (err, results) => {
+    db.query(`${itemsQuery}; ${workersQuery}; ${managersQuery}; ${gendersQuery}; ${suppliersQuery}; ${selectorQuery}`, (err, results) => {
         if (err) throw err;
-        const [items, workers, managers, genders, suppliers] = results;
+        const [items, workers, managers, genders, suppliers, selector] = results;
         const sortedItems = {
             tables: items.filter(item => item.item_type_name === 'Tables'),
             chairs: items.filter(item => item.item_type_name === 'Chairs'),
             miscellaneous: items.filter(item => item.item_type_name === 'Others')
         };
-        res.json({ items: sortedItems, workers, managers, genders, suppliers});
+        res.json({ items: sortedItems, workers, managers, genders, suppliers, selector});
     });
 });
 
@@ -1006,13 +1020,23 @@ app.post('/addStock', (req, res) => {
             message: 'Item ID, quantity, manager ID, and supplier ID are required' 
         });
     }
+
+    // Ensure itemId is a valid number
+    const parsedItemId = parseInt(itemId, 10);
+    if (isNaN(parsedItemId)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Invalid Item ID' 
+        });
+    }
     
     const query = `
         INSERT INTO item_stock_tbl (item_ID, item_quantity, manager_ID, supplier_ID, date_stocked) 
         VALUES (?, ?, ?, ?, NOW())
+        ON DUPLICATE KEY UPDATE item_quantity = item_quantity + VALUES(item_quantity)
     `;
     
-    db.query(query, [itemId, quantity, managerId, supplierId], (err, result) => {
+    db.query(query, [parsedItemId, quantity, managerId, supplierId], (err, result) => {
         if (err) {
             console.error('Error adding stock:', err);
             return res.status(500).json({ success: false, message: err.message });
@@ -1221,7 +1245,7 @@ app.get('/getPaymentOrders', (req, res) => {
     });
 });
 
-// Get payment types
+// GETS PAYMENT TYPES FOR DROPDOWN
 app.get('/getPaymentTypes', (req, res) => {
     const query = 'SELECT payment_type_ID AS id, payment_type AS name FROM payment_type_tbl';
     
@@ -1234,7 +1258,7 @@ app.get('/getPaymentTypes', (req, res) => {
     });
 });
 
-// Get order items for liability dropdown
+// GETS ORDER ITEMS FOR LIABILITY
 app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
     const { orderId } = req.params;
     
@@ -1256,11 +1280,11 @@ app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
 
 
 
-// Get transactions for a finance ID
+// GETS FINANCE INFO FOR SELECTED ORDER
 app.get('/getTransactions/:financeId', (req, res) => {
     const { financeId } = req.params;
     
-    // Modified to properly match the payment_tbl structure
+
     const transactionsQuery = `
         SELECT 
             p.finance_ID,
@@ -1308,7 +1332,7 @@ app.get('/getTransactions/:financeId', (req, res) => {
 
 
 
-// Get liabilities by finance ID
+// LOADS LIABILITIES FOR SELECTED FINANCE ID ROW
 app.get('/getLiabilities/:financeId', (req, res) => {
     const { financeId } = req.params;
     
@@ -1337,7 +1361,7 @@ app.get('/getLiabilities/:financeId', (req, res) => {
     });
 });
 
-// Add a new transaction
+// ADDS A TRANSACTION TO THE PAYMENT TABLE ATTACHED TO SELECTED FINANCE ID
 app.post('/addTransaction', (req, res) => {
     const { financeId, paymentTypeId, paymentAmount, referenceNumber } = req.body;
     
@@ -1386,7 +1410,9 @@ app.post('/addTransaction', (req, res) => {
     });
 });
 
-// Add a new liability
+
+
+// ADDS A LIABILITY TO THE LIABILITIES TABLE ATTACHED TO SELECTED FINANCE ID
 app.post('/addLiability', (req, res) => {
     const { 
         financeId, title, itemId, quantity, amount, description, date, managerId 
@@ -1399,7 +1425,6 @@ app.post('/addLiability', (req, res) => {
         });
     }
     
-    // Modified to only use finance_ID
     const query = `
         INSERT INTO liabilities_tbl 
             (finance_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date, manager_ID) 
@@ -1422,9 +1447,6 @@ app.post('/addLiability', (req, res) => {
 
 
 
-// This duplicate route has been removed and merged with the previous definition
-
-
 
 // WEBSITE LOCALHOST NAVIGATION
 app.get('/', (_, res) => {
@@ -1436,7 +1458,7 @@ app.get('/', (_, res) => {
 // DASHBOARD NAVIGATION
 app.get('/dashboard', (req, res) => {
 	if (req.session.userID) {
-		res.sendFile(path.join(__dirname, '/mainPage/dashboard_main.html'));
+		res.sendFile(path.join(__dirname, '/mainPage/dashboard_main.html')); // Fixed path to dashboard file
 	} else {
 		res.redirect('/login');
 	}
@@ -1454,6 +1476,7 @@ app.get('/login', (_, res) => {
 // START THE SERVER
 app.listen(port, () => {
 	console.log(`Server running on http://localhost:${port}`);
+	console.log('Access the website at http://localhost:4000');
 	console.log('Access the website at http://localhost:4000');
 });
 
