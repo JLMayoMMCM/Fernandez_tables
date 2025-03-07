@@ -581,10 +581,6 @@
                             <h3>Add Liability</h3>
                             <form id="add_liability_form">
                                 <div class="input_row">
-                                    <label for="liability_order_id">Order ID:</label>
-                                    <input type="text" id="liability_order_id" readonly>
-                                </div>
-                                <div class="input_row">
                                     <label for="liability_title">Liability Title:</label>
                                     <input type="text" id="liability_title" required>
                                 </div>
@@ -608,6 +604,10 @@
                                     <label for="liability_date">Date:</label>
                                     <input type="datetime-local" id="liability_date" required>
                                 </div>
+                                <div class="input_row">
+                                    <label for="liability_manager_id">Manager:</label>
+                                    <select id="liability_manager_id" required></select>
+                                </div>
                                 <div class="order_navigation">
                                     <button type="button" id="cancel_liability_btn">Cancel</button>
                                     <button type="button" id="submit_liability_btn">Add Liability</button>
@@ -625,9 +625,9 @@
                                     <thead>
                                         <tr>
                                             <th>Payment Type</th>
-                                            <th>Payment Amount</th>
-                                            <th>Reference Number</th>
-                                            <th>Date of Payment</th>
+                                            <th>Amount</th>
+                                            <th>Reference #</th>
+                                            <th>Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -651,16 +651,14 @@
                                     <thead>
                                         <tr>
                                             <th>Title</th>
-                                            <th>Item</th>
+                                            <th>Item Name</th>
                                             <th>Quantity</th>
                                             <th>Amount</th>
                                             <th>Description</th>
                                             <th>Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <!-- Populated by script.js -->
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                             <button id="liabilities_return_btn">Return</button>
@@ -671,7 +669,7 @@
                     <section class="content_order_history">
                         <h2>Order History</h2>
 
-                        <!-- -->
+                        <!-- SEARCH BAR-->
                         <div class="order_history_search">
                             <input type="text" id="orderHistorySearch" placeholder="Search by Order ID or Customer Name">
                         </div>

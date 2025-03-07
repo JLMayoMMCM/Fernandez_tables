@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2025 at 05:54 PM
+-- Generation Time: Mar 07, 2025 at 05:22 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -163,7 +163,7 @@ INSERT INTO `finance_tbl` (`finance_ID`, `order_ID`, `extra_Fee`, `total_amount`
 (10000002, 10000002, 2500, 110500, 303),
 (10000003, 10000003, 1500, 5500, 301),
 (10000005, 10000005, 8000, 39280, 301),
-(10000006, 10000006, 5000, 13000, 301),
+(10000006, 10000006, 5000, 13000, 302),
 (10000007, 10000007, 5000, 15464, 305);
 
 -- --------------------------------------------------------
@@ -290,6 +290,7 @@ CREATE TABLE `liabilities_tbl` (
   `liability_title` varchar(50) NOT NULL,
   `item_ID` int(8) NOT NULL,
   `item_quantity` int(11) NOT NULL,
+  `liability_amount` decimal(10,2) NOT NULL,
   `liability_description` varchar(100) NOT NULL,
   `liability_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `manager_ID` int(11) NOT NULL
@@ -430,6 +431,14 @@ CREATE TABLE `payment_tbl` (
   `date_of_payment` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `payment_tbl`
+--
+
+INSERT INTO `payment_tbl` (`finance_ID`, `payment_type_ID`, `payment_amount`, `payment_Reference_No`, `date_of_payment`) VALUES
+(10000006, 201, 4000.00, NULL, '2025-03-06 20:21:30'),
+(10000006, 201, 9000.00, '17894519278', '2025-03-06 20:22:12');
+
 -- --------------------------------------------------------
 
 --
@@ -489,7 +498,22 @@ INSERT INTO `person_tbl` (`person_id`, `first_Name`, `last_Name`, `middle_Name`,
 (10000016, 'Jonathan', 'May', 'S', '09205696575', 24, 901),
 (10000017, 'bmn', 'uio', '', '1235564687', 123, 901),
 (10000018, 'Mark', 'Twain', '', '1241289748', 28, 901),
-(10000019, 'mark', 'anthony', '', '1212412412', 32, 901);
+(10000019, 'mark', 'anthony', '', '1212412412', 32, 901),
+(10000028, '123', '124', '312', '120920569', 24, 902),
+(10000029, '123', '124', '312', '120920569', 24, 902),
+(10000030, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000031, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000032, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000033, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000034, '124n', 'M13221', '4', '09205696575', 124124124, 901),
+(10000035, '124n', 'M13221', '4', '09205696575', 124124124, 901),
+(10000036, '12', 'asd', 'qwe', '12412412', 21, 901),
+(10000037, '12', 'asd', 'qwe', '12412412', 21, 901),
+(10000038, '12', '12d', '12e', '21412', 24, 901),
+(10000039, '12', '12d', '12e', '21412', 24, 901),
+(10000040, '123', '12', '21', 'd21', 20000001, 901),
+(10000041, '123', '12', '21', 'd21', 20000001, 901),
+(10000042, 'qwe', 'zxc', 'asd', 'wq1243124', 24, 901);
 
 -- --------------------------------------------------------
 
@@ -519,7 +543,22 @@ INSERT INTO `staff_tbl` (`staff_id`, `staff_Password`, `person_ID`, `date_hired`
 (20000008, 'WVhOa1ptYz0=', 10000008, '2025-03-02 12:29:13'),
 (20000010, 'ZW5oamRtST0=', 10000016, '2025-03-06 11:44:24'),
 (20000011, 'Y1hkbGNuUjVkV2x2', 10000018, '2025-03-06 16:33:21'),
-(20000012, 'WVhOa1ptZG9hbXRz', 10000019, '2025-03-06 16:33:40');
+(20000012, 'WVhOa1ptZG9hbXRz', 10000019, '2025-03-06 16:33:40'),
+(20000021, 'cGFzc3dvcmQ=', 10000028, '2025-03-06 17:53:15'),
+(20000022, 'cGFzc3dvcmQ=', 10000029, '2025-03-06 17:53:15'),
+(20000023, 'cGFzc3dvcmQ=', 10000030, '2025-03-06 17:59:11'),
+(20000024, 'cGFzc3dvcmQ=', 10000031, '2025-03-06 17:59:11'),
+(20000025, 'cGFzc3dvcmQ=', 10000032, '2025-03-06 17:59:39'),
+(20000026, 'cGFzc3dvcmQ=', 10000033, '2025-03-06 17:59:39'),
+(20000027, 'cGFzc3dvcmQ=', 10000034, '2025-03-06 18:03:11'),
+(20000028, 'cGFzc3dvcmQ=', 10000035, '2025-03-06 18:03:11'),
+(20000029, 'Y0dGemMzZHZjbVE9', 10000036, '2025-03-06 18:07:58'),
+(20000030, 'Y0dGemMzZHZjbVE9', 10000037, '2025-03-06 18:07:58'),
+(20000031, 'Y0dGemMzZHZjbVE9', 10000038, '2025-03-06 18:08:57'),
+(20000032, 'Y0dGemMzZHZjbVE9', 10000039, '2025-03-06 18:08:57'),
+(20000033, 'YXNkZmc=', 10000040, '2025-03-06 18:13:18'),
+(20000034, 'YXNkZmc=', 10000041, '2025-03-06 18:13:18'),
+(20000035, 'cXdlcnQ=', 10000042, '2025-03-06 18:16:44');
 
 -- --------------------------------------------------------
 
@@ -564,7 +603,16 @@ INSERT INTO `worker_tbl` (`worker_ID`, `staff_ID`, `manager_ID`) VALUES
 (40000006, 20000008, 30000001),
 (40000008, 20000010, 30000001),
 (40000009, 20000011, 30000001),
-(40000010, 20000012, 30000001);
+(40000010, 20000012, 30000001),
+(40000019, 20000021, NULL),
+(40000020, 20000022, NULL),
+(40000021, 20000029, 30000001),
+(40000022, 20000030, 30000001),
+(40000023, 20000031, 30000002),
+(40000024, 20000032, 30000002),
+(40000025, 20000033, 30000002),
+(40000026, 20000034, 30000002),
+(40000027, 20000035, 30000002);
 
 --
 -- Indexes for dumped tables
@@ -792,13 +840,13 @@ ALTER TABLE `payment_type_tbl`
 -- AUTO_INCREMENT for table `person_tbl`
 --
 ALTER TABLE `person_tbl`
-  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000023;
+  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000043;
 
 --
 -- AUTO_INCREMENT for table `staff_tbl`
 --
 ALTER TABLE `staff_tbl`
-  MODIFY `staff_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000016;
+  MODIFY `staff_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000036;
 
 --
 -- AUTO_INCREMENT for table `supplier_tbl`
@@ -810,7 +858,7 @@ ALTER TABLE `supplier_tbl`
 -- AUTO_INCREMENT for table `worker_tbl`
 --
 ALTER TABLE `worker_tbl`
-  MODIFY `worker_ID` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000014;
+  MODIFY `worker_ID` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000028;
 
 --
 -- Constraints for dumped tables

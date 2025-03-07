@@ -253,7 +253,9 @@ app.post('/addOrder', (req, res) => {
 app.get('/getActiveOrders', (req, res) => {
     const query = `
         SELECT o.order_ID, e.event_Name, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
-                     ps.payment_status_name AS order_status, e.event_date, e.end_event_date, 
+                     ps.payment_status_name AS order_status, 
+                     DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date, 
+                     DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date, 
                      CONCAT(pm.first_Name, ' ', pm.middle_Name, ' ', pm.last_Name) AS manager_name, f.total_amount
         FROM order_info_tbl o
         JOIN event_info_tbl e ON o.order_ID = e.order_ID
@@ -279,7 +281,9 @@ app.get('/getActiveOrders', (req, res) => {
 app.get('/getOrderHistory', (req, res) => {
     const query = `
         SELECT o.order_ID, e.event_Name, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
-                     ps.payment_status_name AS order_status, e.event_date, e.end_event_date, 
+                     ps.payment_status_name AS order_status, 
+                     DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date, 
+                     DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date, 
                      CONCAT(pm.first_Name, ' ', pm.middle_Name, ' ', pm.last_Name) AS manager_name, f.total_amount,
                      CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) AS address
         FROM order_info_tbl o
@@ -1112,8 +1116,8 @@ app.get('/getAssignedOrders/:workerId', (req, res) => {
         SELECT 
             o.order_ID, 
             e.event_Name, 
-            e.event_date, 
-            e.end_event_date
+            DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date, 
+            DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date
         FROM assigned_worker_tbl aw
         JOIN order_info_tbl o ON aw.order_ID = o.order_ID
         JOIN event_info_tbl e ON o.order_ID = e.order_ID
@@ -1173,15 +1177,15 @@ app.post('/addWorker', (req, res) => {
 
 
 
-// RETREIVES ALL PAYMENT ORDERS THAT ARE EITHER ACTIVE, PARTIAL, OR PENDING
+//RETREIVES ALL PAYMENT ORDERS THAT ARE EITHER ACTIVE, PARTIAL, OR PENDING
 app.get('/getPaymentOrders', (req, res) => {
     const query = `
         SELECT 
             f.finance_ID, 
             o.order_ID, 
             CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
-            e.event_date,
-            e.end_event_date,
+            DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date,
+            DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date,
             od.item_subtotal,
             f.extra_Fee AS extra_fees,
             (f.extra_Fee + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
@@ -1250,14 +1254,20 @@ app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
     });
 });
 
+
+
 // Get transactions for a finance ID
 app.get('/getTransactions/:financeId', (req, res) => {
     const { financeId } = req.params;
     
+    // Modified to properly match the payment_tbl structure
     const transactionsQuery = `
-        SELECT p.payment_ID, pt.payment_type_name AS payment_type, 
-               p.payment_amount, p.payment_reference_No, 
-               p.date_of_payment
+        SELECT 
+            p.finance_ID,
+            pt.payment_type AS payment_type, 
+            p.payment_amount, 
+            p.payment_Reference_No, 
+            p.date_of_payment
         FROM payment_tbl p
         JOIN payment_type_tbl pt ON p.payment_type_ID = pt.payment_type_ID
         WHERE p.finance_ID = ?
@@ -1296,23 +1306,31 @@ app.get('/getTransactions/:financeId', (req, res) => {
     });
 });
 
-// Get liabilities for an order
-app.get('/getLiabilities/:orderId', (req, res) => {
-    const { orderId } = req.params;
+
+
+// Get liabilities by finance ID
+app.get('/getLiabilities/:financeId', (req, res) => {
+    const { financeId } = req.params;
     
     const query = `
-        SELECT l.liability_ID, l.liability_title, i.item_name, 
-               l.item_quantity, l.liability_amount, 
-               l.liability_description, l.liability_date
+        SELECT 
+            l.finance_ID,
+            l.liability_title, 
+            i.item_name, 
+            l.item_quantity, 
+            l.liability_amount, 
+            l.liability_description, 
+            l.liability_date,
+            l.manager_ID
         FROM liabilities_tbl l
         JOIN item_tbl i ON l.item_ID = i.item_ID
-        WHERE l.order_ID = ?
+        WHERE l.finance_ID = ?
         ORDER BY l.liability_date DESC
     `;
     
-    db.query(query, (err, results) => {
+    db.query(query, [financeId], (err, results) => {
         if (err) {
-            console.error('Error fetching liabilities:', err);
+            console.error('Error fetching liabilities by finance ID:', err);
             return res.status(500).json({ error: 'Failed to fetch liabilities' });
         }
         res.json(results);
@@ -1342,14 +1360,13 @@ app.post('/addTransaction', (req, res) => {
             return res.status(500).json({ success: false, message: err.message });
         }
         
-        // Update payment status if fully paid
         const updateStatusQuery = `
             UPDATE finance_tbl f
             SET f.payment_status_id = 
                 CASE 
-                    WHEN (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID) >= f.total_amount 
-                    THEN 302 
-                    ELSE 301 
+                    WHEN (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID) = f.total_amount 
+                    THEN 301
+                    ELSE 302 
                 END
             WHERE f.finance_ID = ?
         `;
@@ -1372,23 +1389,24 @@ app.post('/addTransaction', (req, res) => {
 // Add a new liability
 app.post('/addLiability', (req, res) => {
     const { 
-        orderId, title, itemId, quantity, amount, description, date 
+        financeId, title, itemId, quantity, amount, description, date, managerId 
     } = req.body;
     
-    if (!orderId || !title || !itemId || !quantity || !amount || !description || !date) {
+    if (!financeId || !title || !itemId || !quantity || !amount || !description || !date || !managerId) {
         return res.status(400).json({ 
             success: false, 
-            message: 'All fields are required' 
+            message: 'All fields are required including manager ID' 
         });
     }
     
+    // Modified to only use finance_ID
     const query = `
         INSERT INTO liabilities_tbl 
-            (order_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (finance_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date, manager_ID) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
-    db.query(query, [orderId, title, itemId, quantity, amount, description, date], (err, result) => {
+    db.query(query, [financeId, title, itemId, quantity, amount, description, date, managerId], (err, result) => {
         if (err) {
             console.error('Error adding liability:', err);
             return res.status(500).json({ success: false, message: err.message });
@@ -1401,6 +1419,10 @@ app.post('/addLiability', (req, res) => {
         });
     });
 });
+
+
+
+// This duplicate route has been removed and merged with the previous definition
 
 
 

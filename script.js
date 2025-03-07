@@ -9,13 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const userID = document.getElementById('userID').value;
             const staffPassword = document.getElementById('staffPassword').value;
             
-            // Don't double-encode the password here, send it as-is and let server handle encryption
             fetch('/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'    // Change to JSON content type
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({    // Use JSON.stringify instead of urlencoded format
+                body: JSON.stringify({
                     userID: userID,
                     staffPassword: staffPassword
                 })
@@ -29,7 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     alert('Login successful');
-                    window.location.href = data.redirectUrl;    // This should work now
+                    // Fix: Use window.location.replace instead of window.location.href
+                    window.location.replace(data.redirectUrl);
+                    // As a fallback in case replace doesn't work
+                    setTimeout(function() {
+                        window.location.href = data.redirectUrl;
+                    }, 500);
                 } else {
                     alert('Invalid login credentials');
                 }
@@ -42,27 +46,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showPage(pageId) {
-        // Hide all sections
         document.querySelectorAll(".content_panel > section").forEach(section => {
             section.classList.remove("active");
         });
 
-        // Show the selected section
         const activeSection = document.querySelector(`.${pageId}`);
         if (activeSection) {
             activeSection.classList.add("active");
         } else {
             console.error(`Section with class '${pageId}' not found.`);
         }
-
-        // Update panel title
         const panelTitle = document.getElementById("panel-title");
         if (panelTitle) {
             panelTitle.textContent = pageId.replace("content_", "").replace("_", " ").toUpperCase();
         }
     }
-
-    //button navigation listener
 
     //Navigation Buttons
     document.querySelectorAll(".nav-button").forEach(button => {
@@ -87,8 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    //button for item list page
     const addItemOrderButton = document.getElementById('add_item_order');
     if (addItemOrderButton) {
         addItemOrderButton.addEventListener('click', function() {
@@ -738,8 +734,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.order_ID}</td>
                         <td>${order.customer_name}</td>
                         <td>${order.event_Name}</td>
-                        <td>${new Date(order.event_date).toLocaleDateString()}</td>
-                        <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
+                        <td>${order.event_date}</td>
+                        <td>${order.end_event_date}</td>
                         <td>${order.total_amount}</td>
                         <td>${order.order_status}</td>
                         <td>${order.manager_name}</td>
@@ -1725,8 +1721,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.finance_ID}</td>
                         <td>${order.order_ID}</td>
                         <td>${order.customer_name}</td>
-                        <td>${new Date(order.event_date).toLocaleDateString()}</td>
-                        <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
+                        <td>${order.event_date}</td>
+                        <td>${order.end_event_date}</td>
                         <td>${parseFloat(order.item_subtotal).toFixed(2)}</td>
                         <td>${parseFloat(order.extra_fees).toFixed(2)}</td>
                         <td>${parseFloat(order.total_amount).toFixed(2)}</td>
@@ -1770,17 +1766,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Add Liability button
+        // Add Liability button - Updated to remove orderId references
         document.querySelectorAll('.add-liability').forEach(button => {
             button.addEventListener('click', function() {
                 const financeId = this.dataset.id;
-                const orderId = this.dataset.orderid;
                 
-                document.getElementById('liability_order_id').value = orderId;
-                document.getElementById('submit_liability_btn').dataset.orderId = orderId;
+                // Store only financeId, remove orderId
+                document.getElementById('submit_liability_btn').dataset.financeId = financeId;
                 
-                // Fetch order items for the dropdown
+                // Fetch order items for the dropdown - this still needs the orderId for the items
+                const orderId = this.dataset.orderid; 
                 fetchOrderItemsForLiability(orderId);
+                
+                // Populate managers dropdown
+                fetch('/getItemsAndWorkers')
+                    .then(response => response.json())
+                    .then(data => {
+                        const managerSelector = document.getElementById('liability_manager_id');
+                        managerSelector.innerHTML = '';
+                        data.managers.forEach(manager => {
+                            const option = document.createElement('option');
+                            option.value = manager.id;
+                            option.textContent = manager.name;
+                            managerSelector.appendChild(option);
+                        });
+                    });
                 
                 // Set default date to current date and time
                 const now = new Date();
@@ -1789,12 +1799,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     .slice(0, 16);
                 document.getElementById('liability_date').value = dateTimeStr;
                 
-                // Show the popup
+                // Show the liability popup
                 document.querySelector('.view_add_liability_popup').classList.add('active');
             });
         });
 
-        // View Transactions button
+        // View Transactions button - Adding missing event listener
         document.querySelectorAll('.view-transactions').forEach(button => {
             button.addEventListener('click', function() {
                 const financeId = this.dataset.id;
@@ -1802,18 +1812,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Fetch transactions for this finance ID
                 fetchTransactions(financeId);
                 
-                // Show the popup
+                // Show the transactions popup
                 document.querySelector('.view_transactions_popup').classList.add('active');
             });
         });
 
-        // View Liabilities button
+        // View Liabilities button - Update to use financeId instead of orderId
         document.querySelectorAll('.view-liabilities').forEach(button => {
             button.addEventListener('click', function() {
-                const orderId = this.dataset.orderid;
+                const financeId = this.dataset.id;
                 
-                // Fetch liabilities for this order ID
-                fetchLiabilities(orderId);
+                // Fetch liabilities for this finance ID, not order ID
+                fetchLiabilities(financeId);
                 
                 // Show the popup
                 document.querySelector('.view_liabilities_popup').classList.add('active');
@@ -1892,7 +1902,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         row.innerHTML = `
                             <td>${transaction.payment_type}</td>
                             <td>${parseFloat(transaction.payment_amount).toFixed(2)}</td>
-                            <td>${transaction.payment_reference_No || 'N/A'}</td>
+                            <td>${transaction.payment_Reference_No || 'N/A'}</td>
                             <td>${new Date(transaction.date_of_payment).toLocaleString()}</td>
                         `;
                         tableBody.appendChild(row);
@@ -1905,9 +1915,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching transactions:', error));
     }
 
-    // Function to fetch liabilities for an order ID
-    function fetchLiabilities(orderId) {
-        fetch(`/getLiabilities/${orderId}`)
+    // Function to fetch liabilities for a finance ID
+    function fetchLiabilities(financeId) {
+        fetch(`/getLiabilities/${financeId}`)
             .then(response => response.json())
             .then(data => {
                 const tableBody = document.getElementById('liabilities_table').querySelector('tbody');
@@ -2054,13 +2064,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const orderId = this.dataset.orderId;
+        const financeId = this.dataset.financeId;
         const title = document.getElementById('liability_title').value;
         const itemId = document.getElementById('liability_item_id').value;
         const quantity = document.getElementById('liability_quantity').value;
         const amount = document.getElementById('liability_amount').value;
         const description = document.getElementById('liability_description').value;
         const date = document.getElementById('liability_date').value;
+        const managerId = document.getElementById('liability_manager_id').value;
         
         fetch('/addLiability', {
             method: 'POST',
@@ -2068,14 +2079,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                orderId,
+                financeId,
                 title,
                 itemId,
                 quantity,
                 amount,
                 description,
-                date
-            })
+                date,
+                managerId
+            }) // Removed orderId from payload
         })
         .then(response => response.json())
         .then(data => {
@@ -2120,13 +2132,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('transactions_return_btn').addEventListener('click', function() {
-        fetchPaymentOrders()
         document.querySelector('.view_transactions_popup').classList.remove('active');
-
+        fetchPaymentOrders(); // Refresh payment orders after closing
     });
 
     document.getElementById('liabilities_return_btn').addEventListener('click', function() {
         document.querySelector('.view_liabilities_popup').classList.remove('active');
+        fetchPaymentOrders(); // Refresh payment orders after closing
     });
 
     // Load payment orders when the page is shown
