@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href='https://fonts.googleapis.com/css?family=Overpass Mono' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <title>Login - Dashboard</title>
   <link rel="stylesheet" href="design/login_style.css">
 </head>
@@ -20,6 +22,18 @@
       <button type="submit" class="login_Button">Login</button>
     </form>
   </div>
+
+  <!-- Validation Modal -->
+  <div id="validationModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <i class="fa-solid fa-check" style='font-size:60px;color:#415A77'></i>
+      <div class="modal-message">
+        <p id="validationMessage"></p>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>

@@ -25,15 +25,17 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .then(data => {
         if (data.success) {
-          alert('Login successful');
-          window.location.href = data.redirectUrl;
+          showValidationMessage('Login successful');
+          setTimeout(() => {
+            window.location.href = data.redirectUrl;
+          }, 2000); // Redirect after 2 seconds
         } else {
-          alert('Invalid login credentials');
+          showValidationMessage('Invalid login credentials');
         }
       })
       .catch(error => {
         console.error('There was a problem with the fetch operation:', error);
-        alert('An error occurred. Please try again later.');
+        showValidationMessage('An error occurred. Please try again later.');
       });
     });
   }
@@ -439,9 +441,9 @@ function validateForm() {
             <td>${order.manager_name}</td>
             <td>${order.total_amount}</td>
             <td>
-              <button class="view-order" data-id="${order.order_ID}">View</button>
-              <button class="modify-order" data-id="${order.order_ID}">Modify</button>
-              <button class="cancel-order" data-id="${order.order_ID}">Cancel</button>
+              <button class="view-order" data-id="${order.order_ID}"><i class="fa-solid fa-eye"></i></button>
+              <button class="modify-order" data-id="${order.order_ID}"><i class="fa-solid fa-pen"></i></button>
+              <button class="cancel-order" data-id="${order.order_ID}"><i class="fa-solid fa-xmark"></i></button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -747,11 +749,12 @@ function validateForm() {
   document.getElementById('modify_extra_fees').addEventListener('input', updateModifySubtotal);
 
   // Function to fetch and display order history
+  // Function to fetch and display order history
   function fetchOrderHistory() {
     fetch('/getOrderHistory')
       .then(response => response.json())
       .then(data => {
-        const tableBody = document.getElementById('order_History_Table ').querySelector('tbody');
+        const tableBody = document.getElementById('order_History_Table').querySelector('tbody');
         tableBody.innerHTML = '';
 
         data.forEach(order => {
@@ -767,8 +770,8 @@ function validateForm() {
             <td>${order.manager_name}</td>
             <td>${order.address}</td>
             <td>
-              <button class="view-history-order" data-id="${order.order_ID}">View</button>
-              <button class="delete-history-order" data-id="${order.order_ID}">Delete</button>
+              <button class="view-history-order" data-id="${order.order_ID}"><i class="fa-solid fa-eye"></i></button>
+              <button class="delete-history-order" data-id="${order.order_ID}"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -796,6 +799,9 @@ function validateForm() {
       })
       .catch(error => console.error('Error fetching order history:', error));
   }
+
+  // Call fetchOrderHistory when the page loads or when needed
+  fetchOrderHistory();
 
   // Function to show order history item details
   function showOrderHistoryDetails(orderId) {
@@ -869,7 +875,7 @@ function validateForm() {
             <td>${item.item_price}</td>
             <td>${item.total_stock || 0}</td>
             <td>
-              <button class="delete-item" data-id="${item.item_ID}">Delete</button>
+              <button class="delete-item" data-id="${item.item_ID}"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
           tableBody.appendChild(row);
@@ -907,7 +913,7 @@ function validateForm() {
             <td>${stock.supplier_ID}</td>
             <td>${stock.manager_name}</td>
             <td>
-              <button class="delete-stock" data-id="${stock.item_stock_ID}">Delete</button>
+              <button class="delete-stock" data-id="${stock.item_stock_ID}"><i class="fa-solid fa-trash"></i></button>
             </td>
           `;
           tableBody.appendChild(row);

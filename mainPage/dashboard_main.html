@@ -28,6 +28,7 @@
     </head>
     <!-- HTML BODY -->
     <body>
+
         <!-- HEADER - CONTAINS TOP BAR-->
         <header class = "header">
                 <h1 id="panel-title">Add Order</h1>
@@ -36,10 +37,9 @@
                 <h2 id="dashboard_Username"></h2>
             </div>
         </header>
-    
 
             <!-- SIDEBAR - CONTAINS LOGO, NAVIGATION, AND LOGOUT-->
-            <section class ="sidebar">
+           <section class ="sidebar">
                 <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
                 <button class="nav-button" data-page="content_add_order">Add Order</button>
                 <button class="nav-button" data-page="content_active_order">Active Orders</button>
@@ -50,7 +50,7 @@
                 <button class="nav-button" id="logout">Logout</button>
             </section>
 
-
+        
 
 
 
@@ -207,7 +207,7 @@
             <section class="content_add_item_order">                     
                 <div class="card_item_container">
                     <h3>Tables</h3>
-                    <div class="table_wrapper">
+                    <div class="table_wrapper_item">
                         <table id="tables_Container">
                             <thead>
                                 <tr>
@@ -227,7 +227,7 @@
                 <!-- CHAIRS SELECTION-->
                 <div class="card_item_container">
                     <h3>Chairs</h3>
-                    <div class="table_wrapper">
+                    <div class="table_wrapper_item">
                         <table id="chairs_Container">
                             <thead>
                                 <tr>
@@ -247,7 +247,7 @@
                 <!-- MISCELLANEOUS SELECTION-->
                 <div class="card_item_container">
                     <h3>Miscellaneous</h3>
-                    <div class="table_wrapper">
+                    <div class="table_wrapper_item">
                         <table id="misc_Container">
                             <thead>
                                 <tr>
@@ -267,7 +267,7 @@
                 <!-- WORKERS SELECTION-->
                 <div class="card_item_container">
                     <h3>Workers</h3>
-                    <div class="table_wrapper">
+                    <div class="table_wrapper_item">
                         <table id="workers_Container">
                             <thead>
                                 <tr>
@@ -307,6 +307,7 @@
 
                     <!-- ACTIVE ORDERS CONTAINER-->
                     <div class="card-active-orders">
+                        <div class="table_wrapper_active_order">
                         <table id="active_order_table">
                             <thead>
                                 <tr>
@@ -314,7 +315,9 @@
                                     <th>Event Name</th>
                                     <th>Customer Name</th>
                                     <th>Order Status</th>
-                                    <th>Order Date</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Manager</th>
                                     <th>Order Total</th>
                                     <th>Actions</th>
                                 </tr>
@@ -322,6 +325,7 @@
                             <!-- EMPTY BODY FOR IMPORT-->
                             <tbody></tbody>
                         </table>
+                    </div>
                     </div>
                 </section>
 
@@ -634,16 +638,16 @@
 
 
                     <!-- ORDER HISTORY PANEL - CONTAINS ORDER HISTORY AND SEARCH-->
-                    <section class="content_order_history">
-                        <h2>Order History</h2>
+                    <section class="content_order_history"> 
 
-                        <!-- -->
+                        <div class="card-order-history">
+
                         <div class="order_history_search">
                             <input type="text" id="orderHistorySearch" placeholder="Search by Order ID or Customer Name">
                         </div>
 
                         <!-- TABLE CONTAINER-->
-                        <div class="table_wrapper">
+                        <div class="table_wrapper_order_history">
                             <table id="order_History_Table">
                                 <thead>
                                     <tr>
@@ -662,15 +666,8 @@
                             <tbody></tbody>
                             </table>
                         </div>
+                    </div>
                     </section>
-
-
-
-
-
-
-
-
 
                     <section class="view_order_item_history">
                         <div class="popup-view">
@@ -699,10 +696,9 @@
 
                     <!-- INVENTORY STOCK PANEL - CONTAINS INVENTORY STOCK AND MANIPULATION-->
                     <section class="content_inventory_stock">
-                        <h2>Inventory Stock</h2>
-                        <div class="inventory_tables">
+                        <div class="card-inventory-stock">
                             <h3>Item Information</h3>
-                            <div class="table_wrapper">
+                            <div class="table_wrapper_inventory">
                                 <table id="inventory_items_table">
                                     <thead>
                                         <tr>
@@ -718,8 +714,11 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
+                            </div>
+
+                            <div class="card-inventory-stock">
                             <h3>Stock Information</h3>
-                            <div class="table_wrapper">
+                            <div class="table_wrapper_inventory">
                                 <table id="stock_info_table">
                                     <thead>
                                         <tr>
@@ -737,6 +736,7 @@
                                 </table>
                             </div>
                         </div>
+
                         <div class="inventory_buttons">
                             <button id="add_stocks_btn">Add Stocks</button>
                             <button id="add_item_btn">Add Item</button>
