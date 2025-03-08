@@ -107,6 +107,18 @@ button:hover {
   width: 5%; /* Adjust width when collapsed */
 }
 
+.sidebar.minimized {
+    width: 50px;
+}
+
+.sidebar.minimized .nav-button {
+    display: none;
+}
+
+.sidebar.minimized #minimize-sidebar::after {
+    content: 'Expand';
+}
+
 /* SIDEBAR NAVIGATION STYLES */
 .sidebar .nav-button {
   display: block;
@@ -149,6 +161,10 @@ button:hover {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
   flex: 1;
 
+}
+
+.content_panel.stretched {
+    margin-left: 50px;
 }
 
 /* STYLES FOR DEFAULT CONTENT */
@@ -438,11 +454,11 @@ item_and_worker_info table th:nth-child(6) {
   width: 100px;
 }
 
-.workers_info table th:nth-child(1) {
+workers_info table th:nth-child(1) {
   width: 50px;
 }
 
-.workers_info table th:nth-child(2) {
+workers_info table th:nth-child(2) {
   width: auto;
 }
 
@@ -794,4 +810,13 @@ item_and_worker_info table th:nth-child(6) {
 #payment_order_table th:nth-child(10),
 #payment_order_table td:nth-child(10) {
   width: auto;
+}
+#payment_order_table th:nth-child(11),
+#payment_order_table td:nth-child(11) {
+    width: 120px;
+}
+
+#payment_order_table th:nth-child(12),
+#payment_order_table td:nth-child(12) {
+    width: 120px;
 }

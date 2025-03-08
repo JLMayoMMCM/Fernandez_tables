@@ -270,7 +270,8 @@ app.get('/getActiveOrders', (req, res) => {
                      ps.payment_status_name AS order_status, 
                      DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date, 
                      DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date, 
-                     CONCAT(pm.first_Name, ' ', pm.middle_Name, ' ', pm.last_Name) AS manager_name, f.total_amount
+                     CONCAT(pm.first_Name, ' ', pm.middle_Name, ' ', pm.last_Name) AS manager_name, 
+                     (f.total_amount + IFNULL(l.total_liabilities, 0)) AS total_amount
         FROM order_info_tbl o
         JOIN event_info_tbl e ON o.order_ID = e.order_ID
         JOIN customer_tbl c ON o.customer_ID = c.customer_ID
@@ -280,6 +281,11 @@ app.get('/getActiveOrders', (req, res) => {
         JOIN manager_tbl m ON o.manager_ID = m.manager_ID
         JOIN staff_tbl s ON m.staff_ID = s.staff_id
         JOIN person_tbl pm ON s.person_ID = pm.person_id
+        LEFT JOIN (
+            SELECT finance_ID, SUM(liability_amount) AS total_liabilities
+            FROM liabilities_tbl
+            GROUP BY finance_ID
+        ) l ON f.finance_ID = l.finance_ID
         WHERE e.end_event_date >= NOW() AND (f.payment_status_id = 301 OR f.payment_status_id = 302)
     `;
 
@@ -762,10 +768,30 @@ app.put('/updateOrder/:orderId', (req, res) => {
                                                     db.query(updateFinanceQuery, [extra_fees, totalPrice, finance_ID], err => {
                                                         if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
                                                         
-                                                        db.commit(err => {
+                                                        const updateStatusQuery = `
+                                                            UPDATE finance_tbl f
+                                                            SET f.payment_status_id = 
+                                                                CASE 
+                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
+                                                                    THEN 304
+                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
+                                                                    THEN 301
+                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
+                                                                    AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
+                                                                    THEN 302
+                                                                    ELSE 303
+                                                                END
+                                                            WHERE f.finance_ID = ?
+                                                        `;
+                                                        
+                                                        db.query(updateStatusQuery, [finance_ID], err => {
                                                             if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
                                                             
-                                                            res.json({ success: true, message: 'Order updated successfully' });
+                                                            db.commit(err => {
+                                                                if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
+                                                                
+                                                                res.json({ success: true, message: 'Order updated successfully' });
+                                                            });
                                                         });
                                                     });
                                                 });
@@ -1210,10 +1236,11 @@ app.get('/getPaymentOrders', (req, res) => {
             CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
             DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date,
             DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date,
-            od.item_subtotal,
+            (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)) AS item_subtotal,
             f.extra_Fee AS extra_fees,
-            (f.extra_Fee + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
-            ((f.extra_Fee + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)))
+            IFNULL(l.total_liabilities, 0) AS liabilities,
+            (f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
+            ((f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)))
             - IFNULL(pmt.total_payment, 0)) AS balance,
             '' AS actions
         FROM finance_tbl f
@@ -1232,16 +1259,24 @@ app.get('/getPaymentOrders', (req, res) => {
             FROM payment_tbl
             GROUP BY finance_ID
         ) pmt ON f.finance_ID = pmt.finance_ID
-        WHERE f.payment_status_id IN (301, 302, 303)
-        ORDER BY f.finance_ID DESC;
+        LEFT JOIN (
+            SELECT finance_ID, SUM(liability_amount) AS total_liabilities
+            FROM liabilities_tbl
+            GROUP BY finance_ID
+        ) l ON f.finance_ID = l.finance_ID
+        WHERE f.payment_status_id IN (301, 302, 303, 304)
+        ORDER BY f.finance_ID DESC
+
+        
     `;
 
     db.query(query, (err, results) => {
         if (err) {
             console.error('Error fetching payment orders:', err);
-            return res.status(500).json({ error: 'Failed to fetch payment orders' });
+            res.status(500).json({ error: 'Failed to fetch payment orders' });
+        } else {
+            res.json(results);
         }
-        res.json(results);
     });
 });
 
@@ -1388,9 +1423,14 @@ app.post('/addTransaction', (req, res) => {
             UPDATE finance_tbl f
             SET f.payment_status_id = 
                 CASE 
-                    WHEN (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID) = f.total_amount 
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
+                    THEN 304
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
                     THEN 301
-                    ELSE 302 
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
+                    AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
+                    THEN 302
+                    ELSE 303
                 END
             WHERE f.finance_ID = ?
         `;
@@ -1398,7 +1438,6 @@ app.post('/addTransaction', (req, res) => {
         db.query(updateStatusQuery, [financeId], (err) => {
             if (err) {
                 console.error('Error updating payment status:', err);
-                // Don't return error response here, payment was still added successfully
             }
             
             res.json({ 
@@ -1409,8 +1448,6 @@ app.post('/addTransaction', (req, res) => {
         });
     });
 });
-
-
 
 // ADDS A LIABILITY TO THE LIABILITIES TABLE ATTACHED TO SELECTED FINANCE ID
 app.post('/addLiability', (req, res) => {
@@ -1437,16 +1474,84 @@ app.post('/addLiability', (req, res) => {
             return res.status(500).json({ success: false, message: err.message });
         }
         
-        res.json({ 
-            success: true, 
-            message: 'Liability added successfully', 
-            liabilityId: result.insertId 
+        const updateStatusQuery = `
+            UPDATE finance_tbl f
+            SET f.payment_status_id = 
+                CASE 
+                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) < (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
+                    THEN 304
+                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) = (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
+                    THEN 301
+                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) > (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
+                    AND (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
+                    THEN 302
+                    ELSE 303
+                END
+            WHERE f.finance_ID = ?
+        `;
+        
+        db.query(updateStatusQuery, [financeId], (err) => {
+            if (err) {
+                console.error('Error updating payment status:', err);
+                // Don't return error response here, liability was still added successfully
+            }
+            
+            res.json({ 
+                success: true, 
+                message: 'Liability added successfully', 
+                liabilityId: result.insertId 
+            });
         });
     });
 });
 
+// DELETE TRANSACTION
+app.delete('/deleteTransaction/:financeId/:paymentAmount', (req, res) => {
+    const { financeId, paymentAmount } = req.params;
 
+    if (!financeId) {
+        return res.status(400).json({ success: false, message: 'Finance ID is required' });
+    }
 
+    const query = 'DELETE FROM payment_tbl WHERE finance_ID = ? AND payment_amount = ?';
+
+    db.query(query, [financeId, paymentAmount], (err, result) => {
+        if (err) {
+            console.error('Error deleting transaction:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Transaction not found' });
+        }
+
+        res.json({ success: true, message: 'Transaction deleted successfully' });
+    });
+});
+
+// DELETE LIABILITY
+app.delete('/deleteLiability/:financeId/:liabilityTitle', (req, res) => {
+    const { financeId, liabilityTitle } = req.params;
+
+    if (!financeId) {
+        return res.status(400).json({ success: false, message: 'Finance ID is required' });
+    }
+
+    const query = 'DELETE FROM liabilities_tbl WHERE finance_ID = ? AND liability_title = ?';
+
+    db.query(query, [financeId, liabilityTitle], (err, result) => {
+        if (err) {
+            console.error('Error deleting liability:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Liability not found' });
+        }
+
+        res.json({ success: true, message: 'Liability deleted successfully' });
+    });
+});
 
 // WEBSITE LOCALHOST NAVIGATION
 app.get('/', (_, res) => {

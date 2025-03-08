@@ -42,6 +42,7 @@
 
                 <!-- SIDEBAR - CONTAINS LOGO, NAVIGATION, AND LOGOUT-->
                 <section class ="sidebar">
+                    <button id="minimize-sidebar">Minimize</button>
                     <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
                     <button class="nav-button" data-page="content_add_order">Add Order</button>
                     <button class="nav-button" data-page="content_active_order">Active Orders</button>
@@ -534,7 +535,8 @@
                                         <th>Event End</th>
                                         <th>Item Subtotal</th>
                                         <th>Extra Fees</th>
-                                        <th>Total</th>
+                                        <th>Liabilities</th>
+                                        <th>Total Amount</th>
                                         <th>Balance</th>
                                         <th>Actions</th>
                                     </tr>
@@ -626,17 +628,18 @@
                                         <tr>
                                             <th>Payment Type</th>
                                             <th>Amount</th>
-                                            <th>Reference #</th>
+                                            <th>Reference No</th>
                                             <th>Date</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Populated by script.js -->
+                                        <!-- Rows will be populated dynamically -->
                                     </tbody>
                                 </table>
                             </div>
                             <div class="payment_summary">
-                                <h4>Remaining Balance: <span id="remaining_balance">0.00</span></h4>
+                                <!-- Summary details will be populated dynamically -->
                             </div>
                             <button id="transactions_return_btn">Return</button>
                         </div>
@@ -651,14 +654,17 @@
                                     <thead>
                                         <tr>
                                             <th>Title</th>
-                                            <th>Item Name</th>
+                                            <th>Item</th>
                                             <th>Quantity</th>
                                             <th>Amount</th>
                                             <th>Description</th>
                                             <th>Date</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody>
+                                    <tbody>
+                                        <!-- Rows will be populated dynamically -->
+                                    </tbody>
                                 </table>
                             </div>
                             <button id="liabilities_return_btn">Return</button>
@@ -928,6 +934,13 @@
                                         <label for="worker_password">Password:</label>
                                         <input type="password" id="worker_password" required>
                                     </div>
+                                    <div class="input_row">
+                                        <label for="worker_confirm_password">Confirm Password:</label>
+                                        <input type="password" id="worker_confirm_password" required>
+                                    </div>
+                                    <div class="input_row">
+                                        <input type="checkbox" id="show_password"> Show Password
+                                    </div>
                                 </div>
                             </form>
                             
@@ -940,5 +953,29 @@
                 </div>
             </div> 
         <script src="../script.js"></script>
+        <script>
+            document.getElementById('show_password').addEventListener('change', function() {
+                const passwordField = document.getElementById('worker_password');
+                const confirmPasswordField = document.getElementById('worker_confirm_password');
+                if (this.checked) {
+                    passwordField.type = 'text';
+                    confirmPasswordField.type = 'text';
+                } else {
+                    passwordField.type = 'password';
+                    confirmPasswordField.type = 'password';
+                }
+            });
+
+            document.getElementById('worker_save_btn').addEventListener('click', function() {
+                const password = document.getElementById('worker_password').value;
+                const confirmPassword = document.getElementById('worker_confirm_password').value;
+                if (password !== confirmPassword) {
+                    alert('Passwords do not match!');
+                } else {
+                    // Proceed with saving the worker
+                    // ...existing code...
+                }
+            });
+        </script>
     </body>
 </html>

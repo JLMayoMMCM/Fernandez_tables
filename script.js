@@ -74,6 +74,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const page = this.getAttribute("data-page");
             showPage(page);
+
+            if (page === 'content_add_order') {
+                importData();
+            }
             if (page === 'content_active_order') {
                 fetchActiveOrders();
             }
@@ -171,10 +175,10 @@ document.addEventListener('DOMContentLoaded', function() {
         items.forEach(item => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="item-id" data-id="${item.item_ID}">${item.item_name}</td>
+                <td class="item-id" data-id="${item.id}">${item.item_name}</td>
                 <td class="item-price">${item.item_price}</td>
                 <td>${item.item_quantity}</td>
-                <td><input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0" data-id="${item.item_ID}" data-price="${item.item_price}"></td>
+                <td><input type="number" class="item-quantity" min="0" max="${item.item_quantity}" value="0" data-id="${item.id}" data-price="${item.item_price}"></td>
                 <td class="item-subtotal">0.00</td>
             `;
             tableBody.appendChild(row);
@@ -1640,8 +1644,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update the worker_save_btn event listener to include manager ID
     document.getElementById('worker_save_btn').addEventListener('click', function() {
-        if (!validateWorkerForm()) {
+        const password = document.getElementById('worker_password').value;
+        const confirmPassword = document.getElementById('worker_confirm_password').value;
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return;
+        }
 
+        if (!validateWorkerForm()) {
+            alert('Please fill in all required fields.');
             return;
         }
 
@@ -1654,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', function() {
             age: document.getElementById('worker_age').value,
             gender: document.getElementById('worker_gender').value,
             manager_id: document.getElementById('worker_manager').value,
-            password: document.getElementById('worker_password').value
+            password: password
         };
 
         // Send data to server
@@ -1694,6 +1705,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('worker_password').value = '';
     }
 
+    // Add event listener for show password checkbox
+    document.getElementById('show_password').addEventListener('change', function() {
+        const passwordField = document.getElementById('worker_password');
+        const confirmPasswordField = document.getElementById('worker_confirm_password');
+        if (this.checked) {
+            passwordField.type = 'text';
+            confirmPasswordField.type = 'text';
+        } else {
+            passwordField.type = 'password';
+            confirmPasswordField.type = 'password';
+        }
+    });
+
     // PAYMENT ORDER FUNCTIONALITY
     
     // Function to fetch payment order data
@@ -1714,6 +1738,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.end_event_date}</td>
                         <td>${parseFloat(order.item_subtotal).toFixed(2)}</td>
                         <td>${parseFloat(order.extra_fees).toFixed(2)}</td>
+                        <td>${parseFloat(order.liabilities).toFixed(2)}</td>
                         <td>${parseFloat(order.total_amount).toFixed(2)}</td>
                         <td>${parseFloat(order.balance).toFixed(2)}</td>
                         <td>
@@ -1880,58 +1905,112 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 const tableBody = document.getElementById('transactions_table').querySelector('tbody');
                 tableBody.innerHTML = '';
-                
-                if (data.transactions.length === 0) {
+
+                data.transactions.forEach(transaction => {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4">No transactions found.</td>';
+                    row.innerHTML = `
+                        <td>${transaction.payment_type}</td>
+                        <td>${transaction.payment_amount}</td>
+                        <td>${transaction.payment_Reference_No}</td>
+                        <td>${transaction.date_of_payment}</td>
+                        <td>
+                            <button class="delete-transaction" data-finance-id="${transaction.finance_ID}" data-payment-amount="${transaction.payment_amount}">Delete</button>
+                        </td>
+                    `;
                     tableBody.appendChild(row);
-                } else {
-                    data.transactions.forEach(transaction => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${transaction.payment_type}</td>
-                            <td>${parseFloat(transaction.payment_amount).toFixed(2)}</td>
-                            <td>${transaction.payment_Reference_No || 'N/A'}</td>
-                            <td>${new Date(transaction.date_of_payment).toLocaleString()}</td>
-                        `;
-                        tableBody.appendChild(row);
+                });
+
+                document.querySelectorAll('.delete-transaction').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const financeId = this.getAttribute('data-finance-id');
+                        const paymentAmount = this.getAttribute('data-payment-amount');
+                        deleteTransaction(financeId, paymentAmount);
                     });
-                }
-                
-                // Update remaining balance
-                document.getElementById('remaining_balance').textContent = parseFloat(data.balance).toFixed(2);
+                });
             })
             .catch(error => console.error('Error fetching transactions:', error));
     }
 
-    // Function to fetch liabilities for a finance ID
+    function deleteTransaction(financeId, paymentAmount) {
+        if (!financeId) {
+            console.error('Finance ID is undefined');
+            return;
+        }
+    
+        if (confirm('Are you sure you want to delete this transaction?')) {
+            fetch(`/deleteTransaction/${financeId}/${paymentAmount}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Transaction deleted successfully');
+                        fetchTransactions(financeId);
+                    } else {
+                        alert('Error deleting transaction: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting transaction:', error);
+                    alert('An error occurred while deleting the transaction.');
+                });
+        }
+    }
+
     function fetchLiabilities(financeId) {
         fetch(`/getLiabilities/${financeId}`)
             .then(response => response.json())
             .then(data => {
                 const tableBody = document.getElementById('liabilities_table').querySelector('tbody');
                 tableBody.innerHTML = '';
-                
-                if (data.length === 0) {
+
+                data.forEach(liability => {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="6">No liabilities found.</td>';
+                    row.innerHTML = `
+                        <td>${liability.liability_title}</td>
+                        <td>${liability.item_name}</td>
+                        <td>${liability.item_quantity}</td>
+                        <td>${liability.liability_amount}</td>
+                        <td>${liability.liability_description}</td>
+                        <td>${liability.liability_date}</td>
+                        <td>
+                            <button class="delete-liability" data-finance-id="${liability.finance_ID}" data-liability-title="${liability.liability_title}">Delete</button>
+                        </td>
+                    `;
                     tableBody.appendChild(row);
-                } else {
-                    data.forEach(liability => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${liability.liability_title}</td>
-                            <td>${liability.item_name}</td>
-                            <td>${liability.item_quantity}</td>
-                            <td>${parseFloat(liability.liability_amount).toFixed(2)}</td>
-                            <td>${liability.liability_description}</td>
-                            <td>${new Date(liability.liability_date).toLocaleString()}</td>
-                        `;
-                        tableBody.appendChild(row);
+                });
+
+                document.querySelectorAll('.delete-liability').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const financeId = this.getAttribute('data-finance-id');
+                        const liabilityTitle = this.getAttribute('data-liability-title');
+                        deleteLiability(financeId, liabilityTitle);
                     });
-                }
+                });
             })
             .catch(error => console.error('Error fetching liabilities:', error));
+    }
+
+    function deleteLiability(financeId, liabilityTitle) {
+        if (!financeId) {
+            console.error('Finance ID is undefined');
+            return;
+        }
+    
+        if (confirm('Are you sure you want to delete this liability?')) {
+            fetch(`/deleteLiability/${financeId}/${liabilityTitle}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Liability deleted successfully');
+                        fetchLiabilities(financeId);
+                    } else {
+                        alert('Error deleting liability: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting liability:', error);
+                    alert('An error occurred while deleting the liability.');
+                });
+        }
     }
 
     // Function to validate transaction form
@@ -2140,5 +2219,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 fetchPaymentOrders();
             }
         });
+    });
+
+    const minimizeButton = document.getElementById('minimize-sidebar');
+    minimizeButton.addEventListener('click', function() {
+        const sidebar = document.querySelector('.sidebar');
+        const contentPanel = document.querySelector('.content_panel');
+        sidebar.classList.toggle('minimized');
+        contentPanel.classList.toggle('stretched');
     });
 });
