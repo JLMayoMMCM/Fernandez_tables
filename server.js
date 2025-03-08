@@ -286,7 +286,7 @@ app.get('/getActiveOrders', (req, res) => {
             FROM liabilities_tbl
             GROUP BY finance_ID
         ) l ON f.finance_ID = l.finance_ID
-        WHERE e.end_event_date >= NOW() AND (f.payment_status_id = 301 OR f.payment_status_id = 302)
+        WHERE e.end_event_date >= NOW() AND (f.payment_status_id = 301 OR f.payment_status_id = 302 OR f.payment_status_id = 304)
     `;
 
     db.query(query, (err, results) => {
@@ -1476,14 +1476,15 @@ app.post('/addLiability', (req, res) => {
         
         const updateStatusQuery = `
             UPDATE finance_tbl f
+            UPDATE finance_tbl f
             SET f.payment_status_id = 
                 CASE 
-                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) < (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
                     THEN 304
-                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) = (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
                     THEN 301
-                    WHEN (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) > (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)
-                    AND (f.total_amount + (SELECT SUM(liability_amount) FROM liabilities_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
+                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
+                    AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
                     THEN 302
                     ELSE 303
                 END
