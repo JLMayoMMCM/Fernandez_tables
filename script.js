@@ -1906,6 +1906,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tableBody = document.getElementById('transactions_table').querySelector('tbody');
                 tableBody.innerHTML = '';
 
+                let totalPayment = 0;
                 data.transactions.forEach(transaction => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -1918,7 +1919,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                     `;
                     tableBody.appendChild(row);
+                    totalPayment += parseFloat(transaction.payment_amount);
                 });
+
+                document.getElementById('total_payment_amount').textContent = totalPayment.toFixed(2);
 
                 document.querySelectorAll('.delete-transaction').forEach(button => {
                     button.addEventListener('click', function() {
@@ -1929,6 +1933,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             })
             .catch(error => console.error('Error fetching transactions:', error));
+    }
+
+    // Function to fetch liabilities for a finance ID
+    function fetchLiabilities(financeId) {
+        fetch(`/getLiabilities/${financeId}`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('liabilities_table').querySelector('tbody');
+                tableBody.innerHTML = '';
+
+                let totalLiability = 0;
+                data.forEach(liability => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${liability.liability_title}</td>
+                        <td>${liability.item_name}</td>
+                        <td>${liability.item_quantity}</td>
+                        <td>${liability.liability_amount}</td>
+                        <td>${liability.liability_description}</td>
+                        <td>${liability.liability_date}</td>
+                        <td>
+                            <button class="delete-liability" data-finance-id="${liability.finance_ID}" data-liability-title="${liability.liability_title}">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                    totalLiability += parseFloat(liability.liability_amount);
+                });
+
+                document.getElementById('total_liability_amount').textContent = totalLiability.toFixed(2);
+
+                document.querySelectorAll('.delete-liability').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const financeId = this.getAttribute('data-finance-id');
+                        const liabilityTitle = this.getAttribute('data-liability-title');
+                        deleteLiability(financeId, liabilityTitle);
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching liabilities:', error));
     }
 
     function deleteTransaction(financeId, paymentAmount) {
@@ -1953,40 +1996,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('An error occurred while deleting the transaction.');
                 });
         }
-    }
-
-    function fetchLiabilities(financeId) {
-        fetch(`/getLiabilities/${financeId}`)
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('liabilities_table').querySelector('tbody');
-                tableBody.innerHTML = '';
-
-                data.forEach(liability => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${liability.liability_title}</td>
-                        <td>${liability.item_name}</td>
-                        <td>${liability.item_quantity}</td>
-                        <td>${liability.liability_amount}</td>
-                        <td>${liability.liability_description}</td>
-                        <td>${liability.liability_date}</td>
-                        <td>
-                            <button class="delete-liability" data-finance-id="${liability.finance_ID}" data-liability-title="${liability.liability_title}">Delete</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-                document.querySelectorAll('.delete-liability').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const financeId = this.getAttribute('data-finance-id');
-                        const liabilityTitle = this.getAttribute('data-liability-title');
-                        deleteLiability(financeId, liabilityTitle);
-                    });
-                });
-            })
-            .catch(error => console.error('Error fetching liabilities:', error));
     }
 
     function deleteLiability(financeId, liabilityTitle) {

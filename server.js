@@ -1365,8 +1365,6 @@ app.get('/getTransactions/:financeId', (req, res) => {
     });
 });
 
-
-
 // LOADS LIABILITIES FOR SELECTED FINANCE ID ROW
 app.get('/getLiabilities/:financeId', (req, res) => {
     const { financeId } = req.params;
