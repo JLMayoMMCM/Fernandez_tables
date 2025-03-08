@@ -1,13 +1,4 @@
-:root {
-  --outline-color: rgb(0, 0, 0);
-  --header-color: #1b263b;
-  --header--content-color: #778DA9;
-  --panel-color: #a7d0ff;
-  --content-panel-color: #d9ebff;
-
-  --default-color: rgb(255, 255, 255);
-  --table-color: rgb(206, 208, 212);
-}
+/* DEVELOPED BY JONATHAN LANCE MAYO */
 
 
 /* DEFAULT STYLES  FOR BODY */
@@ -861,16 +852,4 @@ body {
 #add_stocks_btn:hover, #add_item_btn:hover {
   background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
-}
-/* STYLES FOR POPUP WINDOWS */
-
-.popup-content {
-  display: flex;
-  flex-direction: column;
-  padding: 25px;
-  height: 60%;
-  width: 60%;
-  justify-content: space-evenly;
-  background-color: var(--panel-color);
-
 }
