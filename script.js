@@ -28,9 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
           showValidationMessage('Login successful');
           setTimeout(() => {
             window.location.href = data.redirectUrl;
-          }, 2000); // Redirect after 2 seconds
+          }, 1000); // Redirect after 1 second
         } else {
-          showValidationMessage('Invalid login credentials');
+          showValidationMessage('Invalid login credentials!');
         }
       })
       .catch(error => {
@@ -42,23 +42,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Function to show validation message
   function showValidationMessage(message) {
-      const modal = document.getElementById('validationModal');
-      const messageElement = document.getElementById('validationMessage');
-      const closeButton = document.querySelector('.close-button');
-  
-      messageElement.textContent = message;
-      modal.style.display = 'flex';
-  
-      closeButton.onclick = function() {
-          modal.style.display = 'none';
-      };
-  
-      window.onclick = function(event) {
-          if (event.target == modal) {
-          modal.style.display = 'none';
-          }
-      };
-      }
+    const messageElement = document.getElementById('validationMessage');
+    messageElement.textContent = message;
+    messageElement.style.display = 'block';
+  }
 
   function showPage(pageId) {
       // Hide all sections

@@ -13,25 +13,15 @@
     
     <form id="loginForm" class="login_form" method="POST" action="/login">
     <img src="Assets/logo.png" alt="Logo" class="login_img">
-      <label class="login_label" for="userID">Staff ID:</label>
+      <label class="login_label" for="userID">Staff ID<span>*</span>:</label>
       <input class="login_input" type="text" id="userID" name="userID" required>
       
-      <label class="login_label" for="staffPassword">Password:</label>
+      <label class="login_label" for="staffPassword">Password<span>*</span>:</label>
       <input class="login_input" type="password" id="staffPassword" name="staffPassword" required>
+      <div id="validationMessage" class="validation-message"></div>
       
       <button type="submit" class="login_Button">Login</button>
     </form>
-  </div>
-
-  <!-- Validation Modal -->
-  <div id="validationModal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <i class="fa-solid fa-check" style='font-size:60px;color:#415A77'></i>
-      <div class="modal-message">
-        <p id="validationMessage"></p>
-      </div>
-    </div>
   </div>
 
   <script src="script.js"></script>
