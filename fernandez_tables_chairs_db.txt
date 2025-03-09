@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 03, 2025 at 05:15 PM
+-- Generation Time: Mar 07, 2025 at 05:22 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -54,7 +54,16 @@ INSERT INTO `address_tbl` (`address_ID`, `street_Name`, `barangay_Name`, `city_N
 (20000031, 'Camia', 'Matina', 'Davao'),
 (20000032, 'abc', 'def', 'ghi'),
 (20000033, 'Dao', 'Matina', 'Davao'),
-(20000034, 'Camia', 'Juna Subdivision', 'Davao');
+(20000034, 'Camia', 'Juna Subdivision', 'Davao'),
+(20000035, 'Dao', 'Juna', 'Davao'),
+(20000036, 'Maa-Road', 'Maa', 'Davao'),
+(20000037, '124', '12', '1212'),
+(20000039, 'Ecoland Drive', 'Ecoland', 'Davao'),
+(20000040, 'Matina', 'Matina Crossing', 'Davao'),
+(20000041, 'Gertrud-Kolmar-Straße', 'Mitte', 'Berlin'),
+(20000042, 'BGC', 'BGC', 'Manila'),
+(20000043, 'Macarthur Highway', 'Talomo', 'Davao'),
+(20000050, 'asd', 'zxc', 'qwe');
 
 -- --------------------------------------------------------
 
@@ -72,7 +81,16 @@ CREATE TABLE `assigned_worker_tbl` (
 --
 
 INSERT INTO `assigned_worker_tbl` (`order_ID`, `worker_ID`) VALUES
-(10000001, 40000002);
+(10000002, 40000002),
+(10000003, 40000003),
+(10000003, 40000004),
+(10000007, 40000003),
+(10000007, 40000004),
+(10000007, 40000005),
+(10000005, 40000002),
+(10000006, 40000005),
+(10000006, 40000006),
+(10000006, 40000008);
 
 -- --------------------------------------------------------
 
@@ -90,7 +108,12 @@ CREATE TABLE `customer_tbl` (
 --
 
 INSERT INTO `customer_tbl` (`customer_ID`, `person_ID`) VALUES
-(10000001, 10000009);
+(10000002, 10000010),
+(10000003, 10000011),
+(10000004, 10000012),
+(10000005, 10000013),
+(10000006, 10000014),
+(10000007, 10000017);
 
 -- --------------------------------------------------------
 
@@ -112,7 +135,11 @@ CREATE TABLE `event_info_tbl` (
 --
 
 INSERT INTO `event_info_tbl` (`event_ID`, `order_ID`, `event_Name`, `address_ID`, `event_date`, `end_event_date`) VALUES
-(10000001, 10000001, 'Party', 20000034, '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+(10000002, 10000002, 'Funeral', 20000039, '2025-03-08 02:30:00', '2025-03-28 02:30:00'),
+(10000003, 10000003, 'Birthday', 20000040, '2025-03-08 02:30:00', '2025-03-09 02:30:00'),
+(10000005, 10000005, 'Funeral', 20000042, '2025-03-03 04:29:00', '2025-03-05 04:29:00'),
+(10000006, 10000006, 'MMCM Intrams', 20000043, '2025-03-05 21:44:00', '2025-03-06 21:44:00'),
+(10000007, 10000007, 'Party', 20000050, '2025-03-16 08:30:00', '2025-03-18 08:30:00');
 
 -- --------------------------------------------------------
 
@@ -133,7 +160,11 @@ CREATE TABLE `finance_tbl` (
 --
 
 INSERT INTO `finance_tbl` (`finance_ID`, `order_ID`, `extra_Fee`, `total_amount`, `payment_status_id`) VALUES
-(10000001, 10000001, 1200, 4640, 301);
+(10000002, 10000002, 2500, 110500, 303),
+(10000003, 10000003, 1500, 5500, 301),
+(10000005, 10000005, 8000, 39280, 301),
+(10000006, 10000006, 5000, 13000, 302),
+(10000007, 10000007, 5000, 15464, 305);
 
 -- --------------------------------------------------------
 
@@ -183,7 +214,6 @@ INSERT INTO `item_stock_tbl` (`item_stock_ID`, `item_ID`, `item_quantity`, `date
 (90000004, 80000004, 4, '2025-03-02 13:05:09', 30000002, 50000002),
 (90000005, 80000005, 4, '2025-03-02 13:05:09', 30000002, 50000002),
 (90000006, 80000006, 4, '2025-03-02 13:05:09', 30000001, 50000002),
-(90000007, 80000007, 200, '2025-03-02 13:05:09', 30000002, 50000002),
 (90000008, 80000008, 120, '2025-03-02 13:05:09', 30000001, 50000002),
 (90000009, 80000009, 160, '2025-03-02 13:05:09', 30000001, 50000002),
 (90000010, 80000010, 80, '2025-03-02 13:05:09', 30000002, 50000002),
@@ -191,7 +221,8 @@ INSERT INTO `item_stock_tbl` (`item_stock_ID`, `item_ID`, `item_quantity`, `date
 (90000012, 80000012, 40, '2025-03-02 13:05:09', 30000001, 50000002),
 (90000013, 80000013, 40, '2025-03-02 13:05:09', 30000002, 50000002),
 (90000014, 80000014, 40, '2025-03-02 13:05:09', 30000001, 50000002),
-(90000015, 80000015, 8, '2025-03-02 13:05:09', 30000001, 50000002);
+(90000015, 80000015, 8, '2025-03-02 13:05:09', 30000001, 50000002),
+(90000016, 80000007, 400, '2025-03-04 06:55:21', 30000001, 50000002);
 
 -- --------------------------------------------------------
 
@@ -251,6 +282,23 @@ INSERT INTO `item_type_tbl` (`item_type_ID`, `item_type_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `liabilities_tbl`
+--
+
+CREATE TABLE `liabilities_tbl` (
+  `finance_ID` int(8) NOT NULL,
+  `liability_title` varchar(50) NOT NULL,
+  `item_ID` int(8) NOT NULL,
+  `item_quantity` int(11) NOT NULL,
+  `liability_amount` decimal(10,2) NOT NULL,
+  `liability_description` varchar(100) NOT NULL,
+  `liability_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `manager_ID` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `manager_tbl`
 --
 
@@ -287,18 +335,41 @@ INSERT INTO `order_details_tbl` (`order_ID`, `item_ID`, `item_quantity`) VALUES
 (10000003, 80000002, 15),
 (10000003, 80000009, 12),
 (10000003, 80000013, 12),
-(10000004, 80000001, 3),
-(10000004, 80000007, 24),
-(10000004, 80000015, 2),
+(10000002, 80000001, 12),
+(10000002, 80000007, 96),
+(10000002, 80000015, 8),
+(10000002, 80000001, 12),
+(10000002, 80000008, 96),
+(10000002, 80000013, 12),
+(10000003, 80000001, 4),
+(10000003, 80000008, 80),
+(10000003, 80000015, 6),
+(10000007, 80000001, 5),
+(10000007, 80000004, 3),
+(10000007, 80000002, 1),
+(10000007, 80000005, 2),
+(10000007, 80000003, 2),
+(10000007, 80000006, 2),
+(10000007, 80000009, 2),
+(10000007, 80000012, 1),
+(10000007, 80000010, 1),
+(10000007, 80000008, 2),
+(10000007, 80000011, 4),
+(10000007, 80000015, 4),
+(10000005, 80000001, 8),
 (10000005, 80000001, 12),
+(10000005, 80000002, 16),
 (10000005, 80000002, 6),
-(10000005, 80000011, 12),
+(10000005, 80000007, 200),
 (10000005, 80000007, 96),
+(10000005, 80000011, 12),
+(10000005, 80000013, 12),
 (10000005, 80000013, 12),
 (10000005, 80000015, 4),
-(10000001, 80000001, 12),
-(10000001, 80000007, 12),
-(10000001, 80000015, 4);
+(10000006, 80000001, 12),
+(10000006, 80000008, 120),
+(10000006, 80000013, 20),
+(10000006, 80000015, 8);
 
 -- --------------------------------------------------------
 
@@ -318,7 +389,11 @@ CREATE TABLE `order_info_tbl` (
 --
 
 INSERT INTO `order_info_tbl` (`order_ID`, `customer_ID`, `order_date`, `manager_ID`) VALUES
-(10000001, 10000001, '2025-03-03 14:30:30', 30000002);
+(10000002, 10000002, '2025-03-05 11:29:39', 30000001),
+(10000003, 10000003, '2025-03-05 11:34:23', 30000001),
+(10000005, 10000005, '2025-03-06 04:30:18', 30000001),
+(10000006, 10000006, '2025-03-06 05:47:24', 30000001),
+(10000007, 10000007, '2025-03-06 14:21:26', 30000001);
 
 -- --------------------------------------------------------
 
@@ -336,11 +411,11 @@ CREATE TABLE `payment_status_tbl` (
 --
 
 INSERT INTO `payment_status_tbl` (`payment_status_ID`, `payment_status_name`) VALUES
-(301, 'Pending'),
-(302, 'Paid'),
-(303, 'Failed'),
+(301, 'Paid'),
+(302, 'Partial'),
+(303, 'Pending'),
 (304, 'Refunded'),
-(305, 'Others');
+(305, 'Cancelled');
 
 -- --------------------------------------------------------
 
@@ -349,12 +424,20 @@ INSERT INTO `payment_status_tbl` (`payment_status_ID`, `payment_status_name`) VA
 --
 
 CREATE TABLE `payment_tbl` (
-  `customer_ID` int(8) NOT NULL,
   `finance_ID` int(8) NOT NULL,
   `payment_type_ID` int(3) NOT NULL,
+  `payment_amount` decimal(10,2) NOT NULL,
   `payment_Reference_No` varchar(50) DEFAULT NULL,
   `date_of_payment` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payment_tbl`
+--
+
+INSERT INTO `payment_tbl` (`finance_ID`, `payment_type_ID`, `payment_amount`, `payment_Reference_No`, `date_of_payment`) VALUES
+(10000006, 201, 4000.00, NULL, '2025-03-06 20:21:30'),
+(10000006, 201, 9000.00, '17894519278', '2025-03-06 20:22:12');
 
 -- --------------------------------------------------------
 
@@ -408,7 +491,29 @@ INSERT INTO `person_tbl` (`person_id`, `first_Name`, `last_Name`, `middle_Name`,
 (10000006, 'Taylor', 'Johnson', 'G', '09123456789', 25, 901),
 (10000007, 'Morgan', 'Brown', 'H', '09123456789', 25, 901),
 (10000008, 'Jordan', 'Davis', 'I', '09123456789', 25, 901),
-(10000009, 'Jonathan', 'May', 'S', '09205696575', 21, 901);
+(10000010, 'Jonathan', 'May', 'S', '09205696575', 24, 901),
+(10000011, 'Nathan', 'Angelo', 'k', '12451251125', 28, 901),
+(10000013, 'Nathan', 'May', 'J', '01975410940', 69, 901),
+(10000014, 'Jervin', 'Andoy', 'C', '0999999999', 40, 901),
+(10000016, 'Jonathan', 'May', 'S', '09205696575', 24, 901),
+(10000017, 'bmn', 'uio', '', '1235564687', 123, 901),
+(10000018, 'Mark', 'Twain', '', '1241289748', 28, 901),
+(10000019, 'mark', 'anthony', '', '1212412412', 32, 901),
+(10000028, '123', '124', '312', '120920569', 24, 902),
+(10000029, '123', '124', '312', '120920569', 24, 902),
+(10000030, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000031, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000032, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000033, '123', 'asd', 'qwe', '12415', 245, 901),
+(10000034, '124n', 'M13221', '4', '09205696575', 124124124, 901),
+(10000035, '124n', 'M13221', '4', '09205696575', 124124124, 901),
+(10000036, '12', 'asd', 'qwe', '12412412', 21, 901),
+(10000037, '12', 'asd', 'qwe', '12412412', 21, 901),
+(10000038, '12', '12d', '12e', '21412', 24, 901),
+(10000039, '12', '12d', '12e', '21412', 24, 901),
+(10000040, '123', '12', '21', 'd21', 20000001, 901),
+(10000041, '123', '12', '21', 'd21', 20000001, 901),
+(10000042, 'qwe', 'zxc', 'asd', 'wq1243124', 24, 901);
 
 -- --------------------------------------------------------
 
@@ -428,14 +533,32 @@ CREATE TABLE `staff_tbl` (
 --
 
 INSERT INTO `staff_tbl` (`staff_id`, `staff_Password`, `person_ID`, `date_hired`) VALUES
-(20000001, 'password', 10000001, '2025-03-02 12:29:13'),
-(20000002, 'password', 10000002, '2025-03-02 12:29:13'),
-(20000003, 'password', 10000003, '2025-03-02 12:29:13'),
-(20000004, 'password', 10000004, '2025-03-02 12:29:13'),
-(20000005, 'password', 10000005, '2025-03-02 12:29:13'),
-(20000006, 'password', 10000006, '2025-03-02 12:29:13'),
-(20000007, 'password', 10000007, '2025-03-02 12:29:13'),
-(20000008, 'password', 10000008, '2025-03-02 12:29:13');
+(20000001, 'YXNkZmc=', 10000001, '2025-03-02 12:29:13'),
+(20000002, 'WVhOa1ptYz0=', 10000002, '2025-03-02 12:29:13'),
+(20000003, 'WVhOa1ptYz0=', 10000003, '2025-03-02 12:29:13'),
+(20000004, 'WVhOa1ptYz0=', 10000004, '2025-03-02 12:29:13'),
+(20000005, 'WVhOa1ptYz0=', 10000005, '2025-03-02 12:29:13'),
+(20000006, 'WVhOa1ptYz0=', 10000006, '2025-03-02 12:29:13'),
+(20000007, 'WVhOa1ptYz0=', 10000007, '2025-03-02 12:29:13'),
+(20000008, 'WVhOa1ptYz0=', 10000008, '2025-03-02 12:29:13'),
+(20000010, 'ZW5oamRtST0=', 10000016, '2025-03-06 11:44:24'),
+(20000011, 'Y1hkbGNuUjVkV2x2', 10000018, '2025-03-06 16:33:21'),
+(20000012, 'WVhOa1ptZG9hbXRz', 10000019, '2025-03-06 16:33:40'),
+(20000021, 'cGFzc3dvcmQ=', 10000028, '2025-03-06 17:53:15'),
+(20000022, 'cGFzc3dvcmQ=', 10000029, '2025-03-06 17:53:15'),
+(20000023, 'cGFzc3dvcmQ=', 10000030, '2025-03-06 17:59:11'),
+(20000024, 'cGFzc3dvcmQ=', 10000031, '2025-03-06 17:59:11'),
+(20000025, 'cGFzc3dvcmQ=', 10000032, '2025-03-06 17:59:39'),
+(20000026, 'cGFzc3dvcmQ=', 10000033, '2025-03-06 17:59:39'),
+(20000027, 'cGFzc3dvcmQ=', 10000034, '2025-03-06 18:03:11'),
+(20000028, 'cGFzc3dvcmQ=', 10000035, '2025-03-06 18:03:11'),
+(20000029, 'Y0dGemMzZHZjbVE9', 10000036, '2025-03-06 18:07:58'),
+(20000030, 'Y0dGemMzZHZjbVE9', 10000037, '2025-03-06 18:07:58'),
+(20000031, 'Y0dGemMzZHZjbVE9', 10000038, '2025-03-06 18:08:57'),
+(20000032, 'Y0dGemMzZHZjbVE9', 10000039, '2025-03-06 18:08:57'),
+(20000033, 'YXNkZmc=', 10000040, '2025-03-06 18:13:18'),
+(20000034, 'YXNkZmc=', 10000041, '2025-03-06 18:13:18'),
+(20000035, 'cXdlcnQ=', 10000042, '2025-03-06 18:16:44');
 
 -- --------------------------------------------------------
 
@@ -473,11 +596,23 @@ CREATE TABLE `worker_tbl` (
 --
 
 INSERT INTO `worker_tbl` (`worker_ID`, `staff_ID`, `manager_ID`) VALUES
-(40000002, 20000004, NULL),
-(40000003, 20000005, NULL),
-(40000004, 20000006, NULL),
-(40000005, 20000007, NULL),
-(40000006, 20000008, NULL);
+(40000002, 20000004, 30000001),
+(40000003, 20000005, 30000001),
+(40000004, 20000006, 30000001),
+(40000005, 20000007, 30000001),
+(40000006, 20000008, 30000001),
+(40000008, 20000010, 30000001),
+(40000009, 20000011, 30000001),
+(40000010, 20000012, 30000001),
+(40000019, 20000021, NULL),
+(40000020, 20000022, NULL),
+(40000021, 20000029, 30000001),
+(40000022, 20000030, 30000001),
+(40000023, 20000031, 30000002),
+(40000024, 20000032, 30000002),
+(40000025, 20000033, 30000002),
+(40000026, 20000034, 30000002),
+(40000027, 20000035, 30000002);
 
 --
 -- Indexes for dumped tables
@@ -548,6 +683,14 @@ ALTER TABLE `item_type_tbl`
   ADD PRIMARY KEY (`item_type_ID`);
 
 --
+-- Indexes for table `liabilities_tbl`
+--
+ALTER TABLE `liabilities_tbl`
+  ADD KEY `manager_ID` (`manager_ID`),
+  ADD KEY `item_ID` (`item_ID`),
+  ADD KEY `finance_ID` (`finance_ID`);
+
+--
 -- Indexes for table `manager_tbl`
 --
 ALTER TABLE `manager_tbl`
@@ -558,7 +701,8 @@ ALTER TABLE `manager_tbl`
 -- Indexes for table `order_details_tbl`
 --
 ALTER TABLE `order_details_tbl`
-  ADD KEY `item_ID` (`item_ID`);
+  ADD KEY `item_ID` (`item_ID`),
+  ADD KEY `order_ID` (`order_ID`);
 
 --
 -- Indexes for table `order_info_tbl`
@@ -578,7 +722,6 @@ ALTER TABLE `payment_status_tbl`
 -- Indexes for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  ADD KEY `customer_ID` (`customer_ID`),
   ADD KEY `finance_ID` (`finance_ID`),
   ADD KEY `payment_type_ID` (`payment_type_ID`);
 
@@ -625,25 +768,25 @@ ALTER TABLE `worker_tbl`
 -- AUTO_INCREMENT for table `address_tbl`
 --
 ALTER TABLE `address_tbl`
-  MODIFY `address_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000035;
+  MODIFY `address_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000051;
 
 --
 -- AUTO_INCREMENT for table `customer_tbl`
 --
 ALTER TABLE `customer_tbl`
-  MODIFY `customer_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
+  MODIFY `customer_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000008;
 
 --
 -- AUTO_INCREMENT for table `event_info_tbl`
 --
 ALTER TABLE `event_info_tbl`
-  MODIFY `event_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
+  MODIFY `event_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000008;
 
 --
 -- AUTO_INCREMENT for table `finance_tbl`
 --
 ALTER TABLE `finance_tbl`
-  MODIFY `finance_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
+  MODIFY `finance_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000008;
 
 --
 -- AUTO_INCREMENT for table `gender_tbl`
@@ -655,13 +798,13 @@ ALTER TABLE `gender_tbl`
 -- AUTO_INCREMENT for table `item_stock_tbl`
 --
 ALTER TABLE `item_stock_tbl`
-  MODIFY `item_stock_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90000016;
+  MODIFY `item_stock_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90000020;
 
 --
 -- AUTO_INCREMENT for table `item_tbl`
 --
 ALTER TABLE `item_tbl`
-  MODIFY `item_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80000016;
+  MODIFY `item_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80000020;
 
 --
 -- AUTO_INCREMENT for table `item_type_tbl`
@@ -679,7 +822,7 @@ ALTER TABLE `manager_tbl`
 -- AUTO_INCREMENT for table `order_info_tbl`
 --
 ALTER TABLE `order_info_tbl`
-  MODIFY `order_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000002;
+  MODIFY `order_ID` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000008;
 
 --
 -- AUTO_INCREMENT for table `payment_status_tbl`
@@ -697,13 +840,13 @@ ALTER TABLE `payment_type_tbl`
 -- AUTO_INCREMENT for table `person_tbl`
 --
 ALTER TABLE `person_tbl`
-  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000010;
+  MODIFY `person_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10000043;
 
 --
 -- AUTO_INCREMENT for table `staff_tbl`
 --
 ALTER TABLE `staff_tbl`
-  MODIFY `staff_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000009;
+  MODIFY `staff_id` int(8) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000036;
 
 --
 -- AUTO_INCREMENT for table `supplier_tbl`
@@ -715,7 +858,7 @@ ALTER TABLE `supplier_tbl`
 -- AUTO_INCREMENT for table `worker_tbl`
 --
 ALTER TABLE `worker_tbl`
-  MODIFY `worker_ID` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000007;
+  MODIFY `worker_ID` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000028;
 
 --
 -- Constraints for dumped tables
@@ -757,6 +900,14 @@ ALTER TABLE `item_tbl`
   ADD CONSTRAINT `item_tbl_ibfk_1` FOREIGN KEY (`item_type_ID`) REFERENCES `item_type_tbl` (`item_type_ID`);
 
 --
+-- Constraints for table `liabilities_tbl`
+--
+ALTER TABLE `liabilities_tbl`
+  ADD CONSTRAINT `liabilities_tbl_ibfk_1` FOREIGN KEY (`manager_ID`) REFERENCES `manager_tbl` (`manager_ID`),
+  ADD CONSTRAINT `liabilities_tbl_ibfk_2` FOREIGN KEY (`item_ID`) REFERENCES `item_tbl` (`item_ID`),
+  ADD CONSTRAINT `liabilities_tbl_ibfk_3` FOREIGN KEY (`finance_ID`) REFERENCES `finance_tbl` (`finance_ID`);
+
+--
 -- Constraints for table `manager_tbl`
 --
 ALTER TABLE `manager_tbl`
@@ -766,7 +917,8 @@ ALTER TABLE `manager_tbl`
 -- Constraints for table `order_details_tbl`
 --
 ALTER TABLE `order_details_tbl`
-  ADD CONSTRAINT `order_details_tbl_ibfk_1` FOREIGN KEY (`item_ID`) REFERENCES `item_tbl` (`item_ID`);
+  ADD CONSTRAINT `order_details_tbl_ibfk_1` FOREIGN KEY (`item_ID`) REFERENCES `item_tbl` (`item_ID`),
+  ADD CONSTRAINT `order_details_tbl_ibfk_2` FOREIGN KEY (`order_ID`) REFERENCES `order_info_tbl` (`order_ID`);
 
 --
 -- Constraints for table `order_info_tbl`
@@ -779,7 +931,6 @@ ALTER TABLE `order_info_tbl`
 -- Constraints for table `payment_tbl`
 --
 ALTER TABLE `payment_tbl`
-  ADD CONSTRAINT `payment_tbl_ibfk_1` FOREIGN KEY (`customer_ID`) REFERENCES `customer_tbl` (`customer_ID`),
   ADD CONSTRAINT `payment_tbl_ibfk_2` FOREIGN KEY (`finance_ID`) REFERENCES `finance_tbl` (`finance_ID`),
   ADD CONSTRAINT `payment_tbl_ibfk_3` FOREIGN KEY (`payment_type_ID`) REFERENCES `payment_type_tbl` (`payment_type_ID`);
 

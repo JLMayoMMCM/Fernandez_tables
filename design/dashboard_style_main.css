@@ -1,8 +1,5 @@
 /* DEVELOPED BY JONATHAN LANCE MAYO */
 
-
-/* DEFAULT STYLES  FOR BODY */
-
 * {
   font-family: 'Overpass Mono';
   margin: 0;
@@ -49,20 +46,6 @@ body {
   75% { background-position: 100% 0%; }
   100% { background-position: 50% 50%; } /* Adjusted to ensure a smoother transition */
 }
-/* MAIN STYLES */
-
-.dashboard_container {
-  background: none;
-
-  padding: 25px;
-  overflow: auto;
-  grid-area: main;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  scroll-behavior: smooth;
-}
-
 
 /* TOP HEADER STYLES */
 .header {
@@ -90,6 +73,7 @@ body {
   text-align: center;
   padding: 0px;
   margin: 0px;
+  text-decoration: none; /* Remove underline */
 }
 
 .header_username {
@@ -169,7 +153,18 @@ body {
   background-color: red;
 }
 
-/* ADD ORDERS CSS */
+
+.content_panel {
+  background: none;
+
+  padding: 25px;
+  overflow: auto;
+  grid-area: main;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  scroll-behavior: smooth;
+}
 
 .content_add_order {
   display: grid;
@@ -208,7 +203,7 @@ body {
   gap: 15px; /* Adds even spacing between input fields */
 }
 
-.input_row {
+.input_row_add_orders {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -218,18 +213,18 @@ body {
   padding: 10px 0;
 }
 
-.input_row label {
+.input_row_add_orders label {
   flex: 0 0 150px; /* Set a fixed width for labels */
   text-align: left;
   font-weight: bold;
 }
 
-.input_row input,
-.input_row select {
+.input_row_add_orders input,
+.input_row_add_orders select {
   flex: 1;
   width: 100%; /* Ensures inputs take full available space */
-  min-width: 250px; /* Adjust based on the design */
-  max-width: 300px; /* Ensures consistency */
+  min-width: 150px; /* Adjust based on the design */
+  max-width: 200px; /* Ensures consistency */
   height: 40px; /* Match height across sections */
   padding: 8px;
   border-radius: 5px;
@@ -240,6 +235,52 @@ body {
               0 3px 10px rgba(119, 141, 169, 0.3), 
               0 4px 15px rgba(13, 27, 42, 0.3), 
               0 5px 20px rgba(119, 141, 169, 0.3); /* Smaller shadow gradient */
+}
+
+.input_row_add_orders input[type=number]::-webkit-inner-spin-button,
+.input_row_add_orders input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input_row_add_orders input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.item-quantity::-webkit-inner-spin-button,
+.item-quantity::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-quantity {
+  -moz-appearance: textfield;
+  border: none; /* Remove border */
+  width: 60px; /* Ensure consistent size */
+  text-align: center; /* Center align text */
+}
+
+.input_row_add_orders input[type=number]::-webkit-inner-spin-button,
+.input_row_add_orders input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input_row_add_orders input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.quantity-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.quantity-btn:hover {
+  background: #ddd;
 }
 
 .card-add-orders .add_form_container input,
@@ -276,6 +317,19 @@ body {
   transform: scale(1.05); /* Slightly increase size on hover */
 }
 
+
+@media (max-width: 925px) {
+
+  .content_add_order {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-add-orders {
+    width: 100%;
+    margin: 10px 0;
+  }
+}
+
 /* Buttons */
 
 #back_to_add_order, #back_to_active_order, #back_to_modify_order, #item_return_btn, #item_submit_btn{
@@ -298,22 +352,6 @@ body {
   font-size: 18px; /* Increase font size */
 }
 
-#back_to_add_order:hover {
-  background-color: #7d96c8;
-}
-
-@media (max-width: 925px) {
-
-  .content_add_order {
-    grid-template-columns: 1fr;
-  }
-  
-  .card-add-orders {
-    width: 100%;
-    margin: 10px 0;
-  }
-}
-
 /* ITEM AND WORKERS STYLES */
 .content_add_item_order {
   display: grid;
@@ -329,10 +367,14 @@ body {
   flex-direction: column;
   height: 345px;
   width: 1120px;
-  background: none;
+  background: rgba(245, 245, 245, 0.5);
   border-radius: 20px;
   padding: 25px;
   margin: 20px 0;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+  0 6px 20px rgba(59, 70, 84, 0.3), 
+  0 8px 30px rgba(13, 27, 42, 0.3), 
+  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
 }
 
 .card_item_container h3 {
@@ -358,10 +400,6 @@ body {
   height: 345px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
 }
 
 .table_wrapper_item table {
@@ -386,10 +424,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
 }
 
 .table_wrapper_item tbody tr.active,
@@ -399,156 +433,7 @@ body {
   color: white; /* Text color */
 }
 
-
-.quantity-control {
-  display: flex;
-  align-items: center;
-}
-
-.quantity-control button {
-  background-color: #778DA9;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 16px;
-  border-radius: 5px;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.quantity-control button:hover {
-  background-color: #778DA9;
-  transform: scale(1.1);
-}
-
-.quantity-control button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.quantity-control input {
-  width: 50px;
-  text-align: center;
-  border: 1px solid #ccc;
-  margin: 0 5px;
-  -moz-appearance: textfield; /* Hide the up and down buttons in Firefox */
-}
-
-.quantity-control input::-webkit-outer-spin-button,
-.quantity-control input::-webkit-inner-spin-button {
-  -webkit-appearance: none; /* Hide the up and down buttons in Chrome, Safari, and Edge */
-  margin: 0;
-}
-
-/* Modal styles */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: none;
-  border-radius: 30px;
-  height: 200px;
-  width: 300px; /* Could be more or less, depending on screen size */
-  display: flex; /* Use flexbox to center the content */
-  flex-direction: column; /* Arrange content vertically */
-  align-items: center; /* Center content horizontally */
-  justify-content: center; /* Center content vertically */
-  position: relative; /* Position relative to place the close button */
-}
-
-.modal-message {
-  text-align: center; /* Center text inside the modal */
-  padding: 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.close-button {
-  color: #aaa;
-  position: absolute; /* Position absolute to place it in the top right corner */
-  top: 10px;
-  right: 10px;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.close-button:hover,
-.close-button:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.modal-content i {
-  margin-top: 20px; /* Add top margin for the <i> class */
-}
-
-/* Update table styles */
-.table_wrapper_active_order,
-.table_wrapper_order_history,
-.table_wrapper_inventory {
-  overflow-x: auto; /* Enables horizontal scrolling */
-  overflow-y: auto; /* Enables vertical scrolling */
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
-  height: 670px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-}
-
-.table_wrapper_active_order table,
-.table_wrapper_order_history table,
-.table_wrapper_inventory table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed; /* Ensures the table layout is fixed */
-  border: none; /* Remove the border */
-}
-
-.table_wrapper_active_order th, .table_wrapper_active_order td,
-.table_wrapper_order_history th, .table_wrapper_order_history td,
-.table_wrapper_inventory th, .table_wrapper_inventory td {
-  text-align: center;
-  padding: 8px;
-  border: none; /* Remove the border */
-  vertical-align: middle; /* Aligns items to the center vertically */
-  white-space: normal; /* Allow text wrapping */
-  word-wrap: break-word; /* Break long words */
-}
-
-.table_wrapper_active_order thead,
-.table_wrapper_order_history thead,
-.table_wrapper_inventory thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-}
-
-/* ACTIVE ORDERS STYLES */
+/* ACTIVE AND PAYMENT ORDERS STYLES */
 
 .content_active_order {
   display: grid;
@@ -593,10 +478,16 @@ body {
   height: 670px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
+  box-shadow: 0 4px 8px rgba(65, 90, 119, 0.3), 
+  0 6px 20px rgba(119, 141, 169, 0.3), 
+  0 8px 30px rgba(13, 27, 42, 0.3), 
+  0 10px 40px rgba(119, 141, 169, 0.3); /* Shadow gradient */
 }
 
 .table_wrapper_active_order table {
+  background: rgba(245, 245, 245, 0.5);
   width: 100%;
+  height: 670px;
   border-collapse: collapse;
   table-layout: fixed; /* Ensures the table layout is fixed */
   border: none; /* Remove the border */
@@ -623,62 +514,11 @@ body {
               0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
 }
 
-.view-order, .modify-order, .cancel-order, .view-history-order, .delete-history-order, .delete-item, .delete-stock {
-  background-color: #415A77;
-  color: white;
-  border: none;
-  padding: 10px; /* Adjust padding to make the button circular */
-  margin: 10px;
-  border-radius: 50%; /* Make the button circular */
-  font-size: 16px; /* Adjust font size as needed */
-  width: 40px; /* Set width to ensure circular shape */
-  height: 40px; /* Set height to ensure circular shape */
-  display: flex; /* Use flexbox to center the icon */
-  align-items: center; /* Center the icon vertically */
-  justify-content: center; /* Center the icon horizontally */
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+.table_wrapper_active_order tbody {
+    display: table-row-group;
 }
 
-.view-order i, .modify-order i, .cancel-order i, .view-history-order i, .delete-history-order i, .delete-item i, .delete-stock i {
-  font-size: 16px; /* Adjust icon size as needed */
-}
-
-.view-order:hover, .modify-order:hover, .cancel-order:hover, .view-history-order:hover, .delete-history-order:hover, .delete-item:hover, .delete-stock:hover {
-  background-color: #7d96c8;
-}
-
-
-/* STYLES FOR MODIFY SY */
-
-.content_modify_order {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 20px;
-  width: 100%;
-}
-
-.content_modify_item_order {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 20px;
-  width: 100%;
-}
-
-@media (max-width: 925px) {
-
-  .content_modify_order {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-/* ORDER HISTORY STYLES */
-
-.content_order_history {
+.content_payment_order {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
@@ -686,7 +526,14 @@ body {
   width: 100%;
 }
 
-.card-order-history {
+.content_payment_order h3 {
+  margin-bottom: 3px;
+  margin-left: 30px;
+  padding-bottom: 0;
+}
+
+
+.card-payment-order {
   display: flex;
   flex-direction: column;
   height: 670px;
@@ -697,114 +544,307 @@ body {
   margin: 15px;
 }
 
-.order_history_search input {
-  flex: 1;
-  width: 100%; /* Ensures inputs take full available space */
-  min-width: 250px; /* Adjust based on the design */
-  max-width: 455px; /* Ensures consistency */
-  height: 40px; /* Match height across sections */
-  padding: 8px;
-  border-radius: 5px;
-  border: none;
-  box-sizing: border-box;
-  background: transparent; /* Set background to transparent */
-  box-shadow: 0 2px 4px rgba(65, 90, 119, 0.3), 
-              0 3px 10px rgba(119, 141, 169, 0.3), 
-              0 4px 15px rgba(13, 27, 42, 0.3), 
-              0 5px 20px rgba(119, 141, 169, 0.3); /* Smaller shadow gradient */
-}
-
-.table_wrapper_order_history {
-  overflow-x: auto; /* Enables horizontal scrolling */
-  overflow-y: auto; /* Enables vertical scrolling */
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
-  height: 670px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
-}
-
-.table_wrapper_order_history table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed; /* Ensures the table layout is fixed */
-  border: none; /* Remove the border */
-}
-
-.table_wrapper_order_history th, .table_wrapper_order_history td {
-  text-align: center;
-  padding: 8px;
-  border: none; /* Remove the border */
-  vertical-align: middle; /* Aligns items to the center vertically */
-  white-space: normal; /* Allow text wrapping */
-  word-wrap: break-word; /* Break long words */
-}
-
-.table_wrapper_order_history thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-}
-
-
-.content_inventory_stock {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
-  gap: 20px;
-  width: 100%;
-}
-
-.content_inventory_stock h3 {
-  margin-bottom: 3px;
-  padding-bottom: 0;
-}
-
-.card-inventory-stock {
-  display: flex;
-  flex-direction: column;
-  height: 340px;
-  width: 1120px;
-  background: none;
-  border-radius: 20px;
-  padding: 15px;
-  margin: 15px;
-}
-
-.card-inventory-stock {
+.card-payment-order {
   gap: 5px; /* Controls spacing between child elements */
 }
 
-.card-inventory-stock {
+.card-payment-order {
   display: flex;
   flex-direction: column;
   gap: 15px; /* Adds even spacing between input fields */
 }
 
-.table_wrapper_inventory {
+.table_wrapper_payment_order {
+  background: rgba(245, 245, 245, 0.5);
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
+  width: 100%; /* Ensure the wrapper takes full width */
   height: 670px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
+  box-shadow: 0 4px 8px rgba(65, 90, 119, 0.3), 
+              0 6px 20px rgba(119, 141, 169, 0.3), 
+              0 8px 30px rgba(13, 27, 42, 0.3), 
+              0 10px 40px rgba(119, 141, 169, 0.3); /* Shadow gradient */
 }
 
-.table_wrapper_inventory table {
+.table_wrapper_payment_order table {
+  background: none;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* Adjust table layout to fit content */
+  border: none; /* Remove the border */
+  font-size: 12px; /* Make text smaller */
+}
+
+.table_wrapper_payment_order th, .table_wrapper_payment_order td {
+  text-align: center;
+  padding: 4px; /* Reduce padding */
+  border: none; /* Remove the border */
+  vertical-align: middle; /* Aligns items to the center vertically */
+  white-space: normal; /* Allow text wrapping */
+  word-wrap: break-word; /* Ensure words break to fit */
+}
+
+.table_wrapper_payment_order th {
+  writing-mode: horizontal-tb; /* Ensure text is horizontal */
+}
+
+.table_wrapper_payment_order thead {
+  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
+  color: white;
+  position: sticky;
+  font-size: 12px;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+              0 6px 20px rgba(59, 70, 84, 0.3), 
+              0 8px 30px rgba(13, 27, 42, 0.3), 
+              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  height: 50px; /* Adjust height */
+  line-height: 50px; /* Center text vertically */
+}
+
+.table_wrapper_payment_order table tbody {
+    display: table-row-group;
+    font-size: 12px;
+}
+
+/* STYLES FOR PAYMENT POPUP WINDOWS */
+.view_create_transaction_popup,
+.view_add_liability_popup,
+.view_transactions_popup,
+.view_liabilities_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308); /* Greyish transparent background */
+    z-index: 1000;
+}
+
+.view_create_transaction_popup.active,
+.view_add_liability_popup.active,
+.view_transactions_popup.active,
+.view_liabilities_popup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-content-transaction {
+  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  border-radius: 20px;
+  padding: 30px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: white; /* Make text white */
+  z-index: 1001; /* Ensure popup content is on top */
+}
+
+.popup-content-transaction h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: white; /* Make text white */
+}
+
+.input_row_transactions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensure label and input are evenly justified */
+    margin-bottom: 15px;
+}
+
+.input_row_transactions label {
+    flex: 1; /* Allow label to take up available space */
+    margin-right: 10px; /* Add some space between label and input */
+    font-weight: bold;
+    color: white; /* Make text white */
+}
+
+.input_row_transactions input,
+.input_row_transactions select,
+.input_row_transactions textarea {
+    flex: 2; /* Allow input to take up more space */
+    width: 100%; /* Ensures inputs take full available space */
+    min-width: 200px; /* Adjust based on the design */
+    max-width: 200px; /* Ensures consistency */
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: white;
+    color: black; /* Ensure input text is readable */
+}
+
+.order_navigation_transaction {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.order_navigation_transaction button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    color: #1B263B;
+    cursor: pointer;
+}
+
+.order_navigation_transaction button:hover {
+  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
+  color: white;
+}
+
+.order_navigation_transaction button:hover,
+.order_navigation_liability button:hover,
+#transactions_return_btn:hover,
+#liabilities_return_btn:hover {
+  background-color: red; /* Match the hover effect of the logout button */
+  transform: scale(1.05); /* Slightly increase size on hover */
+  color: white;
+}
+
+/* Update hover effects for transaction popup buttons */
+.btn-cancel:hover {
+    background-color: #ff0000 !important; /* Red */
+    color: white !important;
+}
+
+.btn-submit:hover {
+    background-color: #00ff00 !important; /* Green */
+    color: white !important;
+}
+
+/* Update hover effects for transaction and liability return buttons */
+#transactions_return_btn:hover, 
+#liabilities_return_btn:hover {
+    background-color: #ff0000 !important; /* Red */
+    color: white !important;
+}
+
+.popup-content-liability {
+  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  border-radius: 20px;
+  padding: 30px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: white; /* Make text white */
+  z-index: 1001; /* Ensure popup content is on top */
+}
+
+.popup-content-liability h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: white; /* Make text white */
+}
+
+.input_row_liability {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensure label and input are evenly justified */
+    margin-bottom: 15px;
+}
+
+.input_row_liability label {
+    flex: 0 0 150px; /* Set a fixed width for labels */
+    text-align: left; /* Align labels to the left */
+    margin-right: 10px; /* Add some space between label and input */
+    font-weight: bold;
+    color: white; /* Make text white */
+}
+
+.input_row_liability input,
+.input_row_liability select,
+.input_row_liability textarea {
+    flex: 1;
+    width: 100%; /* Ensures inputs take full available space */
+    min-width: 200px; /* Adjust based on the design */
+    max-width: 200px; /* Ensures consistency */
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: white;
+    color: black; /* Ensure input text is readable */
+}
+
+.order_navigation_liability {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.order_navigation_liability button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+    0 6px 20px rgba(59, 70, 84, 0.3), 
+    0 8px 30px rgba(13, 27, 42, 0.3), 
+    0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+    color: #1B263B;
+    cursor: pointer;
+}
+
+.order_navigation_liability button:hover {
+  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
+  color: white;
+}
+
+.popup-content-view, .popup-view-liabilities {
+  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  border-radius: 20px;
+  padding: 30px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+  0 6px 20px rgba(59, 70, 84, 0.3), 
+  0 8px 30px rgba(13, 27, 42, 0.3), 
+  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  color: white; /* Make text white */
+  z-index: 1001; /* Ensure popup content is on top */
+}
+
+.popup-content-liability, .popup-view-liabilities h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: white; /* Make text white */
+}
+
+.table_wrapper_view {
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+  background: rgba(245, 245, 245, 0.784);
+  width: 500px;
+  max-width: 500px; /* Ensures the wrapper does not exceed the container width */
+  height: 345px; /* Matches the height of the cards */
+  border-radius: 20px; /* Optional: adds rounded corners */
+  margin: 10px 0; /* Optional: adds margin for spacing */
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+              0 6px 20px rgba(59, 70, 84, 0.3), 
+              0 8px 30px rgba(13, 27, 42, 0.3), 
+              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+}
+
+.table_wrapper_view table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed; /* Ensures the table layout is fixed */
   border: none; /* Remove the border */
 }
 
-.table_wrapper_inventory th, .table_wrapper_inventory td {
+.table_wrapper_view th, .table_wrapper_view td {
   text-align: center;
   padding: 8px;
   border: none; /* Remove the border */
@@ -813,8 +853,8 @@ body {
   word-wrap: break-word; /* Break long words */
 }
 
-.table_wrapper_inventory thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
+.table_wrapper_view thead {
+  background: #778DA9;
   color: white;
   position: sticky;
   top: 0;
@@ -825,31 +865,358 @@ body {
               0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
 }
 
-.inventory_buttons {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
+.table_wrapper_view tbody {
+  color: #1B263B;
 }
 
-#add_stocks_btn, #add_item_btn {
-  width: 550px; /* Fixed width */
-  height: 50px; /* Fixed height */
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
+#transactions_return_btn, #liabilities_return_btn {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    margin: 10px;
+    box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+    0 6px 20px rgba(59, 70, 84, 0.3), 
+    0 8px 10px rgba(13, 27, 42, 0.3), 
+    0 10px 10px rgba(59, 70, 84, 0.3); /* Shadow */
+    color: #1B263B;
+    cursor: pointer;
+}
+
+#transactions_return_btn:hover, #liabilities_return_btn:hover {
+  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
   color: white;
-  border: none;
-  border-radius: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.popup-view-liabilities {
+  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  border-radius: 20px;
+  padding: 30px;
+  width: 760px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+  0 6px 20px rgba(59, 70, 84, 0.3), 
+  0 8px 30px rgba(13, 27, 42, 0.3), 
+  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  color: white; /* Make text white */
+  z-index: 1001; /* Ensure popup content is on top */
+}
+
+.table_wrapper_view_lia {
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+  background: rgba(245, 245, 245, 0.784);
+  width: 760px;
+  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
+  height: 345px; /* Matches the height of the cards */
+  border-radius: 20px; /* Optional: adds rounded corners */
+  margin: 10px 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
               0 6px 20px rgba(59, 70, 84, 0.3), 
               0 8px 30px rgba(13, 27, 42, 0.3), 
               0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  justify-self: center; /* Cenoter the buttons in each column */
-  padding: 10px 20px; /* Add padding */
-  font-size: 18px; /* Increase font size */
 }
 
-#add_stocks_btn:hover, #add_item_btn:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+.table_wrapper_view_lia table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures the table layout is fixed */
+  border: none; /* Remove the border */
+}
+
+.table_wrapper_view_lia th, .table_wrapper_view_lia td {
+  text-align: center;
+  padding: 8px;
+  border: none; /* Remove the border */
+  vertical-align: middle; /* Aligns items to the center vertically */
+  white-space: normal; /* Allow text wrapping */
+  word-wrap: break-word; /* Break long words */
+}
+
+.table_wrapper_view_lia thead {
+  background: #778DA9;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+              0 6px 20px rgba(59, 70, 84, 0.3), 
+              0 8px 30px rgba(13, 27, 42, 0.3), 
+              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+}
+
+.table_wrapper_view_lia tbody {
+  color: #1B263B;
+}
+
+
+.content_order_history.active,
+.content_inventory_stock.active {
+  display: flex;
+  flex-direction: column;
+  justify-self: normal;
+  width: 100%;
+  height: 100%;
+}
+
+.order_total {
+  text-align: left;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 10px;
+}
+
+.order_total span {
+  width: 500px;
+}
+
+
+.order_navigation {
+  display: flex;
+  flex-direction: row;
+  justify-content: right;
+  margin: 25px;
+}
+
+.order_navigation button {
+  width: 280px;
+  margin: 5px;
+  justify-self: center;
+}
+
+/* STYLES FOR MODIFY SY */
+
+#orderItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: var(--table-row-bg-color);
+}
+
+#orderItemsTable th {
+  border: 1px solid var(--outline-color);
+  background-color: var(--table-header-bg-color);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+#orderItemsTable td {
+  border: 1px solid var(--outline-color);
+  font-size: 18px;
+  height: 20px;
+  text-align: center;
+}
+.order_history_search input {
+  width: 300px;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.content_order_history .table_wrapper {
+  height: 600px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.content_order_history table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: var(--table-row-bg-color);
+}
+
+.content_order_history table th {
+  border: 1px solid var(--outline-color);
+  background-color: var(--table-header-bg-color);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+.content_order_history table td {
+  border: 1px solid var(--outline-color);
+  font-size: 18px;
+  height: 20px;
+  text-align: center;
+}
+
+.content_order_history table th:nth-child(1) {
+  width: 120px;
+}
+
+.inventory_tables {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+}
+
+.inventory_buttons {
+  margin: 20px;
+  display: flex;
+  gap: 20px;
+  justify-content: left;
+}
+
+.inventory_tables .table_wrapper {
+  height: 200px;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.inventory_tables table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: var(--table-row-bg-color);
+}
+
+.inventory_tables table th {
+  background-color: var(--table-header-bg-color);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+}
+
+.inventory_tables table td {
+  font-size: 18px;
+  height: 20px;
+  text-align: center;
+}
+
+/* STYLES FOR POPUP WINDOWS */
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  padding: 25px;
+  height: 60%;
+  width: 60%;
+  justify-content: space-evenly;
+  background-color: var(--panel-color);
+
+}
+
+/* STYLES FOR STAFF INFO TABLE */
+.content_staff_info .table_wrapper {
+  height: 600px;
+  width: 100%;
+  border-radius: 10px;
+  overflow-y: auto;
+}
+
+.content_staff_info table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: var(--table-color);
+}
+
+.content_staff_info table th {
+  background-color: var(--table-header-bg-color);
+  font-weight: 600;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  padding: 10px;
+}
+
+.content_staff_info table td {
+  font-size: 16px;
+  height: 32px;
+  text-align: center;
+  padding: 8px;
+}
+
+/* Style the table cell to use CSS Grid */
+.button-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns */
+  grid-template-rows: repeat(2, 1fr); /* Two rows */
+  gap: 10px; /* Space between buttons */
+  justify-items: center; /* Center buttons horizontally */
+  align-items: center; /* Center buttons vertically */
+}
+
+.icon-button {
+  position: relative;
+  background-color: rgba(27, 38, 59, 0.9); /* Match the gradient color */
+  border: none;
+  border-radius: 50%;
+  padding: 4px; /* Adjust padding for size */
+  margin: 5px; /* Reduce margin */
+  cursor: pointer;
+  width: 35px; /* Adjust width */
+  height: 35px; /* Adjust height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
+              0 6px 20px rgba(59, 70, 84, 0.3); /* Match shadow style */
+}
+
+.icon-button i {
+  color: white;
+  font-size: 14px; /* Adjust icon size */
+}
+
+.icon-button .tooltip {
+  visibility: hidden;
+  position: absolute;
+  top: 50%;
+  right: 100%; /* Position to the left of the button */
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px; /* Adjust font size */
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Show tooltip when hovered */
+.icon-button:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Hover effect for the button */
+.icon-button:hover {
+  background-color: rgba(33, 45, 59, 0.9); /* Slightly darker shade */
   transform: scale(1.05); /* Slightly increase size on hover */
 }
+
+/* Arrange buttons in 2 columns and 2 rows */
+.payment-buttons-container {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  grid-gap: 10px;
+  justify-content: center;
+}
+
+
