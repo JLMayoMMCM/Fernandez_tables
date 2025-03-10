@@ -468,20 +468,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.end_event_date}</td>
                         <td>${order.manager_name}</td>
                         <td>${order.total_amount}</td>
-                        <td>
-                            <button class="view-order" data-id="${order.order_ID}">View</button>
-                            <button class="modify-order" data-id="${order.order_ID}">Modify</button>
-                            <button class="cancel-order" data-id="${order.order_ID}">Cancel</button>
+                        <td class="horizontal-button-container">
+                            <button class="icon-button view-order" data-id="${order.order_ID}">
+                                <i class="fa-solid fa-eye"></i>
+                                <span class="tooltip">View Order</span>
+                            </button>
+                            <button class="icon-button modify-order" data-id="${order.order_ID}">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span class="tooltip">Modify Order</span>
+                            </button>
+                            <button class="icon-button cancel-order" data-id="${order.order_ID}">
+                                <i class="fa-solid fa-ban"></i>
+                                <span class="tooltip">Cancel Order</span>
+                            </button>
                         </td>
                     `;
                     tableBody.appendChild(row);
                 });
 
+                // Add event listeners for buttons
                 document.querySelectorAll('.view-order').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
-                        showPage('view_order_item_popup');
                         fetchOrderItems(orderId);
+                        document.querySelector('.view_order_item_popup').classList.add('active');
                     });
                 });
 
@@ -499,6 +509,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (confirm('Are you sure you want to cancel this order?')) {
                             cancelOrder(orderId);
                         }
+                    });
+                });
+
+                // Update the view order button event listeners
+                document.querySelectorAll('.view-order').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const orderId = this.dataset.id;
+                        fetchOrderItems(orderId);
+                        document.querySelector('.view_order_item_popup').classList.add('active');
                     });
                 });
             })
@@ -746,8 +765,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.manager_name}</td>
                         <td>${order.address}</td>
                         <td>
-                            <button class="view-history-order" data-id="${order.order_ID}">View</button>
-                            <button class="delete-history-order" data-id="${order.order_ID}">Delete</button>
+                            <div class="horizontal-button-container">
+                                <button class="icon-button view-history-order" data-id="${order.order_ID}">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span class="tooltip">View Order</span>
+                                </button>
+                                <button class="icon-button delete-history-order" data-id="${order.order_ID}">
+                                    <i class="fa-solid fa-trash"></i>
+                                    <span class="tooltip">Delete Order</span>
+                                </button>
+                            </div>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -857,7 +884,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${item.item_price}</td>
                         <td>${item.total_stock || 0}</td>
                         <td>
-                            <button class="delete-item" data-id="${item.item_ID}">Delete</button>
+                            <div class="single-button-container">
+                                <button class="icon-button delete-item" data-id="${item.item_ID}">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="tooltip">Delete Item</span>
+                                </button>
+                            </div>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -895,7 +927,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${stock.supplier_ID}</td>
                         <td>${stock.manager_name}</td>
                         <td>
-                            <button class="delete-stock" data-id="${stock.item_stock_ID}">Delete</button>
+                            <div class="single-button-container">
+                                <button class="icon-button delete-stock" data-id="${stock.item_stock_ID}">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="tooltip">Delete Stock</span>
+                                </button>
+                            </div>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -1266,8 +1303,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('content_active_order').addEventListener('click', function() {
         document.querySelector('.view_order_item_popup').classList.remove('active');
-        showPage('content_active_order');
-        fetchActiveOrders();
     });
 
     document.querySelectorAll('.modify-order').forEach(button => {
@@ -1541,7 +1576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addStocksBtn = document.getElementById('add_stocks_btn');
     if (addStocksBtn) {
         addStocksBtn.addEventListener('click', function() {
-            showPage('view_stock_input');
+            document.querySelector('.view_stock_input_popup').classList.add('active');
         });
     }
     
@@ -1549,27 +1584,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addItemBtn) {
         addItemBtn.addEventListener('click', function() {
             populateItemTypes();
-            showPage('view_item_input');
+            document.querySelector('.view_item_input_popup').classList.add('active');
         });
     }
     
     const stockReturnBtn = document.getElementById('stock_return_btn');
     if (stockReturnBtn) {
         stockReturnBtn.addEventListener('click', function() {
-            showPage('content_inventory_stock');
+            document.querySelector('.view_stock_input_popup').classList.remove('active');
+        });
+    }
+    
+    const itemReturnBtn = document.getElementById('item_return_btn');
+    if (itemReturnBtn) {
+        itemReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_item_input_popup').classList.remove('active');
         });
     }
     
     const stockSubmitBtn = document.getElementById('stock_submit_btn');
     if (stockSubmitBtn) {
         stockSubmitBtn.addEventListener('click', addStock);
-    }
-    
-    const itemReturnBtn = document.getElementById('item_return_btn');
-    if (itemReturnBtn) {
-        itemReturnBtn.addEventListener('click', function() {
-            showPage('content_inventory_stock');
-        });
     }
     
     const itemSubmitBtn = document.getElementById('item_submit_btn');
@@ -1914,8 +1949,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${transaction.payment_amount}</td>
                         <td>${transaction.payment_Reference_No}</td>
                         <td>${transaction.date_of_payment}</td>
-                        <td>
-                            <button class="delete-transaction" data-finance-id="${transaction.finance_ID}" data-payment-amount="${transaction.payment_amount}">Delete</button>
+                        <td class="single-button-container">
+                            <button class="icon-button delete-transaction" data-finance-id="${transaction.finance_ID}" data-payment-amount="${transaction.payment_amount}">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span class="tooltip">Delete Transaction</span>
+                            </button>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -1953,8 +1991,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${liability.liability_amount}</td>
                         <td>${liability.liability_description}</td>
                         <td>${liability.liability_date}</td>
-                        <td>
-                            <button class="delete-liability" data-finance-id="${liability.finance_ID}" data-liability-title="${liability.liability_title}">Delete</button>
+                        <td class="single-button-container">
+                            <button class="icon-button delete-liability" data-finance-id="${liability.finance_ID}" data-liability-title="${liability.liability_title}">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span class="tooltip">Delete Liability</span>
+                            </button>
                         </td>
                     `;
                     tableBody.appendChild(row);
@@ -2227,6 +2268,257 @@ document.addEventListener('DOMContentLoaded', function() {
             if (page === 'content_payment_order') {
                 fetchPaymentOrders();
             }
+        });
+    });
+
+    // Update popup show/hide functions
+    if (addStocksBtn) {
+        addStocksBtn.addEventListener('click', function() {
+            document.querySelector('.view_stock_input_popup').classList.add('active');
+        });
+    }
+    
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', function() {
+            populateItemTypes();
+            document.querySelector('.view_item_input_popup').classList.add('active');
+        });
+    }
+    
+    if (stockReturnBtn) {
+        stockReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_stock_input_popup').classList.remove('active');
+        });
+    }
+    
+    if (itemReturnBtn) {
+        itemReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_item_input_popup').classList.remove('active');
+        });
+    }
+
+    // Updated worker popup functionality
+    document.getElementById('add_worker_btn').addEventListener('click', function() {
+        // Reset form before showing
+        clearWorkerForm();
+        // Populate dropdowns 
+        fetch('/getWorkerFormData')
+            .then(response => response.json())
+            .then(data => {
+                const { managers, genders } = data;
+                populateSelector(genders, 'worker_gender');
+                populateSelector(managers, 'worker_manager');
+                document.querySelector('.view_add_worker_popup').classList.add('active');
+            })
+            .catch(error => {
+                console.error('Error fetching worker form data:', error);
+                alert('Error loading form data. Please try again.');
+            });
+    });
+
+    document.getElementById('worker_save_btn').addEventListener('click', function() {
+        if (!validateWorkerForm()) {
+            return;
+        }
+
+        const workerData = {
+            first_name: document.getElementById('worker_first_name').value.trim(),
+            middle_name: document.getElementById('worker_middle_name').value.trim(),
+            last_name: document.getElementById('worker_last_name').value.trim(),
+            phone_number: document.getElementById('worker_phone_number').value.trim(),
+            age: parseInt(document.getElementById('worker_age').value),
+            gender: document.getElementById('worker_gender').value,
+            manager_id: document.getElementById('worker_manager').value,
+            password: document.getElementById('worker_password').value
+        };
+
+        fetch('/addWorker', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(workerData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Worker added successfully');
+                document.querySelector('.view_add_worker_popup').classList.remove('active');
+                fetchStaffInfo(); // Refresh staff table
+            } else {
+                alert(data.message || 'Error adding worker');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding worker:', error);
+            alert('An error occurred while adding the worker');
+        });
+    });
+
+    function validateWorkerForm() {
+        const requiredFields = [
+            { id: 'worker_first_name', label: 'First Name' },
+            { id: 'worker_last_name', label: 'Last Name' },
+            { id: 'worker_phone_number', label: 'Phone Number' },
+            { id: 'worker_age', label: 'Age' },
+            { id: 'worker_gender', label: 'Gender' },
+            { id: 'worker_manager', label: 'Manager' },
+            { id: 'worker_password', label: 'Password' },
+            { id: 'worker_confirm_password', label: 'Confirm Password' }
+        ];
+
+        for (const field of requiredFields) {
+            const element = document.getElementById(field.id);
+            const value = element.value.trim();
+            if (!value) {
+                alert(`Please enter ${field.label}`);
+                element.focus();
+                return false;
+            }
+        }
+
+        const age = parseInt(document.getElementById('worker_age').value);
+        if (isNaN(age) || age < 18) {
+            alert('Worker must be at least 18 years old');
+            return false;
+        }
+
+        const password = document.getElementById('worker_password').value;
+        const confirmPassword = document.getElementById('worker_confirm_password').value;
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return false;
+        }
+
+        // Add phone number validation
+        const phoneNumber = document.getElementById('worker_phone_number').value;
+        const phoneRegex = /^\d{11}$/;  // Assumes 11-digit phone number
+        if (!phoneRegex.test(phoneNumber)) {
+            alert('Please enter a valid 11-digit phone number');
+            return false;
+        }
+
+        return true;
+    }
+
+    function clearWorkerForm() {
+        const fields = [
+            'worker_first_name',
+            'worker_middle_name',
+            'worker_last_name',
+            'worker_phone_number',
+            'worker_age',
+            'worker_gender',
+            'worker_manager',
+            'worker_password',
+            'worker_confirm_password'
+        ];
+        
+        fields.forEach(field => {
+            document.getElementById(field).value = '';
+        });
+    }
+
+// Update the add worker button event listener
+document.getElementById('add_worker_btn').addEventListener('click', function() {
+    clearWorkerForm(); // Reset form
+    
+    // We can use the existing data from getItemsAndWorkers instead
+    fetch('/getItemsAndWorkers')
+        .then(response => response.json())
+        .then(data => {
+            const { managers, genders } = data;
+            
+            // Populate gender dropdown
+            const genderSelect = document.getElementById('worker_gender');
+            genderSelect.innerHTML = '';
+            genders.forEach(gender => {
+                const option = document.createElement('option');
+                option.value = gender.id;
+                option.textContent = gender.name;
+                genderSelect.appendChild(option);
+            });
+            
+            // Populate manager dropdown
+            const managerSelect = document.getElementById('worker_manager');
+            managerSelect.innerHTML = '';
+            managers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.id;
+                option.textContent = manager.name;
+                managerSelect.appendChild(option);
+            });
+            
+            // Show the popup
+            document.querySelector('.view_add_worker_popup').classList.add('active');
+        })
+        .catch(error => {
+            console.error('Error loading form data:', error);
+            alert('Error loading form data. Please try again.');
+        });
+});
+
+    // Remove any duplicate event listeners
+    document.getElementById('add_worker_btn').replaceWith(document.getElementById('add_worker_btn').cloneNode(true));
+    
+    // Update the add worker button event listener to use existing data
+    document.getElementById('add_worker_btn').addEventListener('click', function() {
+        clearWorkerForm(); // Reset form
+        fetch('/getItemsAndWorkers')
+            .then(response => response.json())
+            .then(data => {
+                const { managers, genders } = data;
+                populateSelector(genders, 'worker_gender');
+                populateSelector(managers, 'worker_manager');
+                document.querySelector('.view_add_worker_popup').classList.add('active');
+            })
+            .catch(error => {
+                console.error('Error loading form data:', error);
+                alert('Error loading form data. Please try again.');
+            });
+    });
+
+    // Remove duplicate worker save button listener
+    document.getElementById('worker_save_btn').replaceWith(document.getElementById('worker_save_btn').cloneNode(true));
+    
+    // Single event listener for saving worker
+    document.getElementById('worker_save_btn').addEventListener('click', function() {
+        if (!validateWorkerForm()) {
+            return;
+        }
+
+        const workerData = {
+            first_name: document.getElementById('worker_first_name').value.trim(),
+            middle_name: document.getElementById('worker_middle_name').value.trim(),
+            last_name: document.getElementById('worker_last_name').value.trim(),
+            phone_number: document.getElementById('worker_phone_number').value.trim(),
+            age: parseInt(document.getElementById('worker_age').value),
+            gender: document.getElementById('worker_gender').value,
+            manager_id: document.getElementById('worker_manager').value,
+            password: document.getElementById('worker_password').value
+        };
+
+        fetch('/addWorker', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(workerData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Worker added successfully');
+                document.querySelector('.view_add_worker_popup').classList.remove('active');
+                fetchStaffInfo(); // Refresh staff table
+                clearWorkerForm(); // Clear the form
+            } else {
+                alert(data.message || 'Error adding worker');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding worker:', error);
+            alert('An error occurred while adding the worker');
         });
     });
 

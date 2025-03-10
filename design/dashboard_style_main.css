@@ -1,5 +1,41 @@
 /* DEVELOPED BY JONATHAN LANCE MAYO */
 
+:root {
+  /* Main colors */
+  --color-white: #F5F5F5;
+  --color-blue-light: #778DA9;
+  --color-blue-medium: #415A77;
+  --color-blue-dark: #1B263B;
+  --color-blue-darker: #0D1B2A;
+  
+  /* Gradient colors */
+  --gradient-header: linear-gradient(to right, rgba(13, 27, 42, 0.9), rgba(7, 14, 21, 0.9));
+  --gradient-sidebar: linear-gradient(to right, rgba(13, 27, 42, 0.9), rgba(7, 14, 21, 0.9));
+  --gradient-hover: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9));
+  --gradient-button: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9));
+  --gradient-hover-red: linear-gradient(to right, rgba(255, 0, 0, 0.8), rgba(200, 0, 0, 0.8));
+  --gradient-red: linear-gradient(to right, rgb(255, 59, 59), rgb(255, 0, 0));
+  
+  /* Background colors with opacity */
+  --bg-card: rgba(245, 245, 245, 0.8); /* Changed from 0.5 to 0.8 for whiter background */
+  --bg-table-wrapper: rgba(255, 255, 255, 0.9); /* New variable for table wrappers */
+  
+  /* Text colors */
+  --text-dark: #1B263B;
+  --text-white: #ffffff;
+  
+  /* Alert colors */
+  --color-success: #0c9041;
+  --color-error: #b63f3f;
+  --color-delete: #ff0000;
+  
+  /* Shadow colors */
+  --shadow-dark: rgba(13, 27, 42, 0.3);
+  --shadow-medium: rgba(33, 45, 59, 0.3);
+  --shadow-light: rgba(59, 70, 84, 0.3);
+  --shadow-lighter: rgba(119, 141, 169, 0.3);
+}
+
 * {
   font-family: 'Overpass Mono';
   margin: 0;
@@ -13,7 +49,7 @@ html, body {
 
 /* DEFAULT STYLES  FOR BODY */
 body {
-  background: radial-gradient(circle, #F5F5F5, #778DA9, #F5F5F5, #415A77);
+  background: radial-gradient(circle, var(--color-white), var(--color-blue-light), var(--color-white), var(--color-blue-medium));
   background-size: 400% 400%;
   animation: fluidParticles 60s ease infinite; /* Increased duration to 60s */
   font-family: 'Overpass Mono';
@@ -49,26 +85,27 @@ body {
 
 /* TOP HEADER STYLES */
 .header {
-  background: linear-gradient(to right, rgba(13, 27, 42, 0.9), rgba(7, 14, 21, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-header); /* Darker transparent gradient */
+  color: var(--text-white);
   grid-area: header;
   display: flex;
   align-items: center;
   justify-content: center; /* Centers the content horizontally */
   padding: 0 20px;
+  margin-right: 20px;
   position: relative;
   height: 50px;
   border-radius: 0px 0px 50px 50px;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 #panel-title {
   background: none;
   font-size: 16px;
-  color: white;
+  color: var(--text-white);
   align-self: center;
   text-align: center;
   padding: 0px;
@@ -82,18 +119,18 @@ body {
   right: 10px;
   text-align: right;
   width: 600px;
-  margin-right: 10px;
+  margin-right: 20px;
 }
 
 #dashboard_Username {
-  color: white;
+  color: var(--text-white);
   font-weight: bold;
 }
 
 /* Update sidebar styles */
 .sidebar {
-  background: linear-gradient(to right, rgba(13, 27, 42, 0.9), rgba(7, 14, 21, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-sidebar); /* Darker transparent gradient */
+  color: var(--text-white);
   grid-area: side;
   display: flex;
   flex-direction: column;
@@ -101,10 +138,10 @@ body {
   border-radius: 0px 50px 50px 0px;
   margin-top: 10px;
   margin-bottom: 10px;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 /* SIDEBAR NAVIGATION STYLES */
@@ -114,7 +151,7 @@ body {
   margin: 0; /* Remove margin to extend to the edges */
   text-align: center;
   background: none; /* Transparent background */
-  color: white;
+  color: var(--text-white);
   text-decoration: none;
   font-weight: bold;
   display: block;
@@ -122,12 +159,12 @@ body {
 }
 
 .nav-button:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  background: var(--gradient-hover); /* Darker gradient on hover */
 }
 
 .nav-button.active {
-  background: linear-gradient(to right, rgba(59, 70, 84, 0.9), rgba(33, 45, 59, 0.9)); /* Slightly lighter gradient for active state */
-  color: white !important;
+  background: var(--gradient-hover); /* Slightly lighter gradient for active state */
+  color: var(--text-white) !important;
 }
 
 .sidebar_img {
@@ -139,8 +176,8 @@ body {
 
 #logout {
   margin-top: auto;
-  background-color: #778DA9;
-  color: white;
+  background-color: var(--color-blue-light);
+  color: var (--text-white);
   padding: 10px;
   border: none;
   border-radius: 10px;
@@ -150,7 +187,7 @@ body {
   bottom: 25px;
 }
 #logout:hover {
-  background-color: red;
+  background-color: var(--color-delete);
 }
 
 
@@ -166,7 +203,7 @@ body {
   scroll-behavior: smooth;
 }
 
-.content_add_order {
+.content_add_order, .content_modify_order {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
@@ -177,20 +214,20 @@ body {
 }
 
 .card-add-orders {
-  background: rgba(245, 245, 245, 0.5); /* 50% transparent background */
+  background: var(--bg-card); /* 50% transparent background */
   backdrop-filter: blur(10px); /* Blur effect */
   display: flex;
   flex-direction: column;
   height: 550px;
   width: 500px;
   border-radius: 20px;
-  box-shadow: #1B263B 0px 0px 10px;
+  box-shadow: var(--text-dark) 0px 0px 10px;
   padding: 20px;
   margin: 20px;
-  box-shadow: 0 4px 8px rgba(65, 90, 119, 0.3), 
-  0 6px 20px rgba(119, 141, 169, 0.3), 
-  0 8px 30px rgba(13, 27, 42, 0.3), 
-  0 10px 40px rgba(119, 141, 169, 0.3); /* Shadow gradient */
+  box-shadow: 0 4px 8px var(--shadow-light), 
+  0 6px 20px var(--shadow-lighter), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-lighter); /* Shadow gradient */
 }
 
 .card-add-orders {
@@ -231,10 +268,10 @@ body {
   border: 1px solid #ccc;
   box-sizing: border-box;
   background: transparent; /* Set background to transparent */
-  box-shadow: 0 2px 4px rgba(65, 90, 119, 0.3), 
-              0 3px 10px rgba(119, 141, 169, 0.3), 
-              0 4px 15px rgba(13, 27, 42, 0.3), 
-              0 5px 20px rgba(119, 141, 169, 0.3); /* Smaller shadow gradient */
+  box-shadow: 0 2px 4px var(--shadow-light), 
+              0 3px 10px var(--shadow-lighter), 
+              0 4px 15px var(--shadow-dark), 
+              0 5px 20px var(--shadow-lighter); /* Smaller shadow gradient */
 }
 
 .input_row_add_orders input[type=number]::-webkit-inner-spin-button,
@@ -294,17 +331,22 @@ body {
   padding-bottom: 0 !important;
 }
 
-#add_item_order, #add_order_button {
+.content_modify_order, .content_add_order h3 {
+  margin-top: 10px !important; /* Force reduction of space */
+  margin-left: 20px;
+}
+
+#add_item_order, #add_order_button, #modify_item_order, #save_modify_order {
   width: 550px; /* Fixed width */
   height: 50px; /* Fixed height */
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
   border: none;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
   justify-self: center; /* Center the buttons in each column */
@@ -312,11 +354,47 @@ body {
   font-size: 18px; /* Increase font size */
 }
 
-#add_item_order:hover, #add_order_button:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+#add_item_order:hover, #add_order_button:hover, #modify_item_order:hover, #save_modify_order:hover {
+  background: var(--gradient-hover); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
 }
 
+.modify-item-quantity {  /* New class for modify order quantity inputs */
+  -moz-appearance: textfield;
+  border: none;
+  width: 60px;
+  text-align: center;
+  background: none !important;
+}
+
+.modify-item-quantity::-webkit-inner-spin-button,
+.modify-item-quantity::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-control {  /* Container for quantity buttons and input */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.quantity-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  margin: 0 5px;
+  transition: all 0.3s ease;
+}
+
+.quantity-btn:hover {
+  background: var(--gradient-hover);
+  color: var(--text-white);
+  transform: scale(1.05);
+}
 
 @media (max-width: 925px) {
 
@@ -336,20 +414,60 @@ body {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
   border: none;
   z-index: 10;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
   justify-self: center; /* Center the buttons in each column */
   padding: 10px 20px; /* Add padding */
   font-size: 18px; /* Increase font size */
+}
+
+#back_to_add_order, #item_return_btn, #item_submit_btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--gradient-button);
+  color: var(--text-white);
+  border: none;
+  z-index: 10;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  justify-self: center;
+  padding: 10px 20px;
+  font-size: 18px;
+}
+
+#back_to_active_order {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--gradient-button);
+  color: var(--text-white);
+  border: none;
+  z-index: 10;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  padding: 10px 20px;
+  font-size: 18px;
+  width: fit-content;
 }
 
 /* ITEM AND WORKERS STYLES */
@@ -367,14 +485,14 @@ body {
   flex-direction: column;
   height: 345px;
   width: 1120px;
-  background: rgba(245, 245, 245, 0.5);
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 25px;
   margin: 20px 0;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-  0 6px 20px rgba(59, 70, 84, 0.3), 
-  0 8px 30px rgba(13, 27, 42, 0.3), 
-  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+  0 6px 20px var(--shadow-light), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .card_item_container h3 {
@@ -419,8 +537,8 @@ body {
 .table_wrapper_item thead,
 .table_wrapper_active_order thead,
 .table_wrapper_inventory thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -430,7 +548,7 @@ body {
 .table_wrapper_active_order tbody tr.active,
 .table_wrapper_inventory tbody tr.active {
   background-color: rgba(27, 38, 59, 0.2); /* Darker transparent background */
-  color: white; /* Text color */
+  color: var(--text-white); /* Text color */
 }
 
 /* ACTIVE AND PAYMENT ORDERS STYLES */
@@ -473,24 +591,25 @@ body {
 .table_wrapper_active_order {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
+  background: var(--bg-card);
   width: 1120px;
   max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
   height: 670px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(65, 90, 119, 0.3), 
-  0 6px 20px rgba(119, 141, 169, 0.3), 
-  0 8px 30px rgba(13, 27, 42, 0.3), 
-  0 10px 40px rgba(119, 141, 169, 0.3); /* Shadow gradient */
+  box-shadow: 0 4px 8px var(--shadow-light), 
+  0 6px 20px var(--shadow-lighter), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-lighter); /* Shadow gradient */
 }
 
 .table_wrapper_active_order table {
-  background: rgba(245, 245, 245, 0.5);
   width: 100%;
-  height: 670px;
+  height: auto; /* Changed from 100% to auto to prevent stretching */
   border-collapse: collapse;
-  table-layout: fixed; /* Ensures the table layout is fixed */
-  border: none; /* Remove the border */
+  table-layout: auto; /* Changed from fixed to auto to match payment table */
+  border: none;
+  font-size: 12px; /* Added to match payment table */
 }
 
 .table_wrapper_active_order th, .table_wrapper_active_order td {
@@ -503,19 +622,42 @@ body {
 }
 
 .table_wrapper_active_order thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
   position: sticky;
   top: 0;
   z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+               0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .table_wrapper_active_order tbody {
     display: table-row-group;
+}
+
+.table_wrapper_active_order td {
+    height: 40px;
+    padding: 15px;
+    vertical-align: middle; /* Changed from top to middle to center content */
+    display: table-cell; /* Ensure proper table cell display */
+}
+
+.table_wrapper_active_order .horizontal-button-container {
+    display: flex;
+    flex-direction: column; /* Change to column for vertical alignment */
+    justify-content: center;
+    align-items: center;
+    gap: 5px; /* Reduced gap between buttons */
+    height: 100%;
+    padding: 5px 0;
+    min-height: 35px;
+    margin: auto;
+}
+
+.table_wrapper_active_order .horizontal-button-container .icon-button {
+    margin: 2px 0; /* Add vertical margin between buttons */
 }
 
 .content_payment_order {
@@ -555,17 +697,17 @@ body {
 }
 
 .table_wrapper_payment_order {
-  background: rgba(245, 245, 245, 0.5);
+  background: var(--bg-card);
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
   width: 100%; /* Ensure the wrapper takes full width */
   height: 670px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(65, 90, 119, 0.3), 
-              0 6px 20px rgba(119, 141, 169, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(119, 141, 169, 0.3); /* Shadow gradient */
+  box-shadow: 0 4px 8px var(--shadow-light), 
+              0 6px 20px var(--shadow-lighter), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-lighter); /* Shadow gradient */
 }
 
 .table_wrapper_payment_order table {
@@ -591,18 +733,18 @@ body {
 }
 
 .table_wrapper_payment_order thead {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)); /* Darker transparent gradient */
-  color: white;
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
   position: sticky;
   font-size: 12px;
   top: 0;
   z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-  height: 50px; /* Adjust height */
-  line-height: 50px; /* Center text vertically */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
+  height: 30px; /* Reduced from 50px to 30px */
+  line-height: 30px; /* Reduced from 50px to 30px to match height */
 }
 
 .table_wrapper_payment_order table tbody {
@@ -635,7 +777,7 @@ body {
 }
 
 .popup-content-transaction {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  background: var(--gradient-button) !important; /* Ensure background color is applied */
   border-radius: 20px;
   padding: 30px;
   width: 500px;
@@ -643,14 +785,14 @@ body {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: white; /* Make text white */
+  color: var(--text-white); /* Make text white */
   z-index: 1001; /* Ensure popup content is on top */
 }
 
 .popup-content-transaction h3 {
     margin-bottom: 20px;
     text-align: center;
-    color: white; /* Make text white */
+    color: var(--text-white); /* Make text white */
 }
 
 .input_row_transactions {
@@ -664,7 +806,7 @@ body {
     flex: 1; /* Allow label to take up available space */
     margin-right: 10px; /* Add some space between label and input */
     font-weight: bold;
-    color: white; /* Make text white */
+    color: var(--text-white); /* Make text white */
 }
 
 .input_row_transactions input,
@@ -677,8 +819,8 @@ body {
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    background: white;
-    color: black; /* Ensure input text is readable */
+    background: var(--text-white);
+    color: var(--text-dark); /* Ensure input text is readable */
 }
 
 .order_navigation_transaction {
@@ -691,45 +833,45 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     border: none;
-    color: #1B263B;
+    color: var(--text-dark);
     cursor: pointer;
 }
 
 .order_navigation_transaction button:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  background: var(--gradient-hover); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
-  color: white;
+  color: var(--text-white);
 }
 
 .order_navigation_transaction button:hover,
 .order_navigation_liability button:hover,
 #transactions_return_btn:hover,
 #liabilities_return_btn:hover {
-  background-color: red; /* Match the hover effect of the logout button */
+  background-color: var(--color-delete); /* Match the hover effect of the logout button */
   transform: scale(1.05); /* Slightly increase size on hover */
-  color: white;
+  color: var (--text-white);
 }
 
 /* Update hover effects for transaction popup buttons */
 .btn-cancel:hover {
-    background-color: #ff0000 !important; /* Red */
-    color: white !important;
+    background-color: var(--color-delete) !important; /* Red */
+    color: var(--text-white) !important;
 }
 
 .btn-submit:hover {
     background-color: #00ff00 !important; /* Green */
-    color: white !important;
+    color: var(--text-white) !important;
 }
 
 /* Update hover effects for transaction and liability return buttons */
 #transactions_return_btn:hover, 
 #liabilities_return_btn:hover {
-    background-color: #ff0000 !important; /* Red */
-    color: white !important;
+    background-color: var(--color-delete) !important; /* Red */
+    color: var(--text-white) !important;
 }
 
 .popup-content-liability {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  background: var(--gradient-button) !important; /* Ensure background color is applied */
   border-radius: 20px;
   padding: 30px;
   width: 500px;
@@ -737,14 +879,14 @@ body {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  color: white; /* Make text white */
+  color: var(--text-white); /* Make text white */
   z-index: 1001; /* Ensure popup content is on top */
 }
 
 .popup-content-liability h3 {
     margin-bottom: 20px;
     text-align: center;
-    color: white; /* Make text white */
+    color: var(--text-white); /* Make text white */
 }
 
 .input_row_liability {
@@ -759,7 +901,7 @@ body {
     text-align: left; /* Align labels to the left */
     margin-right: 10px; /* Add some space between label and input */
     font-weight: bold;
-    color: white; /* Make text white */
+    color: var(--text-white); /* Make text white */
 }
 
 .input_row_liability input,
@@ -772,8 +914,8 @@ body {
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    background: white;
-    color: black; /* Ensure input text is readable */
+    background: var(--text-white);
+    color: var(--text-dark); /* Ensure input text is readable */
 }
 
 .order_navigation_liability {
@@ -786,55 +928,55 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     border: none;
-    box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-    0 6px 20px rgba(59, 70, 84, 0.3), 
-    0 8px 30px rgba(13, 27, 42, 0.3), 
-    0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-    color: #1B263B;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+    0 6px 20px var(--shadow-light), 
+    0 8px 30px var(--shadow-dark), 
+    0 10px 40px var(--shadow-light); /* Shadow */
+    color: var(--text-dark);
     cursor: pointer;
 }
 
 .order_navigation_liability button:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  background: var(--gradient-hover); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
-  color: white;
+  color: var(--text-white);
 }
 
 .popup-content-view, .popup-view-liabilities {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  background: var(--gradient-button) !important; /* Ensure background color is applied */
   border-radius: 20px;
   padding: 30px;
-  width: 500px;
+  width: 760px; /* Changed from 500px to match other popups */
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-  0 6px 20px rgba(59, 70, 84, 0.3), 
-  0 8px 30px rgba(13, 27, 42, 0.3), 
-  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-  color: white; /* Make text white */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+  0 6px 20px var (--shadow-light), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-light); /* Shadow */
+  color: var(--text-white); /* Make text white */
   z-index: 1001; /* Ensure popup content is on top */
 }
 
 .popup-content-liability, .popup-view-liabilities h3 {
     margin-bottom: 20px;
     text-align: center;
-    color: white; /* Make text white */
+    color: var(--text-white); /* Make text white */
 }
 
 .table_wrapper_view {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  background: rgba(245, 245, 245, 0.784);
-  width: 500px;
-  max-width: 500px; /* Ensures the wrapper does not exceed the container width */
+  background: var(--bg-table-wrapper);
+  width: 760px; /* Changed from 500px to match popup width */
+  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
   height: 345px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .table_wrapper_view table {
@@ -854,19 +996,54 @@ body {
 }
 
 .table_wrapper_view thead {
-  background: #778DA9;
-  color: white;
+  background: var(--color-blue-light);
+  color: var(--text-white);
   position: sticky;
   top: 0;
   z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .table_wrapper_view tbody {
-  color: #1B263B;
+  color: var(--text-dark);
+}
+
+.table_wrapper_view td .button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.table_wrapper_view .icon-button {
+    position: relative;
+    background: var(--gradient-button);
+    border: none;
+    border-radius: 50%;
+    padding: 4px;
+    margin: 2px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.table_wrapper_view .icon-button i {
+    color: var(--text-white);
+    font-size: 12px;
+}
+
+.table_wrapper_view .icon-button:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
 }
 
 #transactions_return_btn, #liabilities_return_btn {
@@ -874,66 +1051,49 @@ body {
     border-radius: 5px;
     border: none;
     margin: 10px;
-    box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-    0 6px 20px rgba(59, 70, 84, 0.3), 
-    0 8px 10px rgba(13, 27, 42, 0.3), 
-    0 10px 10px rgba(59, 70, 84, 0.3); /* Shadow */
-    color: #1B263B;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+    0 6px 20px var(--shadow-light), 
+    0 8px 10px var(--shadow-dark), 
+    0 10px 10px var(--shadow-light); /* Shadow */
+    color: var(--text-dark);
     cursor: pointer;
 }
 
 #transactions_return_btn:hover, #liabilities_return_btn:hover {
-  background: linear-gradient(to right, rgba(33, 45, 59, 0.9), rgba(59, 70, 84, 0.9)); /* Darker gradient on hover */
+  background: var(--gradient-hover); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
-  color: white;
+  color: var(--text-white);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .popup-view-liabilities {
-  background: linear-gradient(to right, rgba(27, 38, 59, 0.9), rgba(13, 27, 42, 0.9)) !important; /* Ensure background color is applied */
+  background: var(--gradient-button) !important; /* Ensure background color is applied */
   border-radius: 20px;
   padding: 30px;
   width: 760px;
   max-width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-  0 6px 20px rgba(59, 70, 84, 0.3), 
-  0 8px 30px rgba(13, 27, 42, 0.3), 
-  0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
-  color: white; /* Make text white */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+  0 6px 20px var(--shadow-light), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-light); /* Shadow */
+  color: var(--text-white); /* Make text white */
   z-index: 1001; /* Ensure popup content is on top */
 }
 
 .table_wrapper_view_lia {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  background: rgba(245, 245, 245, 0.784);
+  background: var(--bg-table-wrapper);
   width: 760px;
   max-width: 760px; /* Ensures the wrapper does not exceed the container width */
   height: 345px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .table_wrapper_view_lia table {
@@ -953,19 +1113,19 @@ body {
 }
 
 .table_wrapper_view_lia thead {
-  background: #778DA9;
-  color: white;
+  background: var(--color-blue-light);
+  color: var(--text-white);
   position: sticky;
   top: 0;
   z-index: 1;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3), 
-              0 8px 30px rgba(13, 27, 42, 0.3), 
-              0 10px 40px rgba(59, 70, 84, 0.3); /* Shadow */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
 }
 
 .table_wrapper_view_lia tbody {
-  color: #1B263B;
+  color: var(--text-dark);
 }
 
 
@@ -1162,24 +1322,24 @@ body {
 
 .icon-button {
   position: relative;
-  background-color: rgba(27, 38, 59, 0.9); /* Match the gradient color */
+  background: var(--gradient-button); /* Changed from background-color to background to support gradient */
   border: none;
   border-radius: 50%;
-  padding: 4px; /* Adjust padding for size */
-  margin: 5px; /* Reduce margin */
+  padding: 4px;
+  margin: 5px;
   cursor: pointer;
-  width: 35px; /* Adjust width */
-  height: 35px; /* Adjust height */
+  width: 35px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(33, 45, 59, 0.3), 
-              0 6px 20px rgba(59, 70, 84, 0.3); /* Match shadow style */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
 }
 
 .icon-button i {
-  color: white;
+  color: var(--text-white);
   font-size: 14px; /* Adjust icon size */
 }
 
@@ -1190,7 +1350,7 @@ body {
   right: 100%; /* Position to the left of the button */
   transform: translateY(-50%);
   background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+  color: var(--text-white);
   padding: 5px 10px;
   border-radius: 5px;
   font-size: 12px; /* Adjust font size */
@@ -1207,7 +1367,7 @@ body {
 
 /* Hover effect for the button */
 .icon-button:hover {
-  background-color: rgba(33, 45, 59, 0.9); /* Slightly darker shade */
+  background-color: var(--gradient-hover); /* Slightly darker shade */
   transform: scale(1.05); /* Slightly increase size on hover */
 }
 
@@ -1219,4 +1379,1156 @@ body {
   justify-content: center;
 }
 
+.single-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.table_wrapper_view .single-button-container .icon-button,
+.table_wrapper_view_lia .single-button-container .icon-button {
+    margin: 0;
+}
+
+.horizontal-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    padding: 0;
+    min-height: 35px; /* Match button height */
+    margin: auto; /* Center in container */
+}
+
+.horizontal-button-container .icon-button {
+    position: relative;
+    background: var(--gradient-button);
+    border: none;
+    border-radius: 50%;
+    padding: 4px;
+    margin: 0;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.horizontal-button-container .icon-button:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.horizontal-button-container .icon-button i {
+    color: var(--text-white);
+    font-size: 14px;
+}
+
+.horizontal-button-container .cancel-order:hover {
+    background: var(--color-delete);
+}
+
+.view_order_item_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.view_order_item_popup.active {
+    display: flex;
+}
+
+.view_order_item_popup .popup-content {
+    position: relative;
+    background: var(--gradient-button);
+    border-radius: 20px;
+    padding: 30px;
+    width: 760px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.table_wrapper_view_order {
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+  background: var(--bg-table-wrapper);
+  width: 760px;
+  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
+  height: 345px; /* Matches the height of the cards */
+  border-radius: 20px; /* Optional: adds rounded corners */
+  margin: 10px 0; /* Optional: adds margin for spacing */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
+}
+
+.table_wrapper_view_order table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures the table layout is fixed */
+  border: none; /* Remove the border */
+}
+
+.table_wrapper_view_order th, .table_wrapper_view_order td {
+  text-align: center;
+  padding: 8px;
+  border: none; /* Remove the border */
+  vertical-align: middle; /* Aligns items to the center vertically */
+  white-space: normal; /* Allow text wrapping */
+  word-wrap: break-word; /* Break long words */
+}
+
+.table_wrapper_view_order thead {
+  background: var(--color-blue-light);
+  color: var(--text-white);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
+}
+
+.table_wrapper_view_order tbody {
+  color: var(--text-dark);
+}
+
+.popup-content {
+    background: var(--gradient-button) !important;
+    border-radius: 20px;
+    padding: 30px;
+    width: 760px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+    color: var(--text-white);
+    z-index: 1001;
+}
+
+.popup-content .table_wrapper {
+    background: var(--bg-table);
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    height: 345px;
+    border-radius: 20px;
+    margin: 10px 0;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+}
+
+.popup-content .table_wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: none;
+}
+
+.popup-content .table_wrapper th,
+.popup-content .table_wrapper td {
+    text-align: center;
+    padding: 8px;
+    border: none;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
+    color: var(--text-dark);
+}
+
+.popup-content .table_wrapper thead {
+    background: var(--color-blue-light);
+    color: var(--text-white);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+}
+
+.order_cost_summary {
+    margin-top: 20px;
+    color: var(--text-white);
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns of equal width */
+    gap: 10px;
+    align-items: start;
+    font-size: 14px; /* Add this to make all text smaller */
+}
+
+.left-aligned {
+    text-align: left;
+    grid-column: 1;
+}
+
+.right-aligned {
+    text-align: right;
+    grid-column: 2;
+}
+
+.order_cost_summary h3, .order_cost_summary h4 {
+    margin: 5px 0;
+    font-size: 14px; /* Add this to make headings smaller */
+}
+
+.order_cost_summary span {
+    font-size: 14px; /* Add this to make values smaller */
+}
+
+#content_active_order {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    margin: 10px;
+    box-shadow: 0 4px 8px var(--shadow-medium),
+                0 6px 20px var(--shadow-light),
+                0 8px 10px var(--shadow-dark),
+                0 10px 10px var(--shadow-light);
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease; /* Add smooth transition */
+}
+
+#content_active_order:hover {
+    background-color: var(--color-delete) !important; /* Use the red color variable */
+    transform: scale(1.05);
+    color: var(--text-white);
+}
+
+/* Update hover effects for all return and cancel buttons */
+#content_active_order:hover,
+#order_history_items_return:hover,
+#transactions_return_btn:hover,
+#liabilities_return_btn:hover,
+#assigned_orders_return:hover,
+.btn-cancel:hover,
+#logout:hover,
+#back_to_add_order:hover,
+#back_to_active_order:hover,
+#back_to_modify_order:hover,
+#item_return_btn:hover,
+#stock_return_btn:hover {
+    background: var(--gradient-hover-red) !important;
+    color: var(--text-white) !important;
+    transform: scale(1.05);
+}
+
+.content_order_history {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  width: 100%;
+}
+
+.content_order_history h3 {
+  margin-bottom: 3px;
+  padding-bottom: 0;
+}
+
+.card-order-history {
+  display: flex;
+  flex-direction: column;
+  height: 670px;
+  width: 1120px;
+  background: none;
+  border-radius: 20px;
+  padding: 15px;
+  margin: 15px;
+}
+
+.table_wrapper_order_history {
+  overflow-x: auto;
+  overflow-y: auto;
+  background: var(--bg-card);
+  width: 100%; /* Changed from fixed 1120px */
+  max-width: 100%; /* Changed from fixed 1120px */
+  height: 670px;
+  border-radius: 20px;
+  margin: 10px 0;
+  box-shadow: 0 4px 8px var(--shadow-light), 
+              0 6px 20px var(--shadow-lighter), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-lighter);
+}
+
+.table_wrapper_order_history table {
+  width: 100%;
+  height: auto;
+  border-collapse: collapse;
+  table-layout: fixed; /* Changed from auto to fixed */
+  border: none;
+  font-size: 12px;
+  min-width: 100%;
+}
+
+.table_wrapper_order_history th, .table_wrapper_order_history td {
+  text-align: center;
+  padding: 8px;
+  border: none;
+  vertical-align: middle;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.table_wrapper_order_history thead {
+  background: var(--gradient-button);
+  color: var(--text-white);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+}
+
+.table_wrapper_order_history tbody {
+  display: table-row-group;
+}
+
+.table_wrapper_order_history td {
+  height: 40px;
+  padding: 15px;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+/* Add specific widths for each column */
+.table_wrapper_order_history th:nth-child(1), /* Order ID */
+.table_wrapper_order_history td:nth-child(1) {
+    width: 8%;
+}
+
+.table_wrapper_order_history th:nth-child(2), /* Customer */
+.table_wrapper_order_history td:nth-child(2) {
+    width: 12%;
+}
+
+.table_wrapper_order_history th:nth-child(3), /* Event Name */
+.table_wrapper_order_history td:nth-child(3) {
+    width: 12%;
+}
+
+.table_wrapper_order_history th:nth-child(4), /* Event Start */
+.table_wrapper_order_history td:nth-child(4),
+.table_wrapper_order_history th:nth-child(5), /* Event End */
+.table_wrapper_order_history td:nth-child(5) {
+    width: 12%;
+}
+
+.table_wrapper_order_history th:nth-child(6), /* Total Price */
+.table_wrapper_order_history td:nth-child(6) {
+    width: 8%;
+}
+
+.table_wrapper_order_history th:nth-child(7), /* Status */
+.table_wrapper_order_history td:nth-child(7) {
+    width: 8%;
+}
+
+.table_wrapper_order_history th:nth-child(8), /* Manager */
+.table_wrapper_order_history td:nth-child(8) {
+    width: 12%;
+}
+
+.table_wrapper_order_history th:nth-child(9), /* Address */
+.table_wrapper_order_history td:nth-child(9) {
+    width: 16%;
+}
+
+.table_wrapper_order_history th:nth-child(10), /* Actions */
+.table_wrapper_order_history td:nth-child(10) {
+    width: 12%;
+}
+
+.order_history_search {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 0 5px 30px; /* Changed from 10px to 5px bottom padding */
+}
+
+.order_history_search input {
+  padding: 8px 15px;
+  border-radius: 50px;
+  border: 1px solid var(--color-blue-light);
+  width: 300px;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.view_order_item_history {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.view_order_item_history.active {
+    display: flex;
+}
+
+.table_wrapper_order_history .horizontal-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    padding: 0;
+    min-height: 35px;
+    margin: auto;
+}
+
+.table_wrapper_order_history .icon-button {
+    position: relative;
+    background: var(--gradient-button);
+    border: none;
+    border-radius: 50%;
+    padding: 4px;
+    margin: 0;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.table_wrapper_order_history .icon-button:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.table_wrapper_order_history .delete-history-order:hover {
+    background: var(--gradient-hover-red);
+}
+
+.table_wrapper_order_history .icon-button i {
+    color: var(--text-white);
+    font-size: 14px;
+}
+
+#order_history_items_return {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    margin: 10px;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 10px var(--shadow-dark), 
+                0 10px 10px var(--shadow-light);
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#order_history_items_return:hover {
+    background: var(--gradient-hover-red);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.content_inventory_stock {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    width: 100%;
+}
+
+.content_inventory_stock .card_item_container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 345px;
+    width: 1120px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+}
+
+.content_inventory_stock .card_item_container h3 {
+    margin-bottom: 3px;
+    padding-bottom: 0;
+}
+
+.content_inventory_stock .inventory-button {
+    width: 200px;
+    height: 40px;
+    margin: 10px auto 0;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.content_inventory_stock .inventory-button:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.content_inventory_stock .icon-button {
+    position: relative;
+    background: var(--gradient-button);
+    border: none;
+    border-radius: 50%;
+    padding: 4px;
+    margin: 0;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.content_inventory_stock .icon-button:hover {
+    background: var (--gradient-hover);
+    transform: scale(1.05);
+}
+
+.content_inventory_stock .icon-button.delete-item:hover,
+.content_inventory_stock .icon-button.delete-stock:hover {
+    background: var(--gradient-hover-red);
+}
+
+.view_stock_input_popup,
+.view_item_input_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+}
+
+.view_stock_input_popup.active,
+.view_item_input_popup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view_item_input_popup .btn-cancel,
+.view_item_input_popup .btn-submit {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    min-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.view_item_input_popup .btn-cancel:hover {
+    background: var(--gradient-hover-red);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.view_item_input_popup .btn-submit:hover {
+    background: var(--color-success);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.view_item_input_popup .input_row_transactions {
+    margin-bottom: 15px;
+}
+
+.view_item_input_popup .input_row_transactions input,
+.view_item_input_popup .input_row_transactions select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: var(--text-white);
+    color: var(--text-dark);
+}
+
+.input_row_inventory {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.input_row_inventory label {
+    flex: 0 0 150px;
+    text-align: left;
+    margin-right: 10px;
+    font-weight: bold;
+    color: var(--text-white);
+}
+
+.input_row_inventory input,
+.input_row_inventory select {
+    flex: 1;
+    width: 100%;
+    min-width: 200px;
+    max-width: 300px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: var(--text-white);
+    color: var(--text-dark);
+}
+
+.input_row_inventory select[size] {
+    height: 120px;
+}
+
+.order_navigation_inventory {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.order_navigation_inventory button {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.order_navigation_inventory .btn-return:hover {
+    background: var(--gradient-hover-red);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.order_navigation_inventory .btn-submit:hover {
+    background: var(--gradient-hover);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.view_item_input_popup .popup-content-liability {
+    background: var(--gradient-button) !important;
+    border-radius: 20px;
+    padding: 30px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+    color: var(--text-white);
+    z-index: 1001;
+}
+
+.view_item_input_popup .input_row_liability {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.view_item_input_popup .input_row_liability label {
+    flex: 0 0 150px;
+    text-align: left;
+    margin-right: 10px;
+    font-weight: bold;
+    color: var(--text-white);
+}
+
+.view_item_input_popup .input_row_liability input,
+.view_item_input_popup .input_row_liability select {
+    flex: 1;
+    width: 100%;
+    min-width: 200px;
+    max-width: 200px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: var(--text-white);
+    color: var(--text-dark);
+}
+
+.view_item_input_popup .popup-content-view {
+    background: var(--gradient-button) !important;
+    border-radius: 20px;
+    padding: 30px;
+    width: 500px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+    color: var(--text-white);
+    z-index: 1001;
+}
+
+.view_item_input_popup h3 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--text-white);
+}
+
+/* Remove these old styles as they're no longer needed */
+.view_item_input_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.view_item_input_popup.active {
+    display: flex;
+}
+
+.view_item_input_popup .popup-content-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Override button positioning for popup buttons */
+.view_item_input_popup #item_return_btn,  
+.view_item_input_popup #item_submit_btn {
+    position: static;  /* Remove fixed positioning */
+    bottom: auto;
+    right: auto;
+}
+
+.view_item_input_popup .order_navigation_inventory {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.view_item_input_popup .order_navigation_inventory button {
+    flex: 1;
+    max-width: 200px;
+    margin: 0;
+}
+
+/* Update staff info section to match inventory styling */
+.content_staff_info {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    width: 100%;
+}
+
+.content_staff_info h3 {
+    margin-bottom: 3px;
+    padding-bottom: 0;
+    margin-left: 30px;
+}
+
+.content_staff_info #add_worker_btn {
+    width: 200px;
+    height: 40px;
+    margin: 10px auto 0;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.content_staff_info #add_worker_btn:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.content_staff_info #staff_info_table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    border: none;
+    font-size: 12px;
+}
+
+.content_staff_info #staff_info_table thead {
+    background: var(--gradient-button);
+    color: var(--text-white);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.content_staff_info #staff_info_table th,
+.content_staff_info #staff_info_table td {
+    text-align: center;
+    padding: 8px;
+    border: none;
+    vertical-align: middle;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.content_staff_info #staff_info_table td {
+    height: 40px;
+    padding: 15px;
+    vertical-align: middle;
+    display: table-cell;
+}
+
+/* Style for the staff action buttons */
+.content_staff_info .view-assigned-orders,
+.content_staff_info .fire-worker {
+    padding: 8px 12px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 5px;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px var(--shadow-medium);
+}
+
+.content_staff_info .view-assigned-orders:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.content_staff_info .fire-worker:hover {
+    background: var(--gradient-hover-red);
+    transform: scale(1.05);
+}
+
+/* Add styles for assigned orders popup */
+.view_assigned_orders_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+}
+
+.view_assigned_orders_popup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-content-assigned-orders {
+    background: var(--gradient-button) !important;
+    border-radius: 20px;
+    padding: 30px;
+    width: 760px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+    color: var(--text-white);
+    z-index: 1001;
+}
+
+.popup-content-assigned-orders h3 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.popup-content-assigned-orders .table_wrapper {
+    background: var(--bg-table-wrapper);
+    width: 100%;
+    max-height: 400px;
+    border-radius: 20px;
+    margin: 10px 0;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.popup-content-assigned-orders table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.popup-content-assigned-orders th,
+.popup-content-assigned-orders td {
+    text-align: center;
+    padding: 12px;
+    color: var(--text-dark);
+}
+
+.popup-content-assigned-orders thead {
+    background: var(--color-blue-light);
+    color: var(--text-white);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#assigned_orders_return {
+    width: 200px;
+    height: 40px;
+    margin: 20px auto 0;
+    display: block;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+#assigned_orders_return:hover {
+    background: var(--gradient-hover-red);
+    transform: scale(1.05);
+}
+
+/* Add Worker Popup Styles */
+.view_add_worker_popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(52, 52, 52, 0.308);
+    z-index: 1000;
+}
+
+.view_add_worker_popup.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-content-worker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    background: var(--gradient-button) !important;
+    border-radius: 20px;
+    padding: 30px;
+    width: 1000px;  /* Increased to accommodate two columns */
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+    color: var(--text-white);
+    z-index: 1001;
+}
+
+.popup-content-worker h3 {
+    grid-column: 1 / -1;  /* Make title span both columns */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.add_worker_container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input_row_worker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.input_row_worker label {
+    flex: 0 0 150px;
+    text-align: left;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+.input_row_worker input:not([type="checkbox"]),
+.input_row_worker select {
+    flex: 1;
+    width: 100%;
+    min-width: 200px;
+    max-width: 300px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: var(--text-white);
+    color: var(--text-dark);
+}
+
+.input_row_worker input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-left: auto;
+}
+
+.order_navigation_worker {
+    grid-column: 1 / -1;  /* Make buttons span both columns */
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.order_navigation_worker button {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.order_navigation_worker .btn-cancel:hover {
+    background: var(--gradient-hover-red);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+.order_navigation_worker .btn-submit:hover {
+    background: var(--color-success);
+    color: var(--text-white);
+    transform: scale(1.05);
+}
+
+/* Update staff info section styles */
+.card-staff-info {
+    display: flex;
+    flex-direction: column;
+    height: 670px;
+    width: 1120px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+}
+
+.content_staff_info #add_worker_btn {
+    width: 200px;
+    height: 40px;
+    margin: 10px 0;
+    flex-shrink: 0;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+/* Update staff info section styles */
+.card-staff-info {
+    display: flex;
+    flex-direction: column;
+    height: 450px;
+    width: 1120px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light), 
+                0 8px 30px var(--shadow-dark), 
+                0 10px 40px var(--shadow-light);
+}
+
+.table_wrapper_staff {
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    height: 350px; /* Reduced height to accommodate the button */
+    border-radius: 20px;
+    margin: 10px 0;
+}
+
+.content_staff_info #add_worker_btn {
+    width: 200px;
+    height: 40px;
+    margin: 10px 0; /* Changed from auto to 0 to align left */
+    flex-shrink: 0; /* Prevent button from shrinking */
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
 
