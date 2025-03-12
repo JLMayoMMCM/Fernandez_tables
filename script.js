@@ -1854,9 +1854,36 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.add-liability').forEach(button => {
             button.addEventListener('click', function() {
                 const financeId = this.dataset.id;
-                const orderId = this.dataset.orderid;
-                fetchOrderItemsForLiability(orderId);
+                
+                // Store only financeId, remove orderId
                 document.getElementById('submit_liability_btn').dataset.financeId = financeId;
+                
+                // Fetch order items for the dropdown - this still needs the orderId for the items
+                const orderId = this.dataset.orderid; 
+                fetchOrderItemsForLiability(orderId);
+                
+                // Populate managers dropdown
+                fetch('/getItemsAndWorkers')
+                    .then(response => response.json())
+                    .then(data => {
+                        const managerSelector = document.getElementById('liability_manager_id');
+                        managerSelector.innerHTML = '';
+                        data.managers.forEach(manager => {
+                            const option = document.createElement('option');
+                            option.value = manager.id;
+                            option.textContent = manager.name;
+                            managerSelector.appendChild(option);
+                        });
+                    });
+                
+                // Set default date to current date and time
+                const now = new Date();
+                const dateTimeStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16);
+                document.getElementById('liability_date').value = dateTimeStr;
+                
+                // Show the liability popup
                 document.querySelector('.view_add_liability_popup').classList.add('active');
             });
         });
@@ -2521,5 +2548,46 @@ document.getElementById('add_worker_btn').addEventListener('click', function() {
             alert('An error occurred while adding the worker');
         });
     });
+
+// Add this new function
+function populateLiabilityManagerDropdown() {
+    fetch('/getItemsAndWorkers')
+        .then(response => response.json())
+        .then(data => {
+            const { managers } = data;
+            const managerSelect = document.getElementById('liability_manager_id');
+            managerSelect.innerHTML = '<option value="">Select Manager</option>';
+            
+            if (managers && managers.length > 0) {
+                managers.forEach(manager => {
+                    const option = document.createElement('option');
+                    option.value = manager.id;
+                    option.textContent = manager.name;
+                    managerSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading managers:', error));
+}
+
+// Update the add liability button click handler
+document.querySelectorAll('.add-liability').forEach(button => {
+    button.addEventListener('click', function() {
+        const financeId = this.dataset.financeId;
+        const orderId = this.dataset.orderId;
+        
+        // Populate manager dropdown first
+        populateLiabilityManagerDropdown();
+        
+        // Then populate items dropdown
+        fetchOrderItemsForLiability(orderId);
+        
+        // Store finance ID for form submission
+        document.getElementById('submit_liability_btn').dataset.financeId = financeId;
+        
+        // Show the popup
+        document.querySelector('.view_add_liability_popup').classList.add('active');
+    });
+});
 
 });
