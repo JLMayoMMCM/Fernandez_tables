@@ -396,12 +396,50 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 alert('Order added successfully');
+                clearAddOrderForm(); // Add this line to clear the form after successful submission
                 showPage('content_add_order');
             } else {
                 alert('Error adding order');
             }
         })
         .catch(error => console.error('Error adding order:', error));
+    }
+
+    function clearAddOrderForm() {
+        // Clear event information
+        document.getElementById('event_name').value = '';
+        document.getElementById('event_timestamp').value = '';
+        document.getElementById('event_duration').value = '1';
+        document.getElementById('assigned_manager').value = '';
+
+        // Clear address information
+        document.getElementById('street').value = '';
+        document.getElementById('barangay').value = '';
+        document.getElementById('city').value = '';
+
+        // Clear customer information
+        document.getElementById('first_name').value = '';
+        document.getElementById('middle_name').value = '';
+        document.getElementById('last_name').value = '';
+        document.getElementById('phone_number').value = '';
+        document.getElementById('age').value = '';
+        document.getElementById('gender').value = '';
+        document.getElementById('extra_fees').value = '0';
+
+        // Clear all item quantities
+        document.querySelectorAll('#tables_Container .item-quantity, #chairs_Container .item-quantity, #misc_Container .item-quantity')
+            .forEach(input => {
+                input.value = '0';
+            });
+
+        // Uncheck all worker selections
+        document.querySelectorAll('#workers_Container .worker-select')
+            .forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+        // Update subtotals
+        updateSubtotal();
     }
 
     function validateForm() {
