@@ -42,12 +42,13 @@
 }
 
 html, body {
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
   margin: 0;
   scroll-behavior: smooth;
 }
 
-/* DEFAULT STYLES  FOR BODY */
+/* DEFAULT STYLES FOR BODY */
 body {
   background: radial-gradient(circle, var(--color-white), var(--color-blue-light), var(--color-white), var(--color-blue-medium));
   background-size: 400% 400%;
@@ -58,8 +59,8 @@ body {
   margin: 0;
 
   display: grid;
-  grid-template-columns: 300px 1fr;
-  grid-template-rows: 60px 1fr;
+  grid-template-columns: 30vw 1fr;
+  grid-template-rows: 10vh 1fr;
   grid-template-areas: 
   "side header" 
   "side main";
@@ -90,21 +91,46 @@ body {
   grid-area: header;
   display: flex;
   align-items: center;
-  justify-content: center; /* Centers the content horizontally */
-  padding: 0 20px;
-  margin-right: 20px;
+  justify-content: space-between; /* Adjusted to space between for button */
   position: relative;
-  height: 50px;
-  border-radius: 0px 0px 50px 50px;
+  height: 10vh;
+  width: 90%;
+  border-radius: 0px 0px 5vh 5vh;
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
               0 10px 40px var(--shadow-light); /* Shadow */
 }
 
+.header .header_panel_title {
+  flex-grow: 1;
+  text-align: center;
+}
+
+.header .header_username {
+  font-size: 1.5vh;
+  text-align: right;
+  margin-right: 2vw;
+}
+
+.header .toggle-sidebar-btn {
+  background: var(--gradient-button);
+  color: var(--text-white);
+  border: none;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.header .toggle-sidebar-btn:hover {
+  background: var(--gradient-hover);
+  transform: scale(1.05);
+}
+
 #panel-title {
   background: none;
-  font-size: 16px;
+  font-size: 32px;
   color: var(--text-white);
   align-self: center;
   text-align: center;
@@ -114,12 +140,12 @@ body {
 }
 
 .header_username {
-  font-size: 7px;
+  font-size: 1.5vh;
   position: absolute;
-  right: 10px;
+  right: 1vw;
   text-align: right;
-  width: 600px;
-  margin-right: 20px;
+  width: 60vw;
+  margin-right: 2vw;
 }
 
 #dashboard_Username {
@@ -129,25 +155,53 @@ body {
 
 /* Update sidebar styles */
 .sidebar {
-  background: var(--gradient-sidebar); /* Darker transparent gradient */
+  background: var(--gradient-header); /* Darker transparent gradient */ 
   color: var(--text-white);
   grid-area: side;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius: 0px 50px 50px 0px;
-  margin-top: 10px;
-  margin-bottom: 10px;
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
-              0 10px 40px var(--shadow-light); /* Shadow */
+              0 10px 40px var(--shadow-light);
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 20vw;
+  z-index: 1000;
+  transition: transform 0.3s ease, width 0.3s ease;
+}
+
+
+.sidebar.collapsed {
+  transform: translateX(-90%);
+}
+
+.sidebar .collapse-btn {
+  background: var(--gradient-button);
+  color: var(--text-white);
+  border: none;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  position: absolute;
+  bottom: 2vh;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sidebar .collapse-btn:hover {
+  background: var(--gradient-hover);
+  transform: scale(1.05);
 }
 
 /* SIDEBAR NAVIGATION STYLES */
 .nav-button {
   width: 100%;
-  padding: 25px;
+  padding: 2.5vh;
   margin: 0; /* Remove margin to extend to the edges */
   text-align: center;
   background: none; /* Transparent background */
@@ -168,23 +222,23 @@ body {
 }
 
 .sidebar_img {
-  width: 150px;
+  width: 250px;
   height: auto;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-top: 2vh;
+  margin-bottom: 2vh;
 }
 
 #logout {
   margin-top: auto;
   background-color: var(--color-blue-light);
   color: var (--text-white);
-  padding: 10px;
+  padding: 1vh;
   border: none;
-  border-radius: 10px;
+  border-radius: 1vh;
   width: 80%;
   cursor: pointer;
   position: relative;
-  bottom: 25px;
+  bottom: 2.5vh;
 }
 #logout:hover {
   background-color: var(--color-delete);
@@ -193,12 +247,16 @@ body {
 
 .content_panel {
   background: none;
-
-  padding: 25px;
   overflow: auto;
   grid-area: main;
-
-  display: grid;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
   grid-template-columns: 1fr 1fr;
   scroll-behavior: smooth;
 }
@@ -207,23 +265,26 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
+
   width: 100%;
+  height: 100%;
   justify-content: center;
+  align-items: center; /* Center align the cards */
   scroll-behavior: smooth;
+  justify-items: center; /* Center align the content horizontally */
 }
 
 .card-add-orders {
   background: var(--bg-card); /* 50% transparent background */
-  backdrop-filter: blur(10px); /* Blur effect */
+  backdrop-filter: blur(1vh); /* Blur effect */
   display: flex;
   flex-direction: column;
-  height: 550px;
-  width: 500px;
-  border-radius: 20px;
-  box-shadow: var(--text-dark) 0px 0px 10px;
-  padding: 20px;
-  margin: 20px;
+  height: 55vh;
+  width: 40vw;
+  border-radius: 2vh;
+  box-shadow: var(--text-dark) 0px 0px 1vh;
+  padding: 2vh;
+  margin: 2vh;
   box-shadow: 0 4px 8px var(--shadow-light), 
   0 6px 20px var(--shadow-lighter), 
   0 8px 30px var(--shadow-dark), 
@@ -260,11 +321,11 @@ body {
 .input_row_add_orders select {
   flex: 1;
   width: 100%; /* Ensures inputs take full available space */
-  min-width: 150px; /* Adjust based on the design */
-  max-width: 200px; /* Ensures consistency */
-  height: 40px; /* Match height across sections */
-  padding: 8px;
-  border-radius: 5px;
+  min-width: 15vw; /* Adjust based on the design */
+  max-width: 20vw; /* Ensures consistency */
+  height: 4vh; /* Match height across sections */
+  padding: 0.8vh;
+  border-radius: 0.5vh;
   border: 1px solid #ccc;
   box-sizing: border-box;
   background: transparent; /* Set background to transparent */
@@ -337,12 +398,12 @@ body {
 }
 
 #add_item_order, #add_order_button, #modify_item_order, #save_modify_order {
-  width: 550px; /* Fixed width */
-  height: 50px; /* Fixed height */
+  width: 20vw; /* Fixed width */
+  height: 5vh; /* Fixed height */
   background: var(--gradient-button); /* Darker transparent gradient */
   color: var(--text-white);
   border: none;
-  border-radius: 10px;
+  border-radius: 1vh;
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
@@ -350,8 +411,8 @@ body {
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
   justify-self: center; /* Center the buttons in each column */
-  padding: 10px 20px; /* Add padding */
-  font-size: 18px; /* Increase font size */
+  padding: 1vh 2vw; /* Add padding */
+  font-size: 1.8vh; /* Increase font size */
 }
 
 #add_item_order:hover, #add_order_button:hover, #modify_item_order:hover, #save_modify_order:hover {
@@ -483,12 +544,12 @@ body {
 .card_item_container {
   display: flex;
   flex-direction: column;
-  height: 345px;
-  width: 1120px;
+  height: 34.5vh;
+  width: 112vw;
   background: var(--bg-card);
-  border-radius: 20px;
-  padding: 25px;
-  margin: 20px 0;
+  border-radius: 2vh;
+  padding: 2.5vh;
+  margin: 2vh 0;
   box-shadow: 0 4px 8px var(--shadow-medium), 
   0 6px 20px var(--shadow-light), 
   0 8px 30px var(--shadow-dark), 
@@ -513,11 +574,11 @@ body {
 .table_wrapper_item {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
-  height: 345px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 112vw;
+  max-width: 112vw; /* Ensures the wrapper does not exceed the container width */
+  height: 34.5vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
 }
 
 .table_wrapper_item table {
@@ -570,12 +631,12 @@ body {
 .card-active-orders {
   display: flex;
   flex-direction: column;
-  height: 670px;
-  width: 1120px;
+  height: 67vh;
+  width: 112vw;
   background: none;
-  border-radius: 20px;
-  padding: 15px;
-  margin: 15px;
+  border-radius: 2vh;
+  padding: 1.5vh;
+  margin: 1.5vh;
 }
 
 .card-active-orders {
@@ -592,11 +653,11 @@ body {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
   background: var(--bg-card);
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
-  height: 670px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 112vw;
+  max-width: 112vw; /* Ensures the wrapper does not exceed the container width */
+  height: 67vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px var(--shadow-light), 
   0 6px 20px var(--shadow-lighter), 
   0 8px 30px var(--shadow-dark), 
@@ -661,11 +722,11 @@ body {
 }
 
 .content_payment_order {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
-  gap: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
 }
 
 .content_payment_order h3 {
@@ -678,32 +739,23 @@ body {
 .card-payment-order {
   display: flex;
   flex-direction: column;
-  height: 670px;
-  width: 1120px;
+  align-items: center;
+  position: relative;
+  top: 50px;
+  height: 100%;
+  width: 100vw;
   background: none;
-  border-radius: 20px;
-  padding: 15px;
-  margin: 15px;
-}
-
-.card-payment-order {
-  gap: 5px; /* Controls spacing between child elements */
-}
-
-.card-payment-order {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Adds even spacing between input fields */
+  border-radius: 2vh;
 }
 
 .table_wrapper_payment_order {
   background: var(--bg-card);
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  width: 100%; /* Ensure the wrapper takes full width */
-  height: 670px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 80%; /* Ensure the wrapper takes full width */
+  height: 67vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px var(--shadow-light), 
               0 6px 20px var(--shadow-lighter), 
               0 8px 30px var(--shadow-dark), 
@@ -721,7 +773,7 @@ body {
 
 .table_wrapper_payment_order th, .table_wrapper_payment_order td {
   text-align: center;
-  padding: 4px; /* Reduce padding */
+  padding: 1px; /* Reduce padding */
   border: none; /* Remove the border */
   vertical-align: middle; /* Aligns items to the center vertically */
   white-space: normal; /* Allow text wrapping */
@@ -778,10 +830,10 @@ body {
 
 .popup-content-transaction {
   background: var(--gradient-button) !important; /* Ensure background color is applied */
-  border-radius: 20px;
-  padding: 30px;
-  width: 500px;
-  max-width: 90%;
+  border-radius: 2vh;
+  padding: 3vh;
+  width: 40vw;
+  max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -872,10 +924,10 @@ body {
 
 .popup-content-liability {
   background: var(--gradient-button) !important; /* Ensure background color is applied */
-  border-radius: 20px;
-  padding: 30px;
-  width: 500px;
-  max-width: 90%;
+  border-radius: 2vh;
+  padding: 3vh;
+  width: 40vw;
+  max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -915,7 +967,7 @@ body {
     border-radius: 5px;
     border: 1px solid #ccc;
     background: var(--text-white);
-    color: var(--text-dark); /* Ensure input text is readable */
+    color: var (--text-dark); /* Ensure input text is readable */
 }
 
 .order_navigation_liability {
@@ -944,10 +996,10 @@ body {
 
 .popup-content-view, .popup-view-liabilities {
   background: var(--gradient-button) !important; /* Ensure background color is applied */
-  border-radius: 20px;
-  padding: 30px;
-  width: 760px; /* Changed from 500px to match other popups */
-  max-width: 90%;
+  border-radius: 2vh;
+  padding: 3vh;
+  width: 76vw; /* Changed from 500px to match other popups */
+  max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px var(--shadow-medium), 
@@ -968,11 +1020,11 @@ body {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
   background: var(--bg-table-wrapper);
-  width: 760px; /* Changed from 500px to match popup width */
-  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
-  height: 345px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 76vw; /* Changed from 500px to match popup width */
+  max-width: 76vw; /* Ensures the wrapper does not exceed the container width */
+  height: 34.5vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
@@ -1067,10 +1119,10 @@ body {
 
 .popup-view-liabilities {
   background: var(--gradient-button) !important; /* Ensure background color is applied */
-  border-radius: 20px;
-  padding: 30px;
-  width: 760px;
-  max-width: 90%;
+  border-radius: 2vh;
+  padding: 3vh;
+  width: 76vw;
+  max-width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 4px 8px var(--shadow-medium), 
@@ -1085,11 +1137,11 @@ body {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
   background: var(--bg-table-wrapper);
-  width: 760px;
-  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
-  height: 345px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 76vw;
+  max-width: 76vw; /* Ensures the wrapper does not exceed the container width */
+  height: 34.5vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
@@ -1453,9 +1505,9 @@ body {
 .view_order_item_popup .popup-content {
     position: relative;
     background: var(--gradient-button);
-    border-radius: 20px;
-    padding: 30px;
-    width: 760px;
+    border-radius: 2vh;
+    padding: 3vh;
+    width: 76vw;
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -1465,11 +1517,11 @@ body {
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
   background: var(--bg-table-wrapper);
-  width: 760px;
-  max-width: 760px; /* Ensures the wrapper does not exceed the container width */
-  height: 345px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  width: 76vw;
+  max-width: 76vw; /* Ensures the wrapper does not exceed the container width */
+  height: 34.5vh; /* Matches the height of the cards */
+  border-radius: 2vh; /* Optional: adds rounded corners */
+  margin: 1vh 0; /* Optional: adds margin for spacing */
   box-shadow: 0 4px 8px var(--shadow-medium), 
               0 6px 20px var(--shadow-light), 
               0 8px 30px var(--shadow-dark), 
@@ -1510,9 +1562,9 @@ body {
 
 .popup-content {
     background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
-    width: 760px;
+    border-radius: 2vh;
+    padding: 3vh;
+    width: 76vw;
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -1529,9 +1581,9 @@ body {
     overflow-x: auto;
     overflow-y: auto;
     width: 100%;
-    height: 345px;
-    border-radius: 20px;
-    margin: 10px 0;
+    height: 34.5vh;
+    border-radius: 2vh;
+    margin: 1vh 0;
     box-shadow: 0 4px 8px var(--shadow-medium), 
                 0 6px 20px var(--shadow-light), 
                 0 8px 30px var(--shadow-dark), 
@@ -1604,7 +1656,7 @@ body {
     margin: 10px;
     box-shadow: 0 4px 8px var(--shadow-medium),
                 0 6px 20px var(--shadow-light),
-                0 8px 10px var(--shadow-dark),
+                0 8px 10px var (--shadow-dark),
                 0 10px 10px var(--shadow-light);
     color: var(--text-dark);
     cursor: pointer;
@@ -1651,12 +1703,12 @@ body {
 .card-order-history {
   display: flex;
   flex-direction: column;
-  height: 670px;
-  width: 1120px;
+  height: 67vh;
+  width: 112vw;
   background: none;
-  border-radius: 20px;
-  padding: 15px;
-  margin: 15px;
+  border-radius: 2vh;
+  padding: 1.5vh;
+  margin: 1.5vh;
 }
 
 .table_wrapper_order_history {
@@ -1665,9 +1717,9 @@ body {
   background: var(--bg-card);
   width: 100%; /* Changed from fixed 1120px */
   max-width: 100%; /* Changed from fixed 1120px */
-  height: 670px;
-  border-radius: 20px;
-  margin: 10px 0;
+  height: 67vh;
+  border-radius: 2vh;
+  margin: 1vh 0;
   box-shadow: 0 4px 8px var(--shadow-light), 
               0 6px 20px var(--shadow-lighter), 
               0 8px 30px var(--shadow-dark), 
@@ -1872,12 +1924,12 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    height: 345px;
-    width: 1120px;
+    height: 34.5vh;
+    width: 112vw;
     background: var(--bg-card);
-    border-radius: 20px;
-    padding: 25px;
-    margin: 20px 0;
+    border-radius: 2vh;
+    padding: 2.5vh;
+    margin: 2vh 0;
     box-shadow: 0 4px 8px var(--shadow-medium), 
                 0 6px 20px var(--shadow-light), 
                 0 8px 30px var(--shadow-dark), 
@@ -2057,9 +2109,9 @@ body {
 
 .view_item_input_popup .popup-content-liability {
     background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
-    width: 500px;
+    border-radius: 2vh;
+    padding: 3vh;
+    width: 40vw;
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -2101,9 +2153,9 @@ body {
 
 .view_item_input_popup .popup-content-view {
     background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
-    width: 500px;
+    border-radius: 2vh;
+    padding: 3vh;
+    width: 40vw;
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -2277,9 +2329,9 @@ body {
 
 .popup-content-assigned-orders {
     background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
-    width: 760px;
+    border-radius: 2vh;
+    padding: 3vh;
+    width: 76vw;
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -2338,7 +2390,7 @@ body {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
+    box-shadow: 0 4px 8px var (--shadow-medium), 
                 0 6px 20px var(--shadow-light);
 }
 
@@ -2370,8 +2422,8 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
+    border-radius: 2vh;
+    padding: 3vh;
     width: 1000px;  /* Increased to accommodate two columns */
     max-width: 90%;
     max-height: 90vh;
@@ -2465,12 +2517,12 @@ body {
 .card-staff-info {
     display: flex;
     flex-direction: column;
-    height: 670px;
-    width: 1120px;
+    height: 67vh;
+    width: 112vw;
     background: var(--bg-card);
-    border-radius: 20px;
-    padding: 25px;
-    margin: 20px 0;
+    border-radius: 2vh;
+    padding: 2.5vh;
+    margin: 2vh 0;
     box-shadow: 0 4px 8px var(--shadow-medium), 
                 0 6px 20px var(--shadow-light), 
                 0 8px 30px var(--shadow-dark), 
@@ -2497,11 +2549,11 @@ body {
     display: flex;
     flex-direction: column;
     height: 450px;
-    width: 1120px;
+    width: 112vw;
     background: var(--bg-card);
-    border-radius: 20px;
-    padding: 25px;
-    margin: 20px 0;
+    border-radius: 2vh;
+    padding: 2.5vh;
+    margin: 2vh 0;
     box-shadow: 0 4px 8px var(--shadow-medium), 
                 0 6px 20px var(--shadow-light), 
                 0 8px 30px var(--shadow-dark), 
@@ -2512,9 +2564,9 @@ body {
     overflow-x: auto;
     overflow-y: auto;
     width: 100%;
-    height: 350px; /* Reduced height to accommodate the button */
-    border-radius: 20px;
-    margin: 10px 0;
+    height: 35vh; /* Reduced height to accommodate the button */
+    border-radius: 2vh;
+    margin: 1vh 0;
 }
 
 .content_staff_info #add_worker_btn {
@@ -2523,7 +2575,7 @@ body {
     margin: 10px 0; /* Changed from auto to 0 to align left */
     flex-shrink: 0; /* Prevent button from shrinking */
     background: var(--gradient-button);
-    color: var(--text-white);
+    color: var (--text-white);
     border: none;
     border-radius: 10px;
     cursor: pointer;

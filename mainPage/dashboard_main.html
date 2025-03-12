@@ -10,38 +10,15 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <title>Dashboard</title>
         <link rel="stylesheet" href="../design/dashboard_style_main.css">
-        <script>
-          document.addEventListener('DOMContentLoaded', function() {
-            fetch('/checkSession')
-              .then(response => response.json())
-              .then(data => {
-                if (!data.loggedIn) {
-                  window.location.href = '/login'; // Redirect to login if not logged in
-                }
-              })
-              .catch(error => {
-                console.error('Error checking session:', error);
-                window.location.href = '/login';
-              });
-          });
-        </script>
-
     </head>
+
     <!-- HTML BODY -->
     <body>
             <!-- HEADER - CONTAINS TOP BAR-->
-            <header class = "header">
-                <div class="header_panel_title">
-                    <h1 id="panel-title"></h1>
-                </div>
 
-                <div class="header_username">
-                    <h2 id="dashboard_Username"></h2>
-                </div>
-            </header>
 
             <!-- SIDEBAR - CONTAINS LOGO, NAVIGATION, AND LOGOUT-->
-            <section class ="sidebar">
+            <section class ="sidebar collapsed">
                 <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
                 <button class="nav-button" data-page="content_add_order">Add Order</button>
                 <button class="nav-button" data-page="content_payment_order">Payment Channel</button>
@@ -55,7 +32,15 @@
 
                 <!-- CONTENT PANEL - CONTAINS ALL CONTENT PANEL DISPLAY-->
                 <main class = "content_panel">
-
+                    <header class = "header">
+                        <div class="header_panel_title">
+                            <h1 id="panel-title"></h1>
+                        </div>
+        
+                        <div class="header_username">
+                            <h2 id="dashboard_Username"></h2>
+                        </div>
+                    </header>
 <!-- ADD ORDERS PANEL - CONTAINS ADD ORDERS FORM-->
 <section class="content_add_order" style="display: grid;">
     <div class="card-add-orders">
@@ -934,26 +919,9 @@
 </main> 
         <script src="../script.js"></script>
         <script>
-            document.getElementById('show_password').addEventListener('change', function() {
-                const passwordField = document.getElementById('worker_password');
-                const confirmPasswordField = document.getElementById('worker_confirm_password');
-                if (this.checked) {
-                    passwordField.type = 'text';
-                    confirmPasswordField.type = 'text';
-                } else {
-                    passwordField.type = 'password';
-                    confirmPasswordField.type = 'password';
-                }
-            });
-
-            document.getElementById('worker_save_btn').addEventListener('click', function() {
-                const password = document.getElementById('worker_password').value;
-                const confirmPassword = document.getElementById('worker_confirm_password').value;
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match!');
-                } else {
-                    // Proceed with saving the worker
-                    // ...existing code...
+            document.querySelector('.sidebar').addEventListener('click', function(event) {
+                if (!event.target.classList.contains('nav-button')) {
+                    this.classList.toggle('collapsed');
                 }
             });
         </script>
