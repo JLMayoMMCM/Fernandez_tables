@@ -88,8 +88,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 populateTable(items.chairs, 'chairs_Container');
                 populateTable(items.miscellaneous, 'misc_Container');
 
+                populateTable(items.tables, 'modify_tables_Container');
+                populateTable(items.chairs, 'modify_chairs_Container');
+                populateTable(items.miscellaneous, 'modify_misc_Container');
+
                 // Populate workers table
                 populateWorkersTable(workers, 'workers_Container');
+                populateWorkersTable(workers, 'modify_workers_Container');
 
                 // Populate manager selector
                 populateSelector(managers, 'assigned_manager');
@@ -400,66 +405,139 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     } 
 
-    const saveModifyOrderButton = document.getElementById('save_modify_order'); // Corrected selector
-    if (saveModifyOrderButton) {
-        saveModifyOrderButton.addEventListener('click', saveModifyOrder);
-    }
-
     const modifyItemOrderButton = document.getElementById('modify_item_order'); // Corrected selector
     if (modifyItemOrderButton) {
         modifyItemOrderButton.addEventListener('click', function() {
-            showPage('content_modify_item_order');
-            setTimeout(function() {
-
-
-                updateModifySubtotal();
-            }, 100);
+        showPage('content_modify_item_order');
         });
     }
-
-
 
     // Modify Order Behaviour
-    document.getElementById('modify_extra_fees').addEventListener('input', updateModifySubtotal);
-    document.getElementById('modify_event_duration').addEventListener('input', updateModifySubtotal);
 
-    function attachModifyListeners(tablebody) {
-        tablebody.querySelectorAll('.item-select').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const row = this.closest('tr');
-                const quantityInput = row.querySelector('.item-quantity');
-                if (this.checked) {
-                    quantityInput.disabled = false;
-                    if (parseFloat(quantityInput.value) === 0) {
-                        quantityInput.value = 1;
-                    }
-                } else {
-                    quantityInput.disabled = true;
-                    quantityInput.value = 0;
+    // Function to fetch order details for modification
+    function fetchOrderDetails(orderId) {
+        fetch(`/fetchOrderDetails/${orderId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-                updateModifySubtotal();
-            });
-        });
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    alert('Error: ' + data.message);
+                    return;
+                }
 
-        tablebody.querySelectorAll('.item-quantity').forEach(input => {
-            input.addEventListener('input', updateModifySubtotal);
+                // Store order ID in a hidden field or data attribute for later use in form submission
+                document.getElementById('modify_order_id').value = orderId;
+                
+                // Populate form fields with order details
+                const details = data.orderDetails;
+                
+                // Event Info
+                document.getElementById('modify_event_name').value = details.event_Name;
+                document.getElementById('modify_event_timestamp').value = details.event_date;
+                document.getElementById('modify_event_duration').value = details.event_duration;
+                document.getElementById('modify_assigned_manager').value = details.manager_ID;
+                
+                // Address Info
+                document.getElementById('modify_street').value = details.street_Name;
+                document.getElementById('modify_barangay').value = details.barangay_Name;
+                document.getElementById('modify_city').value = details.city_Name;
+                
+                // Customer Info
+                document.getElementById('modify_first_name').value = details.first_Name;
+                document.getElementById('modify_middle_name').value = details.middle_Name || '';
+                document.getElementById('modify_last_name').value = details.last_Name;
+                document.getElementById('modify_phone_number').value = details.phone_Number;
+                document.getElementById('modify_age').value = details.age;
+                document.getElementById('modify_gender').value = details.gender_ID;
+                document.getElementById('modify_extra_fees').value = details.extra_Fee;
+
+                // Populate tables with selected quantities
+                populateModifyItemTables(data.items);
+                
+                // Mark selected workers
+                markSelectedWorkers(data.assignedWorkers);
+                
+                // Update subtotal and total price
+                updateModifySubtotal();
+            })
+            .catch(error => {
+                console.error('Error fetching order details:', error);
+                alert('Error fetching order details. Please try again.');
+            });
+    }
+
+    // Function to populate modify tables with items and their quantities
+    function populateModifyItemTables(itemsByType) {
+        // Clear existing selected quantities
+        document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity')
+            .forEach(input => {
+                input.value = 0;
+            });
+        
+        // Set selected quantities from order
+        itemsByType.tables.forEach(item => {
+            const input = document.querySelector(`#modify_tables_Container .item-quantity[data-id="${item.item_ID}"]`);
+            if (input) {
+                input.value = item.selected_quantity;
+                
+                // Update subtotal in row
+                const row = input.closest('tr');
+                const subtotalCell = row.querySelector('.item-subtotal');
+                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
+            }
+        });
+        
+        itemsByType.chairs.forEach(item => {
+            const input = document.querySelector(`#modify_chairs_Container .item-quantity[data-id="${item.item_ID}"]`);
+            if (input) {
+                input.value = item.selected_quantity;
+                
+                // Update subtotal in row
+                const row = input.closest('tr');
+                const subtotalCell = row.querySelector('.item-subtotal');
+                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
+            }
+        });
+        
+        itemsByType.miscellaneous.forEach(item => {
+            const input = document.querySelector(`#modify_misc_Container .item-quantity[data-id="${item.item_ID}"]`);
+            if (input) {
+                input.value = item.selected_quantity;
+                
+                // Update subtotal in row
+                const row = input.closest('tr');
+                const subtotalCell = row.querySelector('.item-subtotal');
+                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
+            }
         });
     }
 
-    const tablesBody = document.getElementById('modify_tables_Container').querySelector('tbody');
-    attachModifyListeners(tablesBody);
-    const chairsBody = document.getElementById('modify_chairs_Container').querySelector('tbody');
-    attachModifyListeners(chairsBody);
-    const miscBody = document.getElementById('modify_misc_Container').querySelector('tbody');
-    attachModifyListeners(miscBody);
+    // Function to mark selected workers
+    function markSelectedWorkers(workerIds) {
+        // Uncheck all workers first
+        document.querySelectorAll('#modify_workers_Container .worker-select').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Check selected workers
+        workerIds.forEach(workerId => {
+            const checkbox = document.querySelector(`#modify_workers_Container .worker-select[data-id="${workerId}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }
 
-
+    // Function to update subtotal and total price for modify order page
     function updateModifySubtotal() {
         let subtotal = 0;
-        // Loop over every quantity input in modify item containers
-        document.querySelectorAll(
-            '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
-        ).forEach(input => {
+        const quantityInputs = document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity');
+        
+        quantityInputs.forEach(input => {
             const quantity = parseFloat(input.value) || 0;
             const price = parseFloat(input.dataset.price) || 0;
             const row = input.closest('tr');
@@ -472,389 +550,159 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Get event duration for modify order form (use explicit ID)
-        let eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
-        
+        // Get event duration value
+        const eventDuration = parseFloat(document.getElementById('modify_event_duration').value) || 1;
         const subtotalPrice = subtotal * eventDuration;
         
-        // Get extra fees from the modify order extra fees input (use explicit ID)
-        let extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
-        
+        // Get extra fees value
+        const extraFees = parseFloat(document.getElementById('modify_extra_fees').value) || 0;
         const totalPrice = subtotalPrice + extraFees;
         
-        // Update the modify order form subtotal and total (fix ID discrepancies)
-        const subtotalElements = document.querySelectorAll(
-            '#modify_subtotal_Price'
-        );
-        
-        subtotalElements.forEach(element => {
-            if (element) element.textContent = subtotalPrice.toFixed(2);
+        // Update all subtotal and total price elements in modify order page
+        const subtotalElements = document.querySelectorAll('#modify_subtotal_Price');
+        subtotalElements.forEach(el => {
+            if (el) el.textContent = subtotalPrice.toFixed(2);
         });
         
-        const totalElements = document.querySelectorAll(
-            '#modify_total_Price'
-        );
-        
-        totalElements.forEach(element => {
-            if (element) element.textContent = totalPrice.toFixed(2);
+        const totalElements = document.querySelectorAll('#modify_total_Price');
+        totalElements.forEach(el => {
+            if (el) el.textContent = totalPrice.toFixed(2);
         });
     }
 
-    function fetchOrderItems(orderId) {
-        fetch(`/getOrderItems/${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                const { items, daysRented, extraFees } = data;
-                const tablebody = document.getElementById('order_items_table').querySelector('tbody');
-                tablebody.innerHTML = '';
+    // Add event listeners to modify page
+    document.getElementById('modify_event_duration').addEventListener('input', updateModifySubtotal);
+    document.getElementById('modify_extra_fees').addEventListener('input', updateModifySubtotal);
 
-                let itemsSubtotal = 0;
-                items.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${item.item_ID}</td>
-                        <td>${item.item_name}</td>
-                        <td>${item.item_description}</td>
-                        <td>${item.item_price}</td>
-                        <td>${item.item_quantity}</td>
-                        <td>${item.subtotal.toFixed(2)}</td>
-                    `;
-                    tablebody.appendChild(row);
-                    itemsSubtotal += item.subtotal;
-                });
-
-                // Calculate the costs
-                const subtotalWithDays = itemsSubtotal * daysRented;
-                const totalPrice = subtotalWithDays + parseFloat(extraFees || 0);
-
-                // Display the cost information if elements exist
-                const daysRentedElement = document.getElementById('days_rented');
-                if (daysRentedElement) {
-                    daysRentedElement.textContent = `Days Rented: ${daysRented}`;
+    // Function to get data for updating an order
+    function getModifyOrderData() {
+        const orderId = document.getElementById('modify_order_id').value;
+        
+        // Get all form values
+        const eventName = document.getElementById('modify_event_name').value;
+        const eventTimestamp = document.getElementById('modify_event_timestamp').value;
+        const eventDuration = document.getElementById('modify_event_duration').value;
+        const assignedManager = document.getElementById('modify_assigned_manager').value;
+        const street = document.getElementById('modify_street').value;
+        const barangay = document.getElementById('modify_barangay').value;
+        const city = document.getElementById('modify_city').value;
+        const firstName = document.getElementById('modify_first_name').value;
+        const middleName = document.getElementById('modify_middle_name').value;
+        const lastName = document.getElementById('modify_last_name').value;
+        const phoneNumber = document.getElementById('modify_phone_number').value;
+        const age = document.getElementById('modify_age').value;
+        const gender = document.getElementById('modify_gender').value;
+        const extraFees = document.getElementById('modify_extra_fees').value;
+        
+        // Get selected items with quantities
+        const items = [];
+        document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity')
+            .forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    items.push({
+                        item_id: input.dataset.id,
+                        quantity: quantity,
+                        price: parseFloat(input.dataset.price)
+                    });
                 }
-                
-                const subtotalElement = document.getElementById('order_items_subtotal');
-                if (subtotalElement) {
-                    subtotalElement.textContent = itemsSubtotal.toFixed(2);
-                }
-                
-                const subtotalWithDaysElement = document.getElementById('order_subtotal_with_days');
-                if (subtotalWithDaysElement) {
-                    subtotalWithDaysElement.textContent = subtotalWithDays.toFixed(2);
-                }
-                
-                const extraFeesElement = document.getElementById('order_extra_fees');
-                if (extraFeesElement) {
-                    extraFeesElement.textContent = (extraFees || 0).toFixed(2);
-                }
-                
-                const totalElement = document.getElementById('order_items_total');
-                if (totalElement) {
-                    totalElement.textContent = totalPrice.toFixed(2);
-                }
-            })
-            .catch(error => console.error('Error fetching order items:', error));
+            });
+        
+        // Get selected workers
+        const workers = [];
+        document.querySelectorAll('#modify_workers_Container .worker-select:checked').forEach(checkbox => {
+            workers.push(checkbox.dataset.id);
+        });
+        
+        return {
+            order_ID: orderId,
+            event_name: eventName,
+            event_timestamp: eventTimestamp,
+            event_duration: eventDuration,
+            assigned_manager: assignedManager,
+            street: street,
+            barangay: barangay,
+            city: city,
+            first_name: firstName,
+            middle_name: middleName,
+            last_name: lastName,
+            phone_number: phoneNumber,
+            age: age,
+            gender: gender,
+            extra_fees: extraFees,
+            items: items,
+            workers: workers
+        };
     }
 
-    function fetchOrderDetails(orderId) {
-        fetch(`/getOrderDetailsForModification/${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                const { order, itemsByType, workers } = data;
-                
-                // Store the current order ID in a data attribute for later use
-                document.getElementById('save_modify_order').setAttribute('data-order-id', order.order_ID);
-                
-                // Populate form fields
-                document.getElementById('modify_event_name').value = order.event_name || '';
-                document.getElementById('modify_event_timestamp').value = order.event_timestamp.slice(0, 16) || '';
-                document.getElementById('modify_event_duration').value = order.event_duration || 1;
-                document.getElementById('modify_assigned_manager').value = order.assigned_manager || '';
-                document.getElementById('modify_street').value = order.street || '';
-                document.getElementById('modify_barangay').value = order.barangay || '';
-                document.getElementById('modify_city').value = order.city || '';
-                
-                // Fill customer information
-                document.getElementById('modify_first_name').value = order.first_name || '';
-                document.getElementById('modify_middle_name').value = order.middle_name || '';
-                document.getElementById('modify_last_name').value = order.last_name || '';
-                document.getElementById('modify_phone_number').value = order.phone_number || '';
-                document.getElementById('modify_age').value = order.age || 0;
-                document.getElementById('modify_gender').value = order.gender || '';
-                document.getElementById('modify_extra_fees').value = order.extra_fees || 0;
-                
-                // Populate modify item tables with all items, then set quantities for items in this order
-                populateTable(itemsByType.tables, 'modify_tables_Container');
-                populateTable(itemsByType.chairs, 'modify_chairs_Container');
-                populateTable(itemsByType.misc, 'modify_misc_Container');
-                
-                // Populate workers table and check workers assigned to this order
-                populateModifyWorkersTable(workers, 'modify_workers_Container');
-
-                // Update subtotals
-                updateModifySubtotal();
-            })
-            .catch(error => console.error('Error fetching order details:', error));
-    }
-
-    function fetchOrderTransactions(orderId) {
-        fetch(`/getFinanceIdByOrderId/${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.financeId) {
-                    return fetch(`/getTransactions/${data.financeId}`);
-                } else {
-                    throw new Error('Finance ID not found for this order');
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tablebody = document.getElementById('order_transactions_table').querySelector('tbody');
-                if (!tablebody) return;
-                
-                tablebody.innerHTML = '';
-
-                if (!data.transactions || data.transactions.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4">No transactions found</td>';
-                    tablebody.appendChild(row);
-                    return;
-                }
-
-                data.transactions.forEach(transaction => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${transaction.payment_type}</td>
-                        <td>${transaction.payment_amount}</td>
-                        <td>${transaction.payment_Reference_No}</td>
-                        <td>${transaction.date_of_payment}</td>
-                    `;
-                    tablebody.appendChild(row);
-                });
-            })
-            .catch(error => console.error('Error fetching transactions:', error));
-    }
-
-    function fetchOrderLiabilities(orderId) {
-        fetch(`/getFinanceIdByOrderId/${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.financeId) {
-                    return fetch(`/getLiabilities/${data.financeId}`);
-                } else {
-                    throw new Error('Finance ID not found for this order');
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tablebody = document.getElementById('order_liabilities_table').querySelector('tbody');
-                if (!tablebody) return;
-                
-                tablebody.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="6">No liabilities found</td>';
-                    tablebody.appendChild(row);
-                    return;
-                }
-
-                data.forEach(liability => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${liability.liability_title}</td>
-                        <td>${liability.item_name}</td>
-                        <td>${liability.item_quantity}</td>
-                        <td>${liability.liability_amount}</td>
-                        <td>${liability.liability_description}</td>
-                        <td>${liability.liability_date}</td>
-                    `;
-                    tablebody.appendChild(row);
-                });
-            })
-            .catch(error => console.error('Error fetching liabilities:', error));
-    }
-
+    // Function to save the modified order
     function saveModifyOrder() {
         if (!validateModifyForm()) {
-            alert('Please fill in all required fields and ensure at least one item (with quantity > 0) and one worker are selected.');
+            alert('Please fill in all required fields and ensure at least one item and one worker are selected.');
             return;
         }
         
         const orderData = getModifyOrderData();
-        const orderId = orderData.order_id;
         
-        if (!orderId) {
-            alert('Could not determine which order to modify.');
-            return;
-        }
-    
-        fetch(`/updateOrder/${orderId}`, {
-            method: 'PUT',
+        fetch('/modifyOrder', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(orderData)
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 alert('Order updated successfully');
-                clearModifyForm();
                 showPage('content_active_order');
-                fetchActiveOrders();
+                fetchActiveOrders(); // Refresh the active orders list
             } else {
                 alert('Error updating order: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error updating order:', error);
-            alert(error);
-            alert('An error occurred while updating the order. Please try again.');
+            alert('An error occurred while updating the order.');
         });
     }
 
-    
-    function getModifiedOrderData(orderId) {
-        const getValue = id => {
-            const el = document.getElementById(id);
-            return el ? el.value.trim() : '';
-        };
-    
-        return {
-            order_id: orderId,
-            event_name: getValue('modify_event_name'),
-            event_timestamp: getValue('modify_event_timestamp'),
-            event_duration: getValue('modify_event_duration') || 1,
-            assigned_manager: getValue('modify_assigned_manager'),
-            street: getValue('modify_street'),
-            barangay: getValue('modify_barangay'),
-            city: getValue('modify_city'),
-            first_name: getValue('modify_first_name'),
-            middle_name: getValue('modify_middle_name'),
-            last_name: getValue('modify_last_name'),
-            phone_number: getValue('modify_phone_number'),
-            age: getValue('modify_age') || 0,
-            gender: getValue('modify_gender'),
-            extra_fees: getValue('modify_extra_fees') || 0,
-            items: getModifySelectedItems(),
-            workers: getModifySelectedWorkers()
-        };
-    }
-
+    // Function to validate the modify form
     function validateModifyForm() {
         const requiredFields = [
             'modify_event_name', 'modify_event_timestamp', 'modify_event_duration', 'modify_assigned_manager',
-            'modify_street', 'modify_barangay', 'modify_city', 'modify_first_name', 'modify_last_name',
+            'modify_street', 'modify_barangay', 'modify_city', 'modify_first_name', 'modify_last_name', 
             'modify_phone_number', 'modify_gender'
         ];
-    
+
         for (const field of requiredFields) {
             if (!document.getElementById(field).value) {
                 return false;
             }
         }
-    
-        const selectedItems = getModifySelectedItems();
-        if (selectedItems.length === 0 || !selectedItems.some(item => item.quantity > 0)) {
+
+        // Check if at least one item is selected
+        const hasItems = Array.from(document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'))
+            .some(input => parseInt(input.value) > 0);
+        if (!hasItems) {
             return false;
         }
-    
-        const selectedWorkers = getModifySelectedWorkers();
-        if (selectedWorkers.length === 0) {
+
+        // Check if at least one worker is selected
+        const hasWorkers = document.querySelector('#modify_workers_Container .worker-select:checked') !== null;
+        if (!hasWorkers) {
             return false;
         }
+
         return true;
     }
 
-    function clearModifyForm() {
-        document.getElementById('modify_event_name').value = '';
-        document.getElementById('modify_event_timestamp').value = '';
-        document.getElementById('modify_event_duration').value = '';
-        document.getElementById('modify_assigned_manager').value = '';
-        document.getElementById('modify_street').value = '';
-        document.getElementById('modify_barangay').value = '';
-        document.getElementById('modify_city').value = '';
-        document.getElementById('modify_first_name').value = '';
-        document.getElementById('modify_middle_name').value = '';
-        document.getElementById('modify_last_name').value = '';
-        document.getElementById('modify_phone_number').value = '';
-        document.getElementById('modify_extra_fees').value = '';
-        document.getElementById('modify_age').value = '';
-        document.selectorAll('.item-quantity').forEach(input => input.value = 0);
-        document.querySelectorAll('.worker-select').forEach(checkbox => checkbox.checked = false);
+    // Add event listener to the save button
+    const saveModifyOrderButton = document.getElementById('save_modify_order');
+    if (saveModifyOrderButton) {
+        saveModifyOrderButton.addEventListener('click', saveModifyOrder);
     }
 
-    function populateModifyWorkersTable(workers, tableId) {
-        const tableBody = document.getElementById(tableId).querySelector('tbody');
-        tableBody.innerHTML = '';
-    
-        workers.forEach(worker => {
-            const isSelected = worker.selected === 1;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <input type="checkbox" class="worker-select" data-id="${worker.worker_ID}"
-                        ${isSelected ? 'checked' : ''}>
-                </td>
-                <td>${worker.worker_name}</td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    function getModifyOrderData() {
-        const orderId = document.getElementById('save_modify_order').getAttribute('data-order-id');
-        
-        return {
-            order_id: orderId,
-            event_name: document.getElementById('modify_event_name').value.trim(),
-            event_timestamp: document.getElementById('modify_event_timestamp').value,
-            event_duration: document.getElementById('modify_event_duration').value || 1,
-            assigned_manager: document.getElementById('modify_assigned_manager').value,
-            street: document.getElementById('modify_street').value.trim(),
-            barangay: document.getElementById('modify_barangay').value.trim(),
-            city: document.getElementById('modify_city').value.trim(),
-            first_name: document.getElementById('modify_first_name').value.trim(),
-            middle_name: document.getElementById('modify_middle_name').value.trim(),
-            last_name: document.getElementById('modify_last_name').value.trim(),
-            phone_number: document.getElementById('modify_phone_number').value.trim(),
-            age: document.getElementById('modify_age').value || 0,
-            gender: document.getElementById('modify_gender').value,
-            extra_fees: document.getElementById('modify_extra_fees').value || 0,
-            items: getModifySelectedItems(),
-            workers: getModifySelectedWorkers()
-        };
-    }
-
-    function getModifySelectedItems() {
-        const selectedItems = [];
-        
-        // Get all quantity inputs from modify item tables
-        const quantityInputs = document.querySelectorAll(
-            '#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity'
-        );
-        
-        quantityInputs.forEach(input => {
-            const quantity = parseInt(input.value) || 0;
-            if (quantity > 0) {
-                const itemId = input.dataset.id;
-                const price = parseFloat(input.dataset.price) || 0;
-                selectedItems.push({
-                    item_id: itemId,
-                    quantity: quantity,
-                    price: price
-                });
-            }
-        });
-        
-        return selectedItems;
-    }
 
     // ------------------------------ ACTIVE ORDER PAGE ------------------------------
     
@@ -966,6 +814,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('An error occurred while cancelling the order.');
             });
     }
+
+    // Fetch order items and populate the view_order_item table
+    function fetchOrderItems(orderId) {
+        fetch(`/fetchOrderItems/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                const { items = [], daysRented = 0, extraFees = 0 } = data;
+                const tablebody = document.querySelector('.view_order_item_popup .table_wrapper_view_order tbody');
+                tablebody.innerHTML = '';
+
+                let totalItemSum = 0;
+
+                items.forEach(item => {
+                    // Ensure we have valid numeric values
+                    const subtotal = parseFloat(item.item_subtotal) || 0;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.item_name}</td>
+                        <td>${item.item_description || 'N/A'}</td>
+                        <td>${parseFloat(item.item_price).toFixed(2)}</td>
+                        <td>${item.item_quantity}</td>
+                        <td>${subtotal.toFixed(2)}</td>
+                    `;
+                    tablebody.appendChild(row);
+                    totalItemSum += subtotal;
+                });
+
+                // Ensure all values are proper numbers before calculation
+                const daysRentedValue = parseInt(daysRented) || 0;
+                const extraFeesValue = parseFloat(extraFees) || 0;
+                const itemTotal = extraFeesValue + (daysRentedValue * totalItemSum);
+
+                // Update the cost elements
+                document.getElementById('order_days_rented').textContent = daysRentedValue;
+                document.getElementById('order_item_cost').textContent = totalItemSum.toFixed(2);
+                document.getElementById('order_extra_fees').textContent = extraFeesValue.toFixed(2);
+                document.getElementById('order_total_cost').textContent = itemTotal.toFixed(2);
+            })
+            .catch(error => console.error('Error fetching order items:', error));
+    }
+
+    // Add function to return button (content_active_order)
+    document.getElementById('content_active_order').addEventListener('click', function() {
+        document.querySelector('.view_order_item_popup').classList.remove('active');
+        showPage('content_active_order');
+    });
 
     // ------------------------------ ORDER HISTORY PAGE ------------------------------
     // Order History Navigation
@@ -1284,40 +1179,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching payment types:', error));
     }
 
-    // Function to fetch order items for liability dropdown
-    function fetchOrderItemsForLiability(orderId) {
-        fetch(`/getOrderItemsForLiability/${orderId}`)
-            .then(response => response.json())
-            .then(data => {
-                const selector = document.getElementById('liability_item_id');
-                selector.innerHTML = '';
-                
-                data.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.item_ID;
-                    option.textContent = item.item_name;
-                    option.dataset.maxQuantity = item.item_quantity;
-                    selector.appendChild(option);
-                });
-                
-                // Add change event to update max quantity
-                selector.addEventListener('change', function() {
-                    const selectedOption = this.options[this.selectedIndex];
-                    if (selectedOption) {
-                        const maxQuantity = selectedOption.dataset.maxQuantity;
-                        const quantityInput = document.getElementById('liability_quantity');
-                        quantityInput.max = maxQuantity;
-                        quantityInput.value = maxQuantity > 0 ? 1 : 0;
-                    }
-                });
-                
-                // Trigger change event to set initial max quantity
-                if (selector.options.length > 0) {
-                    selector.dispatchEvent(new Event('change'));
-                }
-            })
-            .catch(error => console.error('Error fetching order items for liability:', error));
-    }
 
     // Function to fetch transactions for a finance ID
     function fetchTransactions(financeId) {

@@ -435,30 +435,27 @@
                         <div class="popup-content">
                             <h3>Order Items</h3>
                             <div class="table_wrapper_view_order">
-                                <table id="order_items_table">
+                                <table>
                                     <thead>
                                         <tr>
-                                            <th>Item ID</th>
-                                            <th>Name</th>
+                                            <th>Item Name</th>
                                             <th>Description</th>
                                             <th>Price</th>
                                             <th>Quantity</th>
                                             <th>Subtotal</th>
                                         </tr>
                                     </thead>
-                                    <tbody></tbody>
+                                    <tbody>
+                                        <!-- Order items will be populated here -->
+                                    </tbody>
                                 </table>
                             </div>
                             <div class="order_cost_summary">
-                                <div class="left-aligned">
-                                    <h3 id="days_rented">Days Rented: 0</h3>
-                                    <h3>Items Subtotal: <span id="order_items_subtotal">0.00</span></h3>
-                                </div>
-                                <div class="right-aligned">
-                                    <h3>Subtotal (with days): <span id="order_subtotal_with_days">0.00</span></h3>
-                                    <h3>Extra Fees: <span id="order_extra_fees">0.00</span></h3>
-                                    <h3>Total: <span id="order_items_total">0.00</span></h3>
-                                </div>
+                                <!-- Order cost summary will be populated here -->
+                                <h4>Days Rented: <span id="order_days_rented">0</span></h4>
+                                <h4>Item Cost: <span id="order_item_cost">0.00</span></h4>
+                                <h4>Extra Fees: <span id="order_extra_fees">0.00</span></h4>
+                                <h4>Total Item Cost: <span id="order_total_cost">0.00</span></h4>
                             </div>
                             <button id="content_active_order">Return</button>
                         </div>
@@ -468,6 +465,7 @@
 
 
                 <section class="content_modify_order" style="display: grid;">
+                    <input type="hidden" id="modify_order_id">
                     <button type="button" id="modify_item_order">MODIFY ITEM LIST</button>
                     <button type="button" id="save_modify_order">SAVE ORDER</button>
                             <!-- ORDER TOTAL-->

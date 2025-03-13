@@ -259,7 +259,7 @@ DROP TABLE IF EXISTS finance_tbl;
 CREATE TABLE finance_tbl (
 finance_ID INT(8) PRIMARY KEY AUTO_INCREMENT,
 order_ID INT(8) NOT NULL UNIQUE,
-extrea_fee DECIMAL(10,2) NOT NULL,
+extra_fee DECIMAL(10,2) NOT NULL,
 total_amount DECIMAL(10,2) NOT NULL,
 payment_status_ID INT(3) NOT NULL,
 FOREIGN KEY (order_ID) REFERENCES order_info_tbl(order_ID),

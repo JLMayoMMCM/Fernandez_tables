@@ -333,266 +333,8 @@ app.get('/getOrderHistory', (req, res) => {
     });
 });
 
-//RETREIVES ITEMS WITH ORDER_ID = SELECTED ROW
-app.get('/getOrderItems/:orderId', (req, res) => {
-    const { orderId } = req.params;
 
-    const query = `
-        SELECT i.item_ID, i.item_name, i.item_description, i.item_price, od.item_quantity,
-                     (i.item_price * od.item_quantity) AS subtotal
-        FROM order_details_tbl od
-        JOIN item_tbl i ON od.item_ID = i.item_ID
-        WHERE od.order_ID = ?
-    `;
 
-    db.query(query, [orderId], (err, results) => {
-        if (err) throw err;
-
-        const orderInfoQuery = `
-            SELECT e.event_date, e.end_event_date, f.extra_Fee
-            FROM event_info_tbl e
-            JOIN finance_tbl f ON e.order_ID = f.order_ID
-            WHERE e.order_ID = ?
-        `;
-
-        db.query(orderInfoQuery, [orderId], (err, orderResults) => {
-            if (err) throw err;
-
-            if (orderResults.length === 0) {
-                return res.status(404).json({ error: 'Order not found' });
-            }
-
-            const { event_date, end_event_date, extra_Fee } = orderResults[0];
-            const daysRented = Math.ceil((new Date(end_event_date) - new Date(event_date)) / (1000 * 60 * 60 * 24));
-
-            res.json({ 
-                items: results, 
-                daysRented, 
-                extraFees: extra_Fee 
-            });
-        });
-    });
-});
-
-// RETRIEVES ORDER DETAILS FOR MODIFICATION
-app.get('/getOrderDetails/:orderId', (req, res) => {
-    const orderId = req.params.orderId;
-
-    const orderQuery = `
-        SELECT o.order_ID, 
-                    e.event_Name AS event_name, 
-                    e.event_date AS event_timestamp, 
-                    e.end_event_date,
-                    f.extra_Fee AS extra_fees,
-                    a.street_Name AS street, 
-                    a.barangay_Name AS barangay, 
-                    a.city_Name AS city,
-                    p.first_Name AS first_name, 
-                    p.middle_Name AS middle_name, 
-                    p.last_Name AS last_name, 
-                    p.phone_Number AS phone_number, 
-                    p.age, 
-                    p.gender_ID AS gender, 
-                    o.manager_ID AS assigned_manager
-        FROM order_info_tbl o
-        JOIN event_info_tbl e ON o.order_ID = e.order_ID
-        JOIN finance_tbl f ON o.order_ID = f.order_ID
-        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
-        JOIN person_tbl p ON c.person_ID = p.person_ID
-        JOIN address_tbl a ON e.address_ID = a.address_ID
-        WHERE o.order_ID = ?
-    `;
-
-    db.query(orderQuery, [orderId], (err, orderResults) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!orderResults.length) return res.status(404).json({ error: 'Order not found' });
-        const order = orderResults[0];
-
-        order.event_duration = Math.ceil(
-            (new Date(order.end_event_date) - new Date(order.event_timestamp)) / (1000 * 60 * 60 * 24)
-        );
-        
-        const itemsQuery = `
-            SELECT 
-                i.item_ID, 
-                i.item_name, 
-                i.item_price,
-                i.item_type_ID,
-                it.item_type_name,
-                COALESCE(SUM(s.item_quantity), 0) AS available_stock,
-                COALESCE(od.item_quantity, 0) AS selected_quantity
-            FROM item_tbl i
-            JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
-            LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
-            LEFT JOIN order_details_tbl od ON i.item_ID = od.item_ID AND od.order_ID = ?
-            GROUP BY i.item_ID, i.item_name, i.item_price, i.item_type_ID, it.item_type_name, od.item_quantity
-            ORDER BY i.item_type_ID, i.item_name
-        `;
-        
-        db.query(itemsQuery, [orderId], (err, items) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            const workersQuery = `
-                SELECT 
-                    w.worker_ID, 
-                    CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name,
-                    CASE WHEN aw.worker_ID IS NULL THEN 0 ELSE 1 END AS selected
-                FROM worker_tbl w
-                JOIN staff_tbl s ON w.staff_ID = s.staff_id
-                JOIN person_tbl p ON s.person_ID = p.person_id
-                LEFT JOIN assigned_worker_tbl aw ON w.worker_ID = aw.worker_ID AND aw.order_ID = ?
-            `;
-            
-            db.query(workersQuery, [orderId], (err, workers) => {
-                if (err) return res.status(500).json({ error: err.message });
-
-                const managersQuery = `
-                    SELECT m.manager_ID AS id, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS name
-                    FROM manager_tbl m
-                    JOIN staff_tbl s ON m.staff_ID = s.staff_id
-                    JOIN person_tbl p ON s.person_ID = p.person_id
-                `;
-                
-                db.query(managersQuery, (err, managers) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    
-                    const gendersQuery = `SELECT gender_ID AS id, gender_Name AS name FROM gender_tbl`;
-                    
-                    db.query(gendersQuery, (err, genders) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        
-                        const tablesItems = items.filter(item => item.item_type_ID === 401);
-                        const chairsItems = items.filter(item => item.item_type_ID === 402);
-                        const miscItems = items.filter(item => item.item_type_ID === 403);
-                        
-                        res.json({ 
-                            order, 
-                            itemsByType: {
-                                tables: tablesItems,
-                                chairs: chairsItems,
-                                misc: miscItems
-                            },
-                            items,
-                            workers, 
-                            managers, 
-                            genders 
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
-
-// RETRIEVES ORDER DETAILS FOR MODIFICATION INCLUDING ITEM QUANTITIES
-app.get('/getOrderDetailsForModification/:orderId', (req, res) => {
-    const orderId = req.params.orderId;
-
-    const orderQuery = `
-        SELECT o.order_ID, 
-                    e.event_Name AS event_name, 
-                    e.event_date AS event_timestamp, 
-                    e.end_event_date,
-                    f.extra_Fee AS extra_fees,
-                    a.street_Name AS street, 
-                    a.barangay_Name AS barangay, 
-                    a.city_Name AS city,
-                    p.first_Name AS first_name, 
-                    p.middle_Name AS middle_name, 
-                    p.last_Name AS last_name, 
-                    p.phone_Number AS phone_number, 
-                    p.age, 
-                    p.gender_ID AS gender, 
-                    o.manager_ID AS assigned_manager
-        FROM order_info_tbl o
-        JOIN event_info_tbl e ON o.order_ID = e.order_ID
-        JOIN finance_tbl f ON o.order_ID = f.order_ID
-        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
-        JOIN person_tbl p ON c.person_ID = p.person_ID
-        JOIN address_tbl a ON e.address_ID = a.address_ID
-        WHERE o.order_ID = ?
-    `;
-
-    db.query(orderQuery, [orderId], (err, orderResults) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!orderResults.length) return res.status(404).json({ error: 'Order not found' });
-        const order = orderResults[0];
-
-        order.event_duration = Math.ceil(
-            (new Date(order.end_event_date) - new Date(order.event_timestamp)) / (1000 * 60 * 60 * 24)
-        );
-        
-        const itemsQuery = `
-            SELECT 
-                i.item_ID, 
-                i.item_name, 
-                i.item_price,
-                i.item_type_ID,
-                it.item_type_name,
-                COALESCE(SUM(s.item_quantity), 0) AS available_stock,
-                COALESCE(od.item_quantity, 0) AS selected_quantity
-            FROM item_tbl i
-            JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
-            LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
-            LEFT JOIN order_details_tbl od ON i.item_ID = od.item_ID AND od.order_ID = ?
-            GROUP BY i.item_ID, i.item_name, i.item_price, i.item_type_ID, it.item_type_name, od.item_quantity
-            ORDER BY i.item_type_ID, i.item_name
-        `;
-        
-        db.query(itemsQuery, [orderId], (err, items) => {
-            if (err) return res.status(500).json({ error: err.message });
-            
-            const workersQuery = `
-                SELECT 
-                    w.worker_ID, 
-                    CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name,
-                    CASE WHEN aw.worker_ID IS NULL THEN 0 ELSE 1 END AS selected
-                FROM worker_tbl w
-                JOIN staff_tbl s ON w.staff_ID = s.staff_id
-                JOIN person_tbl p ON s.person_ID = p.person_id
-                LEFT JOIN assigned_worker_tbl aw ON w.worker_ID = aw.worker_ID AND aw.order_ID = ?
-            `;
-            
-            db.query(workersQuery, [orderId], (err, workers) => {
-                if (err) return res.status(500).json({ error: err.message });
-
-                const managersQuery = `
-                    SELECT m.manager_ID AS id, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS name
-                    FROM manager_tbl m
-                    JOIN staff_tbl s ON m.staff_ID = s.staff_id
-                    JOIN person_tbl p ON s.person_ID = p.person_id
-                `;
-                
-                db.query(managersQuery, (err, managers) => {
-                    if (err) return res.status(500).json({ error: err.message });
-                    
-                    const gendersQuery = `SELECT gender_ID AS id, gender_Name AS name FROM gender_tbl`;
-                    
-                    db.query(gendersQuery, (err, genders) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        
-                        const tablesItems = items.filter(item => item.item_type_ID === 401);
-                        const chairsItems = items.filter(item => item.item_type_ID === 402);
-                        const miscItems = items.filter(item => item.item_type_ID === 403);
-                        
-                        res.json({ 
-                            order, 
-                            itemsByType: {
-                                tables: tablesItems,
-                                chairs: chairsItems,
-                                misc: miscItems
-                            },
-                            items,
-                            workers, 
-                            managers, 
-                            genders 
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
 
 // DELETES ORDER AND ALL RELATED RECORDS
 app.delete('/deleteOrder/:orderId', (req, res) => {
@@ -760,154 +502,6 @@ app.post('/modifyOrder', (req, res) => {
                                         }
                                     });
                                 });
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
-
-// UPDATES EXISTING ORDER
-app.put('/updateOrder/:orderId', (req, res) => {
-    const orderId = req.params.orderId;
-    const {
-        event_name, event_timestamp, event_duration, assigned_manager,
-        street, barangay, city, first_name, middle_name, last_name, phone_number,
-        age, gender, extra_fees, items, workers
-    } = req.body;
-
-    db.beginTransaction(err => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-
-        const getOrderInfoQuery = `
-            SELECT o.customer_ID, c.person_ID, e.address_ID, f.finance_ID
-            FROM order_info_tbl o
-            JOIN customer_tbl c ON o.customer_ID = c.customer_ID
-            JOIN event_info_tbl e ON o.order_ID = e.order_ID
-            JOIN finance_tbl f ON o.order_ID = f.order_ID
-            WHERE o.order_ID = ?
-        `;
-        
-        db.query(getOrderInfoQuery, [orderId], (err, orderInfo) => {
-            if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-            
-            if (!orderInfo.length) {
-                return db.rollback(() => res.status(404).json({ success: false, message: 'Order not found' }));
-            }
-            
-            const { customer_ID, person_ID, address_ID, finance_ID } = orderInfo[0];
-            
-            const updateAddressQuery = `
-                UPDATE address_tbl 
-                SET street_Name = ?, barangay_Name = ?, city_Name = ?
-                WHERE address_ID = ?
-            `;
-            
-            db.query(updateAddressQuery, [street, barangay, city, address_ID], err => {
-                if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                
-                const updatePersonQuery = `
-                    UPDATE person_tbl
-                    SET first_Name = ?, last_Name = ?, middle_Name = ?, phone_Number = ?, age = ?, gender_ID = ?
-                    WHERE person_id = ?
-                `;
-                
-                db.query(updatePersonQuery, [first_name, last_name, middle_name, phone_number, age, gender, person_ID], err => {
-                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                    
-                    const updateOrderQuery = `
-                        UPDATE order_info_tbl
-                        SET manager_ID = ?
-                        WHERE order_ID = ?
-                    `;
-                    
-                    db.query(updateOrderQuery, [assigned_manager, orderId], err => {
-                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                        
-                        const updateEventQuery = `
-                            UPDATE event_info_tbl
-                            SET event_Name = ?, event_date = ?, end_event_date = ?
-                            WHERE order_ID = ?
-                        `;
-                        
-                        const endEventDate = new Date(new Date(event_timestamp).getTime() + (event_duration * 24 * 60 * 60 * 1000));
-                        
-                        db.query(updateEventQuery, [event_name, event_timestamp, endEventDate, orderId], err => {
-                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                            
-                            const deleteOrderDetailsQuery = 'DELETE FROM order_details_tbl WHERE order_ID = ?';
-                            
-                            db.query(deleteOrderDetailsQuery, [orderId], err => {
-                                if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                
-                                if (items.length > 0) {
-                                    const orderDetailsQuery = 'INSERT INTO order_details_tbl (order_ID, item_ID, item_quantity) VALUES ?';
-                                    const orderDetailsValues = items.map(item => [orderId, item.item_id, item.quantity]);
-                                    
-                                    db.query(orderDetailsQuery, [orderDetailsValues], err => {
-                                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                        
-                                        const deleteWorkersQuery = 'DELETE FROM assigned_worker_tbl WHERE order_ID = ?';
-                                        
-                                        db.query(deleteWorkersQuery, [orderId], err => {
-                                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                            
-                                            if (workers.length > 0) {
-                                                const assignedWorkersQuery = 'INSERT INTO assigned_worker_tbl (order_ID, worker_ID) VALUES ?';
-                                                const assignedWorkersValues = workers.map(workerId => [orderId, workerId]);
-                                                
-                                                db.query(assignedWorkersQuery, [assignedWorkersValues], err => {
-                                                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                                    
-                                                    const subtotalPrice = items.reduce((sum, item) => sum + (item.quantity * item.price), 0) * (parseFloat(event_duration) || 1);
-                                                    const totalPrice = subtotalPrice + parseFloat(extra_fees);
-                                                    
-                                                    const updateFinanceQuery = `
-                                                        UPDATE finance_tbl
-                                                        SET extra_Fee = ?, total_amount = ?
-                                                        WHERE finance_ID = ?
-                                                    `;
-                                                    
-                                                    db.query(updateFinanceQuery, [extra_fees, totalPrice, finance_ID], err => {
-                                                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                                        
-                                                        const updateStatusQuery = `
-                                                            UPDATE finance_tbl f
-                                                            SET f.payment_status_id = 
-                                                                CASE 
-                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
-                                                                    THEN 304
-                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
-                                                                    THEN 301
-                                                                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
-                                                                    AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
-                                                                    THEN 302
-                                                                    ELSE 303
-                                                                END
-                                                            WHERE f.finance_ID = ?
-                                                        `;
-                                                        
-                                                        db.query(updateStatusQuery, [finance_ID], err => {
-                                                            if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                                            
-                                                            db.commit(err => {
-                                                                if (err) return db.rollback(() => res.status(500).json({ success: false, message: err.message }));
-                                                                
-                                                                res.json({ success: true, message: 'Order updated successfully' });
-                                                            });
-                                                        });
-                                                    });
-                                                });
-                                            } else {
-                                                db.rollback(() => res.status(400).json({ success: false, message: 'At least one worker must be selected' }));
-                                            }
-                                        });
-                                    });
-                                } else {
-                                    db.rollback(() => res.status(400).json({ success: false, message: 'At least one item must be selected' }));
-                                }
                             });
                         });
                     });
@@ -1294,7 +888,7 @@ app.get('/getPaymentOrders', (req, res) => {
             f.extra_Fee AS extra_fees,
             IFNULL(l.total_liabilities, 0) AS liabilities,
             (f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
-            ((f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)))
+            ((f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))
             - IFNULL(pmt.total_payment, 0)) AS balance,
             '' AS actions
         FROM finance_tbl f
@@ -1603,23 +1197,6 @@ app.delete('/deleteLiability/:financeId/:liabilityTitle', (req, res) => {
     });
 });
 
-// Route to get item details for modification
-app.get('/getItemDetails/:id', (req, res) => {
-    const itemId = req.params.id;
-    const query = `
-        SELECT i.item_ID, i.item_name, i.item_description, i.item_price, i.item_type_ID
-        FROM item_tbl i
-        WHERE i.item_ID = ?
-    `;
-    db.query(query, [itemId], (error, results) => {
-        if (error) {
-            console.error('Error fetching item details:', error);
-            res.status(500).json({ error: 'Error fetching item details' });
-        } else {
-            res.json(results[0]);
-        }
-    });
-});
 
 // Route to update item details
 app.put('/updateItem/:id', (req, res) => {
@@ -1757,13 +1334,6 @@ app.get('/getStockInfo', (req, res) => {
 
 // Get finance ID by order ID
 app.get('/getFinanceIdByOrderId/:orderId', (req, res) => {
-    const orderId = req.params.orderId;
-    
-    const query = `
-        SELECT finance_ID AS financeId
-        FROM finance_tbl
-        WHERE order_ID = ?
-    `;
     
     db.query(query, [orderId], (err, results) => {
         if (err) {
@@ -1779,8 +1349,156 @@ app.get('/getFinanceIdByOrderId/:orderId', (req, res) => {
     });
 });
 
-// ---------------------------- END OF API ENDPOINTS ----------------------------
+// Fetch order items and details
+app.get('/fetchOrderItems/:orderId', (req, res) => {
+    const { orderId } = req.params;
 
+    const query = `
+        SELECT 
+            i.item_name, 
+            i.item_description, 
+            i.item_price, 
+            od.item_quantity, 
+            (i.item_price * od.item_quantity) AS item_subtotal,
+            f.extra_Fee AS extra_fees,
+            DATEDIFF(e.end_event_date, e.event_date) AS days_rented
+        FROM order_details_tbl od
+        JOIN item_tbl i ON od.item_ID = i.item_ID
+        JOIN finance_tbl f ON od.order_ID = f.order_ID
+        JOIN event_info_tbl e ON od.order_ID = e.order_ID
+        WHERE od.order_ID = ?
+    `;
+
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Error fetching order items:', err);
+            return res.status(500).json({ error: 'Failed to fetch order items' });
+        }
+        
+        // Ensure all numeric values are actual numbers
+        const formattedResults = results.map(item => ({
+            ...item,
+            item_price: parseFloat(item.item_price),
+            item_quantity: parseInt(item.item_quantity),
+            item_subtotal: parseFloat(item.item_subtotal),
+            extra_fees: parseFloat(item.extra_fees || 0),
+            days_rented: parseInt(item.days_rented || 0)
+        }));
+        
+        res.json({ 
+            items: formattedResults, 
+            daysRented: formattedResults[0]?.days_rented || 0, 
+            extraFees: formattedResults[0]?.extra_fees || 0 
+        });
+    });
+});
+
+// FETCH ORDER DETAILS FOR MODIFICATION
+app.get('/fetchOrderDetails/:orderId', (req, res) => {
+    const { orderId } = req.params;
+
+    // Complex query to fetch all information for an order
+    const orderQuery = `
+        SELECT 
+            o.order_ID, 
+            e.event_Name, 
+            e.event_date, 
+            DATEDIFF(e.end_event_date, e.event_date) AS event_duration,
+            o.manager_ID,
+            a.street_Name, 
+            a.barangay_Name, 
+            a.city_Name,
+            p.first_Name,
+            p.middle_Name,
+            p.last_Name,
+            p.phone_Number,
+            p.age,
+            p.gender_ID,
+            f.extra_Fee
+        FROM order_info_tbl o
+        JOIN event_info_tbl e ON o.order_ID = e.order_ID
+        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
+        JOIN person_tbl p ON c.person_ID = p.person_id
+        JOIN address_tbl a ON e.address_ID = a.address_ID
+        JOIN finance_tbl f ON o.order_ID = f.order_ID
+        WHERE o.order_ID = ?
+    `;
+
+    // Enhanced query to fetch order items with type info
+    const itemsQuery = `
+        SELECT 
+            od.item_ID,
+            i.item_name,
+            i.item_price,
+            od.item_quantity,
+            i.item_type_ID,
+            it.item_type_name
+        FROM order_details_tbl od
+        JOIN item_tbl i ON od.item_ID = i.item_ID
+        JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
+        WHERE od.order_ID = ?
+    `;
+
+    // Query to fetch assigned workers
+    const workersQuery = `
+        SELECT worker_ID
+        FROM assigned_worker_tbl
+        WHERE order_ID = ?
+    `;
+
+    // Fetch all details in parallel
+    db.query(`${orderQuery}; ${itemsQuery}; ${workersQuery}`, [orderId, orderId, orderId], (err, results) => {
+        if (err) {
+            console.error('Error fetching order details:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        
+        const [orderDetails, orderItems, assignedWorkers] = results;
+        
+        if (orderDetails.length === 0) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        // Format the order details
+        const formattedOrder = orderDetails[0];
+        formattedOrder.event_date = new Date(formattedOrder.event_date)
+            .toISOString()
+            .slice(0, 16); // Format as YYYY-MM-DDTHH:MM for datetime-local input
+
+        // Group items by type and add selected_quantity to each item
+        const itemsByType = {
+            tables: [],
+            chairs: [],
+            miscellaneous: []
+        };
+
+        console.log("Order items from database:", orderItems);
+
+        orderItems.forEach(item => {
+            // Add selected_quantity property
+            item.selected_quantity = parseInt(item.item_quantity);
+            
+            // Group by item type name for more reliability
+            if (item.item_type_name === 'Tables') {
+                itemsByType.tables.push(item);
+            } else if (item.item_type_name === 'Chairs') {
+                itemsByType.chairs.push(item);
+            } else {
+                itemsByType.miscellaneous.push(item);
+            }
+        });
+
+        // Extract just the worker IDs
+        const workerIds = assignedWorkers.map(worker => worker.worker_ID);
+
+        res.json({ 
+            success: true, 
+            orderDetails: formattedOrder,
+            items: itemsByType,
+            assignedWorkers: workerIds
+        });
+    });
+});
 
 // LOGIN NAVIGATION
 app.get('/', (_, res) => {
