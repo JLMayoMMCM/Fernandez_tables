@@ -1,5 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+
+    //Initialize the payment channel
+    const paymentChannelButton = document.querySelector('.nav-button[data-page="content_payment_order"]');
+    if (paymentChannelButton) {
+        paymentChannelButton.addEventListener('click', function() {
+            fetchPaymentOrders();
+        });
+    }
+
     //Handles Navigation
     function showPage(pageId) {
         // Hide all sections
@@ -429,37 +438,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                // Store order ID in a hidden field or data attribute for later use in form submission
+                // Store order ID in a hidden field for later use in form submission
                 document.getElementById('modify_order_id').value = orderId;
                 
                 // Populate form fields with order details
                 const details = data.orderDetails;
                 
+                // Format date for datetime-local input
+                const eventDate = details.event_date ? new Date(details.event_date)
+                    .toISOString()
+                    .slice(0, 16) : ''; // Format as YYYY-MM-DDTHH:MM
+                
                 // Event Info
-                document.getElementById('modify_event_name').value = details.event_Name;
-                document.getElementById('modify_event_timestamp').value = details.event_date;
-                document.getElementById('modify_event_duration').value = details.event_duration;
-                document.getElementById('modify_assigned_manager').value = details.manager_ID;
+                document.getElementById('modify_event_name').value = details.event_Name || '';
+                document.getElementById('modify_event_timestamp').value = eventDate;
+                document.getElementById('modify_event_duration').value = details.event_duration || 1;
+                document.getElementById('modify_assigned_manager').value = details.manager_ID || '';
                 
                 // Address Info
-                document.getElementById('modify_street').value = details.street_Name;
-                document.getElementById('modify_barangay').value = details.barangay_Name;
-                document.getElementById('modify_city').value = details.city_Name;
+                document.getElementById('modify_street').value = details.street_Name || '';
+                document.getElementById('modify_barangay').value = details.barangay_Name || '';
+                document.getElementById('modify_city').value = details.city_Name || '';
                 
                 // Customer Info
-                document.getElementById('modify_first_name').value = details.first_Name;
+                document.getElementById('modify_first_name').value = details.first_Name || '';
                 document.getElementById('modify_middle_name').value = details.middle_Name || '';
-                document.getElementById('modify_last_name').value = details.last_Name;
-                document.getElementById('modify_phone_number').value = details.phone_Number;
-                document.getElementById('modify_age').value = details.age;
-                document.getElementById('modify_gender').value = details.gender_ID;
-                document.getElementById('modify_extra_fees').value = details.extra_Fee;
+                document.getElementById('modify_last_name').value = details.last_Name || '';
+                document.getElementById('modify_phone_number').value = details.phone_Number || '';
+                document.getElementById('modify_age').value = details.age || '';
+                document.getElementById('modify_gender').value = details.gender_ID || '';
+                document.getElementById('modify_extra_fees').value = details.extra_Fee || 0;
 
                 // Populate tables with selected quantities
                 populateModifyItemTables(data.items);
                 
                 // Mark selected workers
-                markSelectedWorkers(data.assignedWorkers);
+                markSelectedWorkers(data.workers);
                 
                 // Update subtotal and total price
                 updateModifySubtotal();
@@ -471,49 +485,85 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to populate modify tables with items and their quantities
-    function populateModifyItemTables(itemsByType) {
-        // Clear existing selected quantities
-        document.querySelectorAll('#modify_tables_Container .item-quantity, #modify_chairs_Container .item-quantity, #modify_misc_Container .item-quantity')
-            .forEach(input => {
-                input.value = 0;
+    function populateModifyItemTables(items) {
+        // Group items by type
+        const itemsByType = {
+            201: [], // Tables
+            202: [], // Chairs
+            203: []  // Miscellaneous
+        };
+        
+        // Group items by their type
+        items.forEach(item => {
+            const typeId = parseInt(item.item_type_ID);
+            if (itemsByType.hasOwnProperty(typeId)) {
+                itemsByType[typeId].push(item);
+            }
+        });
+        
+        // Function to populate a specific table
+        const populateTable = (items, containerId) => {
+            const tableBody = document.getElementById(containerId).querySelector('tbody');
+            tableBody.innerHTML = '';
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                const availableStock = parseInt(item.available_stock) || 0;
+                const selectedQty = parseInt(item.selected_quantity) || 0;
+                const maxQty = availableStock + selectedQty; // Allow selecting up to available + currently selected
+                
+                row.innerHTML = `
+                    <td class="item-id" data-id="${item.item_ID}">${item.item_name}</td>
+                    <td class="item-price">${item.item_price}</td>
+                    <td>${availableStock}</td>
+                    <td>
+                        <button class="quantity-btn minus">-</button>
+                        <input type="number" class="item-quantity" min="0" max="${maxQty}" 
+                               value="${selectedQty}" data-id="${item.item_ID}" 
+                               data-price="${item.item_price}" style="background: none;">
+                        <button class="quantity-btn plus">+</button>
+                    </td>
+                    <td class="item-subtotal">${(selectedQty * item.item_price).toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+                
+                // Add event listeners for quantity buttons
+                const quantityInput = row.querySelector('.item-quantity');
+                const minusBtn = row.querySelector('.minus');
+                const plusBtn = row.querySelector('.plus');
+                
+                minusBtn.addEventListener('click', () => {
+                    if (quantityInput.value > 0) {
+                        quantityInput.value = parseInt(quantityInput.value) - 1;
+                        quantityInput.dispatchEvent(new Event('input'));
+                    }
+                });
+                
+                plusBtn.addEventListener('click', () => {
+                    if (parseInt(quantityInput.value) < maxQty) {
+                        quantityInput.value = parseInt(quantityInput.value) + 1;
+                        quantityInput.dispatchEvent(new Event('input'));
+                    }
+                });
+                
+                // Add event listener for quantity input
+                quantityInput.addEventListener('input', () => {
+                    validateNumericInput(quantityInput, 0, maxQty);
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    const price = parseFloat(item.item_price);
+                    row.querySelector('.item-subtotal').textContent = (quantity * price).toFixed(2);
+                    updateModifySubtotal();
+                });
             });
+        };
         
-        // Set selected quantities from order
-        itemsByType.tables.forEach(item => {
-            const input = document.querySelector(`#modify_tables_Container .item-quantity[data-id="${item.item_ID}"]`);
-            if (input) {
-                input.value = item.selected_quantity;
-                
-                // Update subtotal in row
-                const row = input.closest('tr');
-                const subtotalCell = row.querySelector('.item-subtotal');
-                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
-            }
-        });
+        // Populate each table with its corresponding items
+        populateTable(itemsByType[201], 'modify_tables_Container');
+        populateTable(itemsByType[202], 'modify_chairs_Container');
+        populateTable(itemsByType[203], 'modify_misc_Container');
         
-        itemsByType.chairs.forEach(item => {
-            const input = document.querySelector(`#modify_chairs_Container .item-quantity[data-id="${item.item_ID}"]`);
-            if (input) {
-                input.value = item.selected_quantity;
-                
-                // Update subtotal in row
-                const row = input.closest('tr');
-                const subtotalCell = row.querySelector('.item-subtotal');
-                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
-            }
-        });
-        
-        itemsByType.miscellaneous.forEach(item => {
-            const input = document.querySelector(`#modify_misc_Container .item-quantity[data-id="${item.item_ID}"]`);
-            if (input) {
-                input.value = item.selected_quantity;
-                
-                // Update subtotal in row
-                const row = input.closest('tr');
-                const subtotalCell = row.querySelector('.item-subtotal');
-                subtotalCell.textContent = (item.selected_quantity * item.item_price).toFixed(2);
-            }
-        });
+        // Update the total subtotal
+        updateModifySubtotal();
     }
 
     // Function to mark selected workers
@@ -714,6 +764,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchOrderDetails(orderId);
         });
     });
+            
 
 
     document.querySelectorAll('.view-order').forEach(button => {
@@ -730,6 +781,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Active Order Behaviour
+
+    // Add event listener for the assigned workers return button
+    document.getElementById('assigned_workers_return_btn').addEventListener('click', function() {
+        document.querySelector('.view_assigned_workers_popup').classList.remove('active');
+    });
+
+    // Add function to return button (content_active_order)
+    document.getElementById('content_active_order').addEventListener('click', function() {
+        document.querySelector('.view_order_item_popup').classList.remove('active');
+        showPage('content_active_order');
+    });
+
+
     function fetchActiveOrders() {
         fetch('/getActiveOrders')
             .then(response => response.json())
@@ -749,6 +813,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.manager_name}</td>
                         <td>${order.total_amount}</td>
                         <td class="horizontal-button-container">
+                            <div class="button-grid">
                             <button class="icon-button view-order" data-id="${order.order_ID}">
                                 <i class="fa-solid fa-eye"></i>
                                 <span class="tooltip">View Order</span>
@@ -757,10 +822,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span class="tooltip">Modify Order</span>
                             </button>
+                                <button class="icon-button view-workers" data-id="${order.order_ID}">
+                                    <i class="fa-solid fa-users"></i>
+                                    <span class="tooltip">View Workers</span>
+                            </button>
                             <button class="icon-button cancel-order" data-id="${order.order_ID}">
                                 <i class="fa-solid fa-ban"></i>
                                 <span class="tooltip">Cancel Order</span>
                             </button>
+                            </div>
                         </td>
                     `;
                     tablebody.appendChild(row);
@@ -783,6 +853,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 });
 
+                document.querySelectorAll('.view-workers').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const orderId = this.dataset.id;
+                        fetch(`/getOrderWorkers/${orderId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const tablebody = document.getElementById('assigned_workers_table').querySelector('tbody');
+                                tablebody.innerHTML = '';
+
+                                if (data.length === 0) {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = '<td colspan="2">No workers assigned to this order</td>';
+                                    tablebody.appendChild(row);
+                                } else {
+                                    data.forEach(worker => {
+                                        const row = document.createElement('tr');
+                                        row.innerHTML = `
+                                            <td>${worker.worker_ID}</td>
+                                            <td>${worker.worker_name}</td>
+                                        `;
+                                        tablebody.appendChild(row);
+                                    });
+                                }
+                                document.querySelector('.view_assigned_workers_popup').classList.add('active');
+                            })
+                            .catch(error => console.error('Error fetching assigned workers:', error));
+                    });
+                });
+
                 document.querySelectorAll('.cancel-order').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
@@ -791,12 +890,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                 });
-
             })
             .catch(error => console.error('Error fetching active orders:', error));
     }
-
-
 
     function cancelOrder(orderId) {
         fetch(`/cancelOrder/${orderId}`, { method: 'PUT' })
@@ -856,14 +952,15 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching order items:', error));
     }
 
-    // Add function to return button (content_active_order)
-    document.getElementById('content_active_order').addEventListener('click', function() {
-        document.querySelector('.view_order_item_popup').classList.remove('active');
-        showPage('content_active_order');
-    });
+
 
     // ------------------------------ ORDER HISTORY PAGE ------------------------------
     // Order History Navigation
+
+    document.getElementById('order_history_items_return').addEventListener('click', function() {
+        document.querySelector('.view_order_item_history').classList.remove('active');
+    });
+
 
     // Order History Behaviour
     function deleteOrder(orderId, callback) {
@@ -886,9 +983,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    document.getElementById('order_history_items_return').addEventListener('click', function() {
-        document.querySelector('.view_order_item_history').classList.remove('active');
-    });
 
 
     function fetchOrderHistory() {
@@ -971,27 +1065,208 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showOrderHistoryDetails(orderId) {
-        fetchOrderItems(orderId);
-        fetchOrderTransactions(orderId);
-        fetchOrderLiabilities(orderId);
-        document.querySelector('.view_order_item_history').classList.add('active');
+        // First check if all required elements exist
+        const requiredElements = [
+            'history_event_name',
+            'history_event_date',
+            'history_end_date',
+            'history_customer_name',
+            'history_address',
+            'history_contact',
+            'history_manager',
+            'history_transactions_table',
+            'history_liabilities_table',
+            'history_items_table',
+            'history_days_rented',
+            'history_subtotal',
+            'history_extra_fees',
+            'history_total',
+            'history_total_payment',
+            'history_total_liability',
+            'history_missing_requirements'
+        ];
+
+        // Check if all elements exist
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        if (missingElements.length > 0) {
+            console.error('Missing elements:', missingElements);
+            alert('Error: Some required elements are missing from the page.');
+            return;
+        }
+
+        // Show the popup before fetching data
+        const popup = document.querySelector('.view_order_item_history');
+        if (popup) {
+            popup.classList.add('active');
+        }
+
+        // Fetch order details using the new endpoint
+        fetch(`/getOrderHistoryDetails/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                try {
+                    // Populate Customer & Event Info
+                    const details = data.orderDetails;
+                    if (details) {
+                        document.getElementById('history_event_name').textContent = details.event_Name || 'N/A';
+                        document.getElementById('history_event_date').textContent = details.event_date || 'N/A';
+                        document.getElementById('history_end_date').textContent = details.end_event_date || 'N/A';
+                        document.getElementById('history_customer_name').textContent = details.customer_name || 'N/A';
+                        document.getElementById('history_address').textContent = details.full_address || 'N/A';
+                        document.getElementById('history_contact').textContent = details.phone_Number || 'N/A';
+                        document.getElementById('history_manager').textContent = details.manager_name || 'N/A';
+                    }
+
+                    // Display Missing Requirements
+                    const missingReqContainer = document.getElementById('history_missing_requirements');
+                    missingReqContainer.innerHTML = '';
+                    if (data.missingRequirements && data.missingRequirements.length > 0) {
+                        const missingList = document.createElement('div');
+                        missingList.className = 'missing-requirements-list';
+                        missingList.innerHTML = '<h4>Missing Requirements</h4>';
+                        
+                        const table = document.createElement('table');
+                        table.innerHTML = `
+                            <thead>
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Required Quantity</th>
+                                    <th>Available Quantity</th>
+                                    <th>Missing Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.missingRequirements.map(item => `
+                                    <tr>
+                                        <td>${item.item_name}</td>
+                                        <td>${item.required_quantity}</td>
+                                        <td>${item.available_quantity}</td>
+                                        <td class="missing-quantity">${item.missing_quantity}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        `;
+                        missingList.appendChild(table);
+                        missingReqContainer.appendChild(missingList);
+                    } else {
+                        missingReqContainer.innerHTML = '<div class="no-missing">All requirements are met</div>';
+                    }
+
+                    // Populate Transactions Table
+                    const transactionBody = document.getElementById('history_transactions_table').querySelector('tbody');
+                    transactionBody.innerHTML = '';
+                    let totalPayment = 0;
+
+                    if (data.transactions && data.transactions.length > 0) {
+                        data.transactions.forEach(transaction => {
+                            const row = document.createElement('tr');
+                            const amount = parseFloat(transaction.payment_amount) || 0;
+                            row.innerHTML = `
+                                <td>${transaction.payment_type || 'N/A'}</td>
+                                <td>${amount.toFixed(2)}</td>
+                                <td>${transaction.payment_reference_no || 'N/A'}</td>
+                                <td>${transaction.date_of_payment || 'N/A'}</td>
+                            `;
+                            transactionBody.appendChild(row);
+                            totalPayment += amount;
+                        });
+                    } else {
+                        transactionBody.innerHTML = '<tr><td colspan="4">No transactions found</td></tr>';
+                    }
+                    document.getElementById('history_total_payment').textContent = totalPayment.toFixed(2);
+
+                    // Populate Liabilities Table
+                    const liabilityBody = document.getElementById('history_liabilities_table').querySelector('tbody');
+                    liabilityBody.innerHTML = '';
+                    let totalLiability = 0;
+
+                    if (data.liabilities && data.liabilities.length > 0) {
+                        data.liabilities.forEach(liability => {
+                            const row = document.createElement('tr');
+                            const amount = parseFloat(liability.liability_amount) || 0;
+                            row.innerHTML = `
+                                <td>${liability.liability_title || 'N/A'}</td>
+                                <td>${liability.item_name || 'N/A'}</td>
+                                <td>${liability.item_quantity || '0'}</td>
+                                <td>${amount.toFixed(2)}</td>
+                                <td>${liability.liability_description || 'N/A'}</td>
+                                <td>${liability.liability_date || 'N/A'}</td>
+                            `;
+                            liabilityBody.appendChild(row);
+                            totalLiability += amount;
+                        });
+                    } else {
+                        liabilityBody.innerHTML = '<tr><td colspan="6">No liabilities found</td></tr>';
+                    }
+                    document.getElementById('history_total_liability').textContent = totalLiability.toFixed(2);
+
+                    // Populate Items Table and Calculations
+                    const itemBody = document.getElementById('history_items_table').querySelector('tbody');
+                    itemBody.innerHTML = '';
+                    let subtotal = 0;
+
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const itemSubtotal = parseFloat(item.item_subtotal) || 0;
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${item.item_name || 'N/A'}</td>
+                                <td>${item.item_description || 'N/A'}</td>
+                                <td>${parseFloat(item.item_price).toFixed(2)}</td>
+                                <td>${item.item_quantity}</td>
+                                <td>${itemSubtotal.toFixed(2)}</td>
+                            `;
+                            itemBody.appendChild(row);
+                            subtotal += itemSubtotal;
+                        });
+                    } else {
+                        itemBody.innerHTML = '<tr><td colspan="5">No items found</td></tr>';
+                    }
+
+                    // Update Summary Information
+                    const daysRented = parseInt(details.daysRented) || 0;
+                    const extraFees = parseFloat(details.extraFees) || 0;
+                    const total = (subtotal * daysRented) + extraFees;
+
+                    document.getElementById('history_days_rented').textContent = daysRented;
+                    document.getElementById('history_subtotal').textContent = subtotal.toFixed(2);
+                    document.getElementById('history_extra_fees').textContent = extraFees.toFixed(2);
+                    document.getElementById('history_total').textContent = total.toFixed(2);
+
+                } catch (error) {
+                    console.error('Error processing order history details:', error);
+                    alert('Error processing order details. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching order history details:', error);
+                alert('Error loading order details. Please try again.');
+            });
     }
-    
+
+
 
     // ------------------------------- PAYMENT ORDER PAGE ------------------------------
     // Payment Order Navigation
-    document.getElementById('transactions_return_btn').addEventListener('click', function() {
+    const transactionsReturnBtn = document.getElementById('transactions_return_btn');
+    if (transactionsReturnBtn) {
+        transactionsReturnBtn.addEventListener('click', function() {
         document.querySelector('.view_transactions_popup').classList.remove('active');
         fetchPaymentOrders();
     });
+    }
 
-    document.getElementById('liabilities_return_btn').addEventListener('click', function() {
+    const liabilitiesReturnBtn = document.getElementById('liabilities_return_btn');
+    if (liabilitiesReturnBtn) {
+        liabilitiesReturnBtn.addEventListener('click', function() {
         document.querySelector('.view_liabilities_popup').classList.remove('active');
         fetchPaymentOrders();
     });
+    }
 
 
     // Payment Order Behaviour
+
     function fetchPaymentOrders() {
         fetch('/getPaymentOrders')
             .then(response => {
@@ -1006,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (data.length === 0) {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="11">No payment orders found</td>';
+                    row.innerHTML = '<td colspan="12">No payment orders found</td>';
                     tablebody.appendChild(row);
                     return;
                 }
@@ -1024,6 +1299,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${parseFloat(order.liabilities).toFixed(2)}</td>
                         <td>${parseFloat(order.total_amount).toFixed(2)}</td>
                         <td>${parseFloat(order.balance).toFixed(2)}</td>
+                        <td>${order.status}</td>
                         <td class="button-container">
                             <button class="icon-button create-transaction" data-id="${order.finance_ID}" data-orderid="${order.order_ID}" data-balance="${order.balance}">
                                 <i class="fa-solid fa-file-circle-plus"></i>
@@ -1041,8 +1317,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fa-solid fa-file-invoice-dollar"></i>
                                 <span class="tooltip">View Liabilities</span>
                             </button>
-                        </td>
-                    `;
+                        </td>`;
                     tablebody.appendChild(row);
                 });
 
@@ -1052,11 +1327,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error fetching payment orders:', error);
                 const tablebody = document.getElementById('payment_order_table').querySelector('tbody');
-                tablebody.innerHTML = '<tr><td colspan="11">Error loading payment orders</td></tr>';
+                tablebody.innerHTML = '<tr><td colspan="12">Error loading payment orders</td></tr>';
             });
     }
 
-    // Function to add event listeners to payment order buttons
+    // Add payment button listeners
     function addPaymentButtonListeners() {
         // Create Transaction button
         document.querySelectorAll('.create-transaction').forEach(button => {
@@ -1070,7 +1345,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 paymentAmountInput.max = balance;
                 paymentAmountInput.value = balance;
                 
-                document.getElementById('submit_transaction_btn').dataset.financeId = financeId;
+                // Set up the submit transaction button handler
+                const submitTransactionBtn = document.getElementById('submit_transaction_btn');
+                submitTransactionBtn.dataset.financeId = financeId;
+                
+                // Remove any existing click listeners
+                const newSubmitBtn = submitTransactionBtn.cloneNode(true);
+                submitTransactionBtn.parentNode.replaceChild(newSubmitBtn, submitTransactionBtn);
+                
+                // Add new click listener
+                newSubmitBtn.addEventListener('click', function() {
+                    if (!validateTransactionForm()) {
+                        return;
+                    }
+                    
+                    const financeId = this.dataset.financeId;
+                    const paymentTypeId = document.getElementById('payment_type').value;
+                    const paymentAmount = document.getElementById('payment_amount').value;
+                    const referenceNumber = document.getElementById('payment_reference').value;
+                    
+                    fetch('/addTransaction', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            financeId,
+                            paymentTypeId,
+                            paymentAmount,
+                            referenceNumber
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            clearTransactionForm();
+                            document.querySelector('.view_create_transaction_popup').classList.remove('active');
+                            fetchPaymentOrders(); // Refresh the payment orders table
+                        } else {
+                            alert(`Error: ${data.message}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding transaction:', error);
+                        alert('An error occurred while adding the transaction.');
+                    });
+                });
                 
                 // Show the popup
                 document.querySelector('.view_create_transaction_popup').classList.add('active');
@@ -1082,6 +1403,15 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function() {
                 const financeId = this.dataset.id;
                 const orderId = this.dataset.orderid;
+                
+                // Set current date and time for liability date input
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('liability_date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
                 
                 // Fetch both order items for liability AND managers for the dropdown
                 Promise.all([
@@ -1097,7 +1427,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const option = document.createElement('option');
                         option.value = item.item_ID;
                         option.textContent = item.item_name;
-                        option.dataset.maxQuantity = item.item_quantity;
+                        option.dataset.maxQuantity = item.available_quantity;
                         itemSelector.appendChild(option);
                     });
                     
@@ -1105,10 +1435,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     itemSelector.addEventListener('change', function() {
                         const selectedOption = this.options[this.selectedIndex];
                         if (selectedOption) {
-                            const maxQuantity = selectedOption.dataset.maxQuantity;
+                            const maxQuantity = parseInt(selectedOption.dataset.maxQuantity);
                             const quantityInput = document.getElementById('liability_quantity');
                             quantityInput.max = maxQuantity;
                             quantityInput.value = maxQuantity > 0 ? 1 : 0;
+                            validateNumericInput(quantityInput, 1, maxQuantity);
+                        }
+                    });
+
+                    // Add input validation for quantity
+                    const quantityInput = document.getElementById('liability_quantity');
+                    quantityInput.addEventListener('input', function() {
+                        const selectedOption = itemSelector.options[itemSelector.selectedIndex];
+                        if (selectedOption) {
+                            const maxQuantity = parseInt(selectedOption.dataset.maxQuantity);
+                            validateNumericInput(this, 1, maxQuantity);
                         }
                     });
                     
@@ -1129,8 +1470,61 @@ document.addEventListener('DOMContentLoaded', function() {
                         managerSelector.appendChild(option);
                     });
                     
-                    // Set the financeId on the submit button
-                    document.getElementById('submit_liability_btn').dataset.financeId = financeId;
+                    // Set up the submit liability button handler
+                    const submitLiabilityBtn = document.getElementById('submit_liability_btn');
+                    submitLiabilityBtn.dataset.financeId = financeId;
+                    
+                    // Remove any existing click listeners
+                    const newSubmitBtn = submitLiabilityBtn.cloneNode(true);
+                    submitLiabilityBtn.parentNode.replaceChild(newSubmitBtn, submitLiabilityBtn);
+                    
+                    // Add new click listener
+                    newSubmitBtn.addEventListener('click', function() {
+                        if (!validateLiabilityForm()) {
+                            return;
+                        }
+                        
+                        const financeId = this.dataset.financeId;
+                        const title = document.getElementById('liability_title').value;
+                        const itemId = document.getElementById('liability_item_id').value;
+                        const quantity = document.getElementById('liability_quantity').value;
+                        const amount = document.getElementById('liability_amount').value;
+                        const description = document.getElementById('liability_description').value;
+                        const date = document.getElementById('liability_date').value;
+                        const managerId = document.getElementById('liability_manager_id').value;
+                        
+                        fetch('/addLiability', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                financeId,
+                                title,
+                                itemId,
+                                quantity,
+                                amount,
+                                description,
+                                date,
+                                managerId
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert(data.message);
+                                clearLiabilityForm();
+                                document.querySelector('.view_add_liability_popup').classList.remove('active');
+                                fetchPaymentOrders(); // Refresh the payment orders table
+                            } else {
+                                alert(`Error: ${data.message}`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error adding liability:', error);
+                            alert('An error occurred while adding the liability.');
+                        });
+                    });
                     
                     // Show the popup
                     document.querySelector('.view_add_liability_popup').classList.add('active');
@@ -1194,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.innerHTML = `
                         <td>${transaction.payment_type}</td>
                         <td>${transaction.payment_amount}</td>
-                        <td>${transaction.payment_Reference_No}</td>
+                        <td>${transaction.payment_reference_no}</td>
                         <td>${transaction.date_of_payment}</td>
                         <td class="single-button-container">
                             <button class="icon-button delete-transaction" data-finance-id="${transaction.finance_ID}" data-payment-amount="${transaction.payment_amount}">
@@ -1385,185 +1779,63 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-    // Add event listeners for the payment forms
-    document.getElementById('submit_transaction_btn').addEventListener('click', function() {
-        if (!validateTransactionForm()) {
-            return;
+    // Function to clear transaction form
+    function clearTransactionForm() {
+        document.getElementById('payment_type').selectedIndex = 0;
+        document.getElementById('payment_amount').value = '';
+        document.getElementById('payment_reference').value = '';
+    }
+
+    // Function to clear liability form
+    function clearLiabilityForm() {
+        document.getElementById('liability_title').value = '';
+        document.getElementById('liability_item_id').selectedIndex = 0;
+        document.getElementById('liability_quantity').value = '';
+        document.getElementById('liability_amount').value = '';
+        document.getElementById('liability_description').value = '';
+        document.getElementById('liability_manager_id').selectedIndex = 0;
+        
+        // Trigger change event on item selector to reset max quantity
+        const itemSelector = document.getElementById('liability_item_id');
+        if (itemSelector) {
+            itemSelector.dispatchEvent(new Event('change'));
         }
-        
-        const financeId = this.dataset.financeId;
-        const paymentTypeId = document.getElementById('payment_type').value;
-        const paymentAmount = document.getElementById('payment_amount').value;
-        const referenceNumber = document.getElementById('payment_reference').value;
-        
-        fetch('/addTransaction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                financeId,
-                paymentTypeId,
-                paymentAmount,
-                referenceNumber
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                document.querySelector('.view_create_transaction_popup').classList.remove('active');
-                fetchPaymentOrders(); // Refresh the payment orders table
-            } else {
-                alert(`Error: ${data.message}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error adding transaction:', error);
-            alert('An error occurred while adding the transaction.');
-        });
-    });
+    }
 
-    document.getElementById('submit_liability_btn').addEventListener('click', function() {
-        if (!validateLiabilityForm()) {
-            return;
-        }
-        
-        const financeId = this.dataset.financeId;
-        const title = document.getElementById('liability_title').value;
-        const itemId = document.getElementById('liability_item_id').value;
-        const quantity = document.getElementById('liability_quantity').value;
-        const amount = document.getElementById('liability_amount').value;
-        const description = document.getElementById('liability_description').value;
-        const date = document.getElementById('liability_date').value;
-        const managerId = document.getElementById('liability_manager_id').value;
-        
-        fetch('/addLiability', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                financeId,
-                title,
-                itemId,
-                quantity,
-                amount,
-                description,
-                date,
-                managerId
-            }) // Removed orderId from payload
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                document.querySelector('.view_add_liability_popup').classList.remove('active');
-                fetchPaymentOrders(); // Refresh the payment orders table
-            } else {
-                alert(`Error: ${data.message}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error adding liability:', error);
-            alert('An error occurred while adding the liability.');
-        });
-    });
-
-    // Add input validation for payment amount
-    document.getElementById('payment_amount').addEventListener('input', function() {
-        const max = parseFloat(this.max) || 1000000;
-        validateNumericInput(this, 1, max);
-    });
-
-    // Add input validation for liability quantity
-    document.getElementById('liability_quantity').addEventListener('input', function() {
-        const max = parseFloat(this.max) || 1000;
-        validateNumericInput(this, 1, max);
-    });
-
-    // Add input validation for liability amount
-    document.getElementById('liability_amount').addEventListener('input', function() {
-        validateNumericInput(this, 1, 1000000);
-    });
-
-    // Add event listeners for popup buttons
-    document.getElementById('cancel_transaction_btn').addEventListener('click', function() {
+    // Add cancel button handlers for transaction and liability forms
+    const cancelTransactionBtn = document.getElementById('cancel_transaction_btn');
+    if (cancelTransactionBtn) {
+        cancelTransactionBtn.addEventListener('click', function() {
+            clearTransactionForm();
         document.querySelector('.view_create_transaction_popup').classList.remove('active');
     });
+    }
 
-    document.getElementById('cancel_liability_btn').addEventListener('click', function() {
+    const cancelLiabilityBtn = document.getElementById('cancel_liability_btn');
+    if (cancelLiabilityBtn) {
+        cancelLiabilityBtn.addEventListener('click', function() {
+            clearLiabilityForm();
         document.querySelector('.view_add_liability_popup').classList.remove('active');
-    });
-
-
-
-
-
-    // ------------------------------ INVENTORY STOCK PAGE ------------------------------
-    // Inventory Stock Navigation
-    const addStocksBtn = document.getElementById('add_stocks_btn'); // Corrected selector
-    if (addStocksBtn) {
-        addStocksBtn.addEventListener('click', function() {
-            document.querySelector('.view_stock_input_popup').classList.add('active');
         });
     }
+
+    // ------------------------------- INVENTORY MANAGEMENT PAGE -----------------------------
+
+    //Inventory Management Navigation
+
     
-    const addItemBtn = document.getElementById('add_item_btn'); // Corrected selector
-    if (addItemBtn) {
-        addItemBtn.addEventListener('click', function() {
-            populateItemTypes();
-            document.querySelector('.view_item_input_popup').classList.add('active');
-        });
-    }
-    
-    const stockReturnBtn = document.getElementById('stock_return_btn'); // Corrected selector
-    if (stockReturnBtn) {
-        stockReturnBtn.addEventListener('click', function() {
-            document.querySelector('.view_stock_input_popup').classList.remove('active');
-        });
-    }
-    
-    const itemReturnBtn = document.getElementById('item_return_btn'); // Corrected selector
-    if (itemReturnBtn) {
-        itemReturnBtn.addEventListener('click', function() {
-            document.querySelector('.view_item_input_popup').classList.remove('active');
-        });
-    }
-    
-    const stockSubmitBtn = document.getElementById('stock_submit_btn'); // Corrected selector
-    if (stockSubmitBtn) {
-        stockSubmitBtn.addEventListener('click', addStock);
-    }
-    
-    const itemSubmitBtn = document.getElementById('item_submit_btn'); // Corrected selector
-    if (itemSubmitBtn) {
-        itemSubmitBtn.addEventListener('click', addItem);
-    }
-
-    const modifyitemsaveBtn = document.getElementById('modify_item_save_btn'); // Corrected selector
-    if (modifyitemsaveBtn) {
-        modifyitemsaveBtn.addEventListener('click', saveModifiedItem);
-    }
-
-    const modifyStockSaveBtn = document.getElementById('modify_stock_save_btn'); // Corrected selector
-    if (modifyStockSaveBtn) {
-        modifyStockSaveBtn.addEventListener('click', saveModifiedStock);
-    }
-
-    if (document.querySelector('.content_inventory_stock.active')) {
-        fetchInventoryItems();
-        fetchStockInfo();
-    }
+    //Inventory Management Behaviour
 
 
+    // -------------------------------   STAFF MANAGEMENT PAGE   -----------------------------
 
+    // Function to fetch and display inventory items
     function fetchInventoryItems() {
         fetch('/getInventoryItems')
             .then(response => response.json())
             .then(data => {
-                const tablebody = document.getElementById('inventory_items_table').querySelector('tbody');
-                tablebody.innerHTML = '';
+                const tableBody = document.getElementById('inventory_items_table').querySelector('tbody');
+                tableBody.innerHTML = '';
 
                 data.forEach(item => {
                     const row = document.createElement('tr');
@@ -1575,15 +1847,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${item.item_price}</td>
                         <td>${item.total_stock || 0}</td>
                         <td>
-                            <div class="single-button-container">
+                            <div class="horizontal-button-container">
                                 <button class="icon-button modify-item" data-id="${item.item_ID}">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                     <span class="tooltip">Modify Item</span>
                                 </button>
                             </div>
                         </td>
                     `;
-                    tablebody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
 
                 // Add event listeners for modify buttons
@@ -1591,20 +1863,55 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.addEventListener('click', function() {
                         const itemId = this.dataset.id;
                         fetchItemDetails(itemId);
-                        populateItemTypes();
-                        document.querySelector('.view_modify_item_popup').classList.add('active');
                     });
                 });
             })
             .catch(error => console.error('Error fetching inventory items:', error));
     }
 
+    // Function to fetch item details for modification
+    function fetchItemDetails(itemId) {
+        // First, populate the item types dropdown
+        fetch('/getItemTypes')
+            .then(response => response.json())
+            .then(types => {
+                const typeSelect = document.getElementById('modify_item_type');
+                typeSelect.innerHTML = '';
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    typeSelect.appendChild(option);
+                });
+                
+                // Then fetch the item details
+                return fetch(`/getItemDetails/${itemId}`);
+            })
+            .then(response => response.json())
+            .then(item => {
+                // Populate the modify item form
+                document.getElementById('modify_item_id').value = item.item_ID;
+                document.getElementById('modify_item_name').value = item.item_name;
+                document.getElementById('modify_item_description').value = item.item_description || '';
+                document.getElementById('modify_item_price').value = item.item_price;
+                document.getElementById('modify_item_type').value = item.item_type_ID;
+                
+                // Show the modify item popup
+                document.querySelector('.view_modify_item_popup').classList.add('active');
+            })
+            .catch(error => {
+                console.error('Error fetching item details:', error);
+                alert('An error occurred while fetching item details.');
+            });
+    }
+
+    // Function to fetch and display stock information
     function fetchStockInfo() {
         fetch('/getStockInfo')
             .then(response => response.json())
             .then(data => {
-                const tablebody = document.getElementById('stock_info_table').querySelector('tbody');
-                tablebody.innerHTML = '';
+                const tableBody = document.getElementById('stock_info_table').querySelector('tbody');
+                tableBody.innerHTML = '';
 
                 data.forEach(stock => {
                     const row = document.createElement('tr');
@@ -1613,19 +1920,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${stock.item_ID}</td>
                         <td>${stock.item_name}</td>
                         <td>${stock.item_quantity}</td>
-                        <td>${stock.supplier_name}</td>
-                        <td>${stock.supplier_ID}</td>
+                        <td>${stock.supplier_name || 'N/A'}</td>
+                        <td>${stock.supplier_ID || 'N/A'}</td>
                         <td>${stock.manager_name}</td>
                         <td>
-                            <div class="single-button-container">
+                            <div class="horizontal-button-container">
                                 <button class="icon-button modify-stock" data-id="${stock.item_stock_ID}">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                     <span class="tooltip">Modify Stock</span>
+                                </button>
+                                <button class="icon-button delete-stock" data-id="${stock.item_stock_ID}">
+                                    <i class="fa-solid fa-trash"></i>
+                                    <span class="tooltip">Delete Stock</span>
                                 </button>
                             </div>
                         </td>
                     `;
-                    tablebody.appendChild(row);
+                    tableBody.appendChild(row);
                 });
 
                 // Add event listeners for modify buttons
@@ -1633,138 +1944,78 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.addEventListener('click', function() {
                         const stockId = this.dataset.id;
                         fetchStockDetails(stockId);
-                        document.querySelector('.view_modify_stock_popup').classList.add('active');
+                    });
+                });
+
+                // Add event listeners for delete buttons
+                document.querySelectorAll('.delete-stock').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const stockId = this.dataset.id;
+                        if (confirm('Are you sure you want to delete this stock entry?')) {
+                            deleteStock(stockId);
+                        }
                     });
                 });
             })
             .catch(error => console.error('Error fetching stock information:', error));
     }
 
-    
-    // Function to fetch item details for modification
-    function fetchItemDetails(itemId) {
-        fetch(`/getItemDetails/${itemId}`)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('modify_item_id').value = data.item_ID;
-                document.getElementById('modify_item_name').value = data.item_name;
-                document.getElementById('modify_item_description').value = data.item_description;
-                document.getElementById('modify_item_price').value = data.item_price;
-
-                // Populate item types and set selected item type
-                fetch('/getItemTypes')
-                    .then(response => response.json())
-                    .then(itemTypes => {
-                        const modifySelector = document.getElementById('modify_item_type');
-                        modifySelector.innerHTML = '';
-                        itemTypes.forEach(type => {
-                            const option = document.createElement('option');
-                            option.value = type.id;
-                            option.textContent = type.name;
-                            modifySelector.appendChild(option);
-                        });
-                        // Set the selected item type based on the data from the server
-                        modifySelector.value = data.item_type_ID;
-                    })
-                    .catch(error => console.error('Error fetching item types:', error));
-            })
-            .catch(error => console.error('Error fetching item details:', error));
-    }
-
     // Function to fetch stock details for modification
     function fetchStockDetails(stockId) {
-        fetch(`/getStockDetails/${stockId}`)
+        // First, fetch suppliers
+        fetch('/getItemsAndWorkers')
             .then(response => response.json())
             .then(data => {
-                document.getElementById('update_stock_item_id').value = data.item_stock_ID;
-                document.getElementById('update_stock_quantity').value = data.item_quantity;
+                // Populate supplier selector
+                const supplierSelect = document.getElementById('modify_stock_supplier_id');
+                supplierSelect.innerHTML = '';
+                data.suppliers.forEach(supplier => {
+                    const option = document.createElement('option');
+                    option.value = supplier.id;
+                    option.textContent = supplier.name;
+                    supplierSelect.appendChild(option);
+                });
 
-                // Load items, managers, and suppliers all at once
-                fetch('/getItemsAndWorkers')
-                    .then(response => response.json())
-                    .then(itemsAndWorkersData => {
-                        populateSelector(itemsAndWorkersData.suppliers, 'update_stock_supplier');
-                        populateSelector(itemsAndWorkersData.managers, 'update_stock_manager');
-                        document.getElementById('update_stock_supplier').value = data.supplier_ID;
-                        document.getElementById('update_stock_manager').value = data.manager_ID;
-                    })
-                    .catch(error => console.error('Error fetching form data:', error));
+                // Populate manager selector
+                const managerSelect = document.getElementById('modify_stock_manager_id');
+                managerSelect.innerHTML = '';
+                data.managers.forEach(manager => {
+                            const option = document.createElement('option');
+                    option.value = manager.id;
+                    option.textContent = manager.name;
+                    managerSelect.appendChild(option);
+                });
+
+                // Then fetch stock details
+                return fetch(`/getStockDetails/${stockId}`);
             })
-            .catch(error => console.error('Error fetching stock details:', error));
-    }
-
-    // Function to clear modify item form
-    function clearModifyItemForm() {
-        document.getElementById('modify_item_id').value = '';
-        document.getElementById('modify_item_name').value = '';
-        document.getElementById('modify_item_description').value = '';
-        document.getElementById('modify_item_price').value = '';
-        document.getElementById('modify_item_type').value = '';
-    }
-
-    // Function to clear modify stock form
-    function clearModifyStockForm() {
-        document.getElementById('modify_stock_id').value = '';
-        document.getElementById('modify_stock_item_id').value = '';
-        document.getElementById('modify_stock_quantity').value = '';
-        document.getElementById('modify_stock_supplier_id').value = '';
-        document.getElementById('modify_stock_manager_id').value = '';
-    }
-
-    // Function to save modified item
-    function saveModifiedItem() {
-        const itemId = document.getElementById('modify_item_id').value;
-        const itemName = document.getElementById('modify_item_name').value.trim();
-        const itemDescription = document.getElementById('modify_item_description').value.trim();
-        const itemPrice = document.getElementById('modify_item_price').value;
-        const itemType = document.getElementById('modify_item_type').value;
-
-        if (!itemName || !itemPrice || !itemType) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-
-        fetch(`/updateItem/${itemId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                itemName,
-                itemDescription,
-                itemPrice,
-                itemType
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Item updated successfully.');
-                clearModifyItemForm();
-                fetchInventoryItems();
-                document.querySelector('.view_modify_item_popup').classList.remove('active'); // Hide popup
-                showPage('content_inventory_stock'); // Redirect to inventory stock page
-            } else {
-                alert('Error updating item: ' + data.message);
-            }
+            .then(response => response.json())
+            .then(stock => {
+                // Populate the modify stock form
+                document.getElementById('modify_stock_item_name').value = stock.item_name;
+                document.getElementById('modify_stock_quantity').value = stock.item_quantity;
+                document.getElementById('modify_stock_supplier_id').value = stock.supplier_ID;
+                document.getElementById('modify_stock_manager_id').value = stock.manager_ID;
+                
+                // Store the stock ID for the save operation
+                document.getElementById('modify_stock_form').dataset.stockId = stockId;
+                
+                // Show the modify stock popup
+                document.querySelector('.view_modify_stock_popup').classList.add('active');
         })
         .catch(error => {
-            console.error('Error updating item:', error);
-            alert('An error occurred while updating the item.');
-        });
+                console.error('Error fetching stock details:', error);
+                alert('An error occurred while fetching stock details.');
+            });
     }
 
-    // Function to save modified stock
-    function saveModifiedStock() {
-        const stockId = document.getElementById('update_stock_item_id').value;
-        const quantity = document.getElementById('update_stock_quantity').value;
-        const supplierId = document.getElementById('update_stock_supplier').value;
-        const managerId = document.getElementById('update_stock_manager').value;
-
-        if (!quantity || !supplierId || !managerId) {
-            alert('Please fill in all required fields.');
-            return;
-        }
+    // Add event listeners for modify stock form
+    document.getElementById('modify_stock_form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const stockId = this.dataset.stockId;
+        const quantity = document.getElementById('modify_stock_quantity').value;
+        const supplierId = document.getElementById('modify_stock_supplier_id').value;
+        const managerId = document.getElementById('modify_stock_manager_id').value;
 
         fetch(`/updateStock/${stockId}`, {
             method: 'PUT',
@@ -1773,8 +2024,8 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 itemQuantity: quantity,
-                supplierId,
-                managerId
+                supplierId: supplierId,
+                managerId: managerId
             })
         })
         .then(response => response.json())
@@ -1783,279 +2034,573 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Stock updated successfully');
                 document.querySelector('.view_modify_stock_popup').classList.remove('active');
                 fetchStockInfo();
+                fetchInventoryItems(); // Refresh items to update total stock
             } else {
-                alert('Error updating stock');
+                alert('Error updating stock: ' + data.message);
             }
         })
         .catch(error => {
             console.error('Error updating stock:', error);
             alert('An error occurred while updating the stock.');
         });
-    }
-
-    // Function to populate item types dropdown
-    function populateItemTypes() {
-        fetch('/getItemTypes')
-            .then(response => response.json())
-            .then(data => {
-                const selector = document.getElementById('item_type_select');
-                const modifySelector = document.getElementById('modify_item_type');
-
-                selector.innerHTML = '';
-                modifySelector.innerHTML = '';
-
-                data.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type.id;
-                    option.textContent = type.name;
-                    selector.appendChild(option);
-                    modifySelector.appendChild(option.cloneNode(true));
-                });
-            })
-            .catch(error => console.error('Error fetching item types:', error));
-    }
-
-
-    // Function to add a new item
-    function addItem() {
-        const name = document.getElementById('item_name_input').value.trim();
-        const description = document.getElementById('item_description_input').value.trim();
-        const price = document.getElementById('item_price_input').value;
-        const itemType = document.getElementById('item_type_select').value;
-        
-        if (!name || !price || !itemType) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-        
-        fetch('/addItem', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name,
-                description,
-                price,
-                itemType
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showPage('content_inventory_stock');
-                alert('Item added successfully.');
-                clearAddItemForm();
-                fetchInventoryItems();
-                document.querySelector('.view_item_input_popup').classList.remove('active'); // Hide popup
-            } else {
-                alert('Error adding item: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error adding item:', error);
-            alert('An error occurred while adding the item.');
-        });
-    }
-
-    function clearAddItemForm() {
-        document.getElementById('item_name_input').value = '';
-        document.getElementById('item_description_input').value = '';
-        document.getElementById('item_price_input').value = '';
-        document.getElementById('item_type_select').selectedIndex = 0;
-    }
-
-
-    function addStock() {
-        const itemId = document.getElementById('stock_item_select').value;
-        const quantity = document.getElementById('stock_quantity').value;
-        const managerId = document.getElementById('stock_manager_select').value;
-        const supplierId = document.getElementById('stock_supplier_id').value;
-        
-        if (!itemId || !quantity || !managerId || !supplierId) {
-            alert('Please fill in all required fields');
-            return;
-        }
-        
-        fetch('/addStock', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                itemId,
-                quantity,
-                managerId,
-                supplierId
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                document.getElementById('stock_quantity').value = '';
-                document.getElementById('stock_supplier_id').value = '';
-                showPage('content_inventory_stock');
-                clearStockForm();
-                fetchStockInfo();
-                fetchInventoryItems();
-                document.querySelector('.view_stock_input_popup').classList.remove('active'); // Hide popup
-            } else {
-                alert(`Error: ${data.message}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error adding stock:', error);
-            alert('An error occurred while adding stock.');
-        });
-    }
-
-    function clearStockForm() {
-        document.getElementById('stock_quantity').value = '';
-        document.getElementById('stock_supplier_id').value = '';
-        document.getElementById('stock_item_select').selectedIndex = 0;
-        document.getElementById('stock_manager_select').selectedIndex = 0;
-    }
-
-    document.getElementById('modify_item_return_btn').addEventListener('click', function() {
-        document.querySelector('.view_modify_item_popup').classList.remove('active');
-        clearModifyItemForm();
     });
 
+    // Add event listener for modify stock return button
     document.getElementById('modify_stock_return_btn').addEventListener('click', function() {
         document.querySelector('.view_modify_stock_popup').classList.remove('active');
-        clearModifyStockForm();
     });
 
-    document.getElementById('update_stock_save_btn').addEventListener('click', saveModifiedStock);
-    document.getElementById('update_stock_return').addEventListener('click', function() {
-        document.querySelector('.view_modify_stock_popup').classList.remove('active');
-        clearModifyStockForm();
+    // Add event listener for modify item form
+    document.getElementById('modify_item_form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const itemId = document.getElementById('modify_item_id').value;
+        const name = document.getElementById('modify_item_name').value;
+        const description = document.getElementById('modify_item_description').value;
+        const price = validateNumericInput(document.getElementById('modify_item_price'), 0, Number.MAX_SAFE_INTEGER);
+        const itemType = document.getElementById('modify_item_type').value;
+
+        fetch(`/updateItem/${itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                itemName: name,
+                itemDescription: description,
+                itemPrice: price,
+                itemType: itemType
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Item updated successfully');
+                document.querySelector('.view_modify_item_popup').classList.remove('active');
+                fetchInventoryItems();
+            } else {
+                alert('Error updating item: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating item:', error);
+            alert('An error occurred while updating the item.');
+        });
     });
 
+    // Add event listener for modify item return button
+    document.getElementById('modify_item_return_btn').addEventListener('click', function() {
+        document.querySelector('.view_modify_item_popup').classList.remove('active');
+    });
 
+    // Close assigned workers popup
+    const assignedWorkersReturnBtn = document.getElementById('assigned_workers_return_btn');
+    if (assignedWorkersReturnBtn) {
+        assignedWorkersReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_assigned_workers_popup').classList.remove('active');
+        });
+    }
 
+    // Close modify item popup
+    const modifyItemReturnBtn = document.getElementById('modify_item_return_btn');
+    if (modifyItemReturnBtn) {
+        modifyItemReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_modify_item_popup').classList.remove('active');
+        });
+    }
 
+    // Close modify stock popup
+    const modifyStockReturnBtn = document.getElementById('modify_stock_return_btn');
+    if (modifyStockReturnBtn) {
+        modifyStockReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_modify_stock_popup').classList.remove('active');
+        });
+    }
 
-    // ------------------------------ WORKER MANAGEMENT PAGE ------------------------------
-
-    // Staff Management Navigation
-    const assignedOrdersReturnBtn = document.getElementById('assigned_orders_return'); // Corrected selector
+    // Close assigned orders popup
+    const assignedOrdersReturnBtn = document.getElementById('assigned_orders_return_btn');
     if (assignedOrdersReturnBtn) {
         assignedOrdersReturnBtn.addEventListener('click', function() {
             document.querySelector('.view_assigned_orders_popup').classList.remove('active');
         });
     }
-    const workerCancelBtn = document.getElementById('worker_cancel_btn'); // Corrected selector
-    if (workerCancelBtn) {
-        workerCancelBtn.addEventListener('click', function() {
-            document.querySelector('.view_add_worker_popup').classList.remove('active');
+
+    // Close view order item popup when clicking outside
+    const viewOrderItemPopup = document.querySelector('.view_order_item_popup');
+    if (viewOrderItemPopup) {
+        viewOrderItemPopup.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
         });
     }
 
-
-    // Staff Management Behaviour
-    function fetchStaffInfo() {
-        console.log("Fetching staff info...");
-        fetch('/getStaffInfo')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Staff data received:", data);
-                const tablebody = document.getElementById('staff_info_table').querySelector('tbody');
-                tablebody.innerHTML = '';
-
-                if (data.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="5">No staff information found</td>`;
-                    tablebody.appendChild(row);
-                    return;
-                }
-
-                data.forEach(staff => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${staff.staff_id || 'N/A'}</td>
-                        <td>${staff.worker_name || 'N/A'}</td>
-                        <td>${staff.age || 'N/A'}</td>
-                        <td>${staff.phone_Number || 'N/A'}</td>
-                        <td>
-                            <button class="view-assigned-orders" data-worker-id="${staff.worker_ID}">View Assigned Orders</button>
-                            <button class="fire-worker" data-worker-id="${staff.worker_ID}">Fire Worker</button>
-                        </td>
-                    `;
-                    tablebody.appendChild(row);
-                });
-
-                // Add event listeners to the view assigned orders buttons
-                document.querySelectorAll('.view-assigned-orders').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const workerId = this.dataset.workerId;
-                        showAssignedOrders(workerId);
-                    });
-                });
-
-                // Add event listeners to the fire worker buttons
-                document.querySelectorAll('.fire-worker').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const workerId = this.dataset.workerId;
-                        if (confirm('Are you sure you want to fire this worker? This action cannot be undone.')) {
-                            fireWorker(workerId);
-                        }
-                    });
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching staff information:', error);
-                const tablebody = document.getElementById('staff_info_table').querySelector('tbody');
-                tablebody.innerHTML = `<tr><td colspan="5">Error loading staff information: ${error.message}</td></tr>`;
-            });
-    }
-
-    const addStaffBtn = document.getElementById('add_worker_btn');
-    if (addStaffBtn) {
-        addStaffBtn.addEventListener('click', function() {
-            fetch('/getItemsAndWorkers')
-                .then(response => response.json())
-                .then(data => {
-                    const { managers, genders } = data; // Corrected variable names
-                    populateSelector(genders, 'worker_gender');
-                    populateSelector(managers, 'worker_manager'); // Corrected variable name
-                    document.querySelector('.view_add_worker_popup').classList.add('active');
-                })
-                .catch(error => console.error('Error fetching worker form data:', error));
+    // Close add item popup
+    const itemReturnBtn = document.getElementById('item_return_btn');
+    if (itemReturnBtn) {
+        itemReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_item_input_popup').classList.remove('active');
+            document.getElementById('add_item_form').reset();
         });
     }
 
-    const workerReturnBtn = document.getElementById('worker_return_btn'); // Corrected selector
-    if (workerReturnBtn) {
-        workerReturnBtn.addEventListener('click', function() {
-            document.querySelector('.view_add_worker_popup').classList.remove('active');
+    // Close add stock popup
+    const stockReturnBtn = document.getElementById('stock_return_btn');
+    if (stockReturnBtn) {
+        stockReturnBtn.addEventListener('click', function() {
+            document.querySelector('.view_stock_input_popup').classList.remove('active');
         });
     }
 
-    const workersaveBtn = document.getElementById('worker_save_btn'); // Corrected selector
-    if (workersaveBtn) {
-        workersaveBtn.addEventListener('click', addWorker);
+    // Validation function for add item form
+    function validateItemForm() {
+        const name = document.getElementById('item_name').value.trim();
+        const price = parseFloat(document.getElementById('item_price').value);
+        const type = document.getElementById('item_type').value;
+
+        if (!name) {
+            alert('Please enter an item name');
+            return false;
+        }
+
+        if (isNaN(price) || price <= 0) {
+            alert('Please enter a valid price (greater than 0)');
+            return false;
+        }
+
+        if (!type) {
+            alert('Please select an item type');
+            return false;
+        }
+
+        return true;
     }
 
-    function addWorker() {
-        if (!validateWorkerForm()) {
+    // Function to add a new item
+    function addItem() {
+        if (!validateItemForm()) {
             return;
         }
 
+        const itemData = {
+            name: document.getElementById('item_name').value.trim(),
+            description: document.getElementById('item_description').value.trim(),
+            price: parseFloat(document.getElementById('item_price').value),
+            itemType: document.getElementById('item_type').value
+        };
+
+        fetch('/addItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(itemData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Item added successfully!');
+                document.querySelector('.view_item_input_popup').classList.remove('active');
+                document.getElementById('add_item_form').reset();
+                fetchInventoryItems(); // Refresh the inventory items table
+            } else {
+                alert('Failed to add item: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error adding item:', error);
+            alert('An error occurred while adding the item. Please try again.');
+        });
+    }
+
+    // Function to add new stock
+    function addStock() {
+        const selectedItem = document.querySelector('input[name="selected_item"]:checked');
+        if (!selectedItem) {
+            alert('Please select an item');
+            return;
+        }
+
+        const quantity = document.getElementById('stock_quantity').value;
+        const managerId = document.getElementById('stock_manager_select').value;
+        const supplierId = document.getElementById('stock_supplier_id').value;
+
+        // Validate all required fields
+        if (!quantity || !managerId || !supplierId) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        // Validate quantity is a positive number
+        if (parseInt(quantity) <= 0) {
+            alert('Quantity must be greater than 0');
+            return;
+        }
+
+        const stockData = {
+            itemId: parseInt(selectedItem.value),
+            quantity: parseInt(quantity),
+            managerId: parseInt(managerId),
+            supplierId: parseInt(supplierId)
+        };
+
+        fetch('/addStock', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(stockData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Stock added successfully!');
+                document.querySelector('.view_stock_input_popup').classList.remove('active');
+                document.getElementById('add_stock_form').reset();
+                fetchStockInfo(); // Refresh the stock table
+                fetchInventoryItems(); // Refresh the inventory items to update total stock
+            } else {
+                alert('Failed to add stock: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error adding stock:', error);
+            alert('An error occurred while adding the stock. Please try again.');
+        });
+    }
+
+    // Setup form event listeners
+    function setupFormEventListeners() {
+        // Add Item form
+        const addItemForm = document.getElementById('add_item_form');
+        if (addItemForm) {
+            addItemForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                addItem();
+            });
+        }
+
+        // Add Stock form
+        const addStockForm = document.getElementById('add_stock_form');
+        if (addStockForm) {
+            addStockForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                addStock();
+            });
+        }
+
+        // Add Item button
+        const addItemBtn = document.getElementById('add_item_btn');
+        if (addItemBtn) {
+            addItemBtn.addEventListener('click', function() {
+                // Fetch item types for the dropdown
+                fetch('/getItemTypes')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(types => {
+                        const typeSelect = document.getElementById('item_type');
+                        typeSelect.innerHTML = '<option value="">Select item type</option>';
+                        types.forEach(type => {
+                            const option = document.createElement('option');
+                            option.value = type.id;
+                            option.textContent = type.name;
+                            typeSelect.appendChild(option);
+                        });
+
+                        // Reset form and show popup
+                        document.getElementById('add_item_form').reset();
+                        document.querySelector('.view_item_input_popup').classList.add('active');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching item types:', error);
+                        alert('Error loading item types. Please try again.');
+                    });
+            });
+        }
+
+        // Add input validation event listeners
+        const itemPrice = document.getElementById('item_price');
+        if (itemPrice) {
+            itemPrice.addEventListener('input', function() {
+                validateNumericInput(this, 0, Number.MAX_SAFE_INTEGER);
+            });
+        }
+
+        const modifyItemPrice = document.getElementById('modify_item_price');
+        if (modifyItemPrice) {
+            modifyItemPrice.addEventListener('input', function() {
+                validateNumericInput(this, 0, Number.MAX_SAFE_INTEGER);
+            });
+        }
+
+        // Add quantity input validation
+        const stockQuantity = document.getElementById('stock_quantity');
+        if (stockQuantity) {
+            stockQuantity.addEventListener('input', function() {
+                validateNumericInput(this, 1, 10000);
+            });
+        }
+
+        const modifyStockQuantity = document.getElementById('modify_stock_quantity');
+        if (modifyStockQuantity) {
+            modifyStockQuantity.addEventListener('input', function() {
+                validateNumericInput(this, 1, 10000);
+            });
+        }
+
+        // Add popup close event listeners
+        const additempopup = document.querySelector('.view_item_input_popup');
+        if (additempopup) {
+            additempopup.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    document.querySelector('.view_item_input_popup').classList.remove('active');
+                    document.getElementById('add_item_form').reset();
+                }
+            });
+        }
+
+        const addstockpopup = document.querySelector('.view_stock_input_popup');
+        if (addstockpopup) {
+            addstockpopup.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    document.querySelector('.view_stock_input_popup').classList.remove('active');
+                    document.getElementById('add_stock_form').reset();
+                }
+            });
+        }
+
+        // Add return button functionality for add item form
+        const addItemReturnBtn = document.getElementById('add_item_return_btn');
+        if (addItemReturnBtn) {
+            addItemReturnBtn.addEventListener('click', function() {
+                document.querySelector('.view_item_input_popup').classList.remove('active');
+                document.getElementById('add_item_form').reset();
+            });
+        }
+
+        // Add event listeners for inventory management buttons
+        const addStocksBtn = document.getElementById('add_stocks_btn');
+        if (addStocksBtn) {
+            addStocksBtn.addEventListener('click', function() {
+                // Fetch necessary data for dropdowns and table
+                Promise.all([
+                    fetch('/getItemsAndWorkers').then(response => response.json()),
+                    fetch('/getInventoryItems').then(response => response.json())
+                ])
+                .then(([data, items]) => {
+                    // Populate items table
+                    const tableBody = document.getElementById('stock_items_table').querySelector('tbody');
+                    tableBody.innerHTML = '';
+                    
+                    items.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>
+                                <input type="radio" name="selected_item" value="${item.item_ID}" 
+                                       data-name="${item.item_name}" required>
+                            </td>
+                            <td>${item.item_name}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Populate manager selector
+                    const managerSelect = document.getElementById('stock_manager_select');
+                    managerSelect.innerHTML = '<option value="">Select a manager</option>';
+                    data.managers.forEach(manager => {
+                        const option = document.createElement('option');
+                        option.value = manager.id;
+                        option.textContent = manager.name;
+                        managerSelect.appendChild(option);
+                    });
+
+                    // Populate supplier selector
+                    const supplierSelect = document.getElementById('stock_supplier_id');
+                    supplierSelect.innerHTML = '<option value="">Select a supplier</option>';
+                    data.suppliers.forEach(supplier => {
+                        const option = document.createElement('option');
+                        option.value = supplier.id;
+                        option.textContent = supplier.name;
+                        supplierSelect.appendChild(option);
+                    });
+
+                    // Reset form and show popup
+                    document.getElementById('add_stock_form').reset();
+                    document.querySelector('.view_stock_input_popup').classList.add('active');
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert('Error loading form data. Please try again.');
+                });
+            });
+        }
+
+        // Add Worker button
+        const addWorkerBtn = document.getElementById('add_worker_btn');
+        if (addWorkerBtn) {
+            addWorkerBtn.addEventListener('click', function() {
+                // Fetch necessary data for dropdowns
+                fetch('/getItemsAndWorkers')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate manager selector
+                        const managerSelect = document.getElementById('worker_manager');
+                        managerSelect.innerHTML = '<option value="">Select a manager</option>';
+                        data.managers.forEach(manager => {
+                            const option = document.createElement('option');
+                            option.value = manager.id;
+                            option.textContent = manager.name;
+                            managerSelect.appendChild(option);
+                        });
+
+                        // Populate gender selector
+                        const genderSelect = document.getElementById('worker_gender');
+                        genderSelect.innerHTML = '<option value="">Select gender</option>';
+                        data.genders.forEach(gender => {
+                            const option = document.createElement('option');
+                            option.value = gender.id;
+                            option.textContent = gender.name;
+                            genderSelect.appendChild(option);
+                        });
+
+                        // Reset form and show popup
+                        document.getElementById('worker_first_name').value = '';
+                        document.getElementById('worker_middle_name').value = '';
+                        document.getElementById('worker_last_name').value = '';
+                        document.getElementById('worker_phone_number').value = '';
+                        document.getElementById('worker_age').value = '';
+                        document.getElementById('worker_password').value = '';
+                        document.getElementById('worker_confirm_password').value = '';
+                        document.querySelector('.view_add_worker_popup').classList.add('active');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        alert('Error loading form data. Please try again.');
+                    });
+            });
+        }
+
+        // Add Worker form validation and submission
+        const addWorkerForm = document.querySelector('.add_worker_container');
+        if (addWorkerForm) {
+            // Phone number validation
+            const phoneInput = document.getElementById('worker_phone_number');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/\D/g, '').substring(0, 10);
+                    validateNumericInput(this, 0, 9999999999);
+                });
+            }
+
+            // Age validation
+            const ageInput = document.getElementById('worker_age');
+            if (ageInput) {
+                ageInput.addEventListener('input', function() {
+                    validateNumericInput(this, 18, 100);
+                });
+            }
+
+            // Show/Hide password functionality
+            const showPasswordCheckbox = document.getElementById('show_password');
+            const passwordInput = document.getElementById('worker_password');
+            const confirmPasswordInput = document.getElementById('worker_confirm_password');
+            
+            if (showPasswordCheckbox && passwordInput && confirmPasswordInput) {
+                showPasswordCheckbox.addEventListener('change', function() {
+                    const type = this.checked ? 'text' : 'password';
+                    passwordInput.type = type;
+                    confirmPasswordInput.type = type;
+                });
+            }
+
+            // Save button functionality
+            const saveWorkerBtn = document.getElementById('worker_save_btn');
+            if (saveWorkerBtn) {
+                saveWorkerBtn.addEventListener('click', function() {
+                    if (validateWorkerForm()) {
+                        addWorker();
+                    }
+                });
+            }
+
+            // Cancel button functionality
+            const cancelWorkerBtn = document.getElementById('worker_cancel_btn');
+            if (cancelWorkerBtn) {
+                cancelWorkerBtn.addEventListener('click', function() {
+                    document.querySelector('.view_add_worker_popup').classList.remove('active');
+                });
+            }
+        }
+    }
+
+    function validateWorkerForm() {
+        const firstName = document.getElementById('worker_first_name').value.trim();
+        const lastName = document.getElementById('worker_last_name').value.trim();
+        const phoneNumber = document.getElementById('worker_phone_number').value.trim();
+        const age = document.getElementById('worker_age').value;
+        const gender = document.getElementById('worker_gender').value;
+        const manager = document.getElementById('worker_manager').value;
+        const password = document.getElementById('worker_password').value;
+        const confirmPassword = document.getElementById('worker_confirm_password').value;
+
+        if (!firstName) {
+            alert('Please enter first name');
+            return false;
+        }
+        if (!lastName) {
+            alert('Please enter last name');
+            return false;
+        }
+        if (!phoneNumber || phoneNumber.length !== 10) {
+            alert('Please enter a valid 10-digit phone number');
+            return false;
+        }
+        if (!age || age < 18 || age > 100) {
+            alert('Please enter a valid age between 18 and 100');
+            return false;
+        }
+        if (!gender) {
+            alert('Please select gender');
+            return false;
+        }
+        if (!manager) {
+            alert('Please select a manager');
+            return false;
+        }
+        if (!password) {
+            alert('Please enter a password');
+            return false;
+        }
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return false;
+        }
+
+        return true;
+    }
+
+    function addWorker() {
         const workerData = {
-            first_name: document.getElementById('worker_first_name').value.trim(),
-            middle_name: document.getElementById('worker_middle_name').value.trim(),
-            last_name: document.getElementById('worker_last_name').value.trim(),
-            phone_number: document.getElementById('worker_phone_number').value.trim(),
+            firstName: document.getElementById('worker_first_name').value.trim(),
+            middleName: document.getElementById('worker_middle_name').value.trim(),
+            lastName: document.getElementById('worker_last_name').value.trim(),
+            phoneNumber: document.getElementById('worker_phone_number').value.trim(),
             age: parseInt(document.getElementById('worker_age').value),
             gender: document.getElementById('worker_gender').value,
-            manager_id: document.getElementById('worker_manager').value,
+            managerId: document.getElementById('worker_manager').value,
             password: document.getElementById('worker_password').value
         };
 
@@ -2071,16 +2616,235 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 alert('Worker added successfully');
                 document.querySelector('.view_add_worker_popup').classList.remove('active');
-                fetchStaffInfo(); // Refresh staff table
-                clearWorkerForm(); // Clear the form
+                fetchStaffInfo(); // Refresh the staff table
             } else {
-                alert(data.message || 'Error adding worker');
+                alert('Error adding worker: ' + (data.message || 'Unknown error'));
             }
         })
         .catch(error => {
             console.error('Error adding worker:', error);
-            alert('An error occurred while adding the worker');
+            alert('An error occurred while adding the worker.');
         });
+    }
+
+    // Call setup function when DOM is loaded
+    setupFormEventListeners();
+
+    function fetchStaffInfo() {
+        fetch('/getStaffInfo')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tableBody = document.getElementById('staff_info_table').querySelector('tbody');
+                tableBody.innerHTML = '';
+
+                data.forEach(staff => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${staff.worker_ID}</td>
+                        <td>${staff.worker_name}</td>
+                        <td>${staff.age}</td>
+                        <td>${staff.phone_Number}</td>
+                        <td>
+                            <div class="horizontal-button-container">
+                                <button class="icon-button view-assigned-orders" data-id="${staff.worker_ID}">
+                                    <i class="fa-solid fa-list-check"></i>
+                                    <span class="tooltip">View Assigned Orders</span>
+                                </button>
+                                <button class="icon-button fire-worker" data-id="${staff.worker_ID}">
+                                    <i class="fa-solid fa-user-slash"></i>
+                                    <span class="tooltip">Fire Worker</span>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Add event listeners for the view assigned orders buttons
+                document.querySelectorAll('.view-assigned-orders').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const workerId = this.dataset.id;
+                        fetchAssignedOrders(workerId);
+                    });
+                });
+
+                // Add event listeners for the fire worker buttons
+                document.querySelectorAll('.fire-worker').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const workerId = this.dataset.id;
+                        if (confirm('Are you sure you want to fire this worker? This action cannot be undone.')) {
+                            fireWorker(workerId);
+                        }
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching staff info:', error);
+                const tableBody = document.getElementById('staff_info_table').querySelector('tbody');
+                tableBody.innerHTML = '<tr><td colspan="5">Error loading staff information</td></tr>';
+            });
+    }
+
+    function fireWorker(workerId) {
+        fetch(`/fireWorker/${workerId}`, {
+            method: 'PUT'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Worker has been fired successfully');
+                fetchStaffInfo(); // Refresh the staff table
+            } else {
+                alert('Error firing worker: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error firing worker:', error);
+            alert('An error occurred while firing the worker.');
+        });
+    }
+
+    // Remove all previous worker-related event listeners and consolidate them here
+    function setupWorkerFormEventListeners() {
+        // Add Worker button
+        const addWorkerBtn = document.getElementById('add_worker_btn');
+        if (addWorkerBtn) {
+            const newBtn = addWorkerBtn.cloneNode(true);
+            addWorkerBtn.parentNode.replaceChild(newBtn, addWorkerBtn);
+            
+            newBtn.addEventListener('click', function() {
+                clearWorkerForm();
+                fetch('/getItemsAndWorkers')
+                    .then(response => response.json())
+                    .then(data => {
+                        const { managers, genders } = data;
+                        
+                        // Populate gender dropdown
+                        const genderSelect = document.getElementById('worker_gender');
+                        genderSelect.innerHTML = '<option value="">Select gender</option>';
+                        genders.forEach(gender => {
+                            const option = document.createElement('option');
+                            option.value = gender.id;
+                            option.textContent = gender.name;
+                            genderSelect.appendChild(option);
+                        });
+                        
+                        // Populate manager dropdown
+                        const managerSelect = document.getElementById('worker_manager');
+                        managerSelect.innerHTML = '<option value="">Select a manager</option>';
+                        managers.forEach(manager => {
+                            const option = document.createElement('option');
+                            option.value = manager.id;
+                            option.textContent = manager.name;
+                            managerSelect.appendChild(option);
+                        });
+                        
+                        document.querySelector('.view_add_worker_popup').classList.add('active');
+                    })
+                    .catch(error => {
+                        console.error('Error loading form data:', error);
+                        alert('Error loading form data. Please try again.');
+                    });
+            });
+        }
+
+        // Save Worker button
+        const saveWorkerBtn = document.getElementById('worker_save_btn');
+        if (saveWorkerBtn) {
+            const newSaveBtn = saveWorkerBtn.cloneNode(true);
+            saveWorkerBtn.parentNode.replaceChild(newSaveBtn, saveWorkerBtn);
+            
+            newSaveBtn.addEventListener('click', function() {
+                if (!validateWorkerForm()) {
+                    return;
+                }
+
+                const workerData = {
+                    first_name: document.getElementById('worker_first_name').value.trim(),
+                    middle_name: document.getElementById('worker_middle_name').value.trim(),
+                    last_name: document.getElementById('worker_last_name').value.trim(),
+                    phone_number: document.getElementById('worker_phone_number').value.trim(),
+                    age: parseInt(document.getElementById('worker_age').value),
+                    gender: document.getElementById('worker_gender').value,
+                    manager_id: document.getElementById('worker_manager').value,
+                    password: document.getElementById('worker_password').value
+                };
+
+                fetch('/addWorker', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(workerData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Worker added successfully');
+                        document.querySelector('.view_add_worker_popup').classList.remove('active');
+                        fetchStaffInfo();
+                        clearWorkerForm();
+                    } else {
+                        alert(data.message || 'Error adding worker');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error adding worker:', error);
+                    alert('An error occurred while adding the worker');
+                });
+            });
+        }
+
+        // Cancel Worker button
+        const cancelWorkerBtn = document.getElementById('worker_cancel_btn');
+        if (cancelWorkerBtn) {
+            const newCancelBtn = cancelWorkerBtn.cloneNode(true);
+            cancelWorkerBtn.parentNode.replaceChild(newCancelBtn, cancelWorkerBtn);
+            
+            newCancelBtn.addEventListener('click', function() {
+                document.querySelector('.view_add_worker_popup').classList.remove('active');
+                clearWorkerForm();
+            });
+        }
+
+        // Phone number validation
+        const phoneInput = document.getElementById('worker_phone_number');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                // Remove any non-digit characters
+                this.value = this.value.replace(/\D/g, '');
+                // Limit to 11 digits
+                if (this.value.length > 10) {
+                    this.value = this.value.slice(0, 10);
+                }
+            });
+        }
+
+        // Age validation
+        const ageInput = document.getElementById('worker_age');
+        if (ageInput) {
+            ageInput.addEventListener('input', function() {
+                validateNumericInput(this, 18, 100);
+            });
+        }
+
+        // Show/Hide password functionality
+        const showPasswordCheckbox = document.getElementById('show_password');
+        const passwordInput = document.getElementById('worker_password');
+        const confirmPasswordInput = document.getElementById('worker_confirm_password');
+        
+        if (showPasswordCheckbox && passwordInput && confirmPasswordInput) {
+            showPasswordCheckbox.addEventListener('change', function() {
+                const type = this.checked ? 'text' : 'password';
+                passwordInput.type = type;
+                confirmPasswordInput.type = type;
+            });
+        }
     }
 
     function validateWorkerForm() {
@@ -2105,9 +2869,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        const phoneNumber = document.getElementById('worker_phone_number').value.trim();
+        if (phoneNumber.length > 10) {
+            alert('Please enter a valid 10-digit phone number');
+            document.getElementById('worker_phone_number').focus();
+            return false;
+        }
+
         const age = parseInt(document.getElementById('worker_age').value);
-        if (isNaN(age) || age < 18) {
-            alert('Worker must be at least 18 years old');
+        if (isNaN(age) || age < 18 || age > 100) {
+            alert('Please enter a valid age between 18 and 100');
+            document.getElementById('worker_age').focus();
             return false;
         }
 
@@ -2115,6 +2887,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const confirmPassword = document.getElementById('worker_confirm_password').value;
         if (password !== confirmPassword) {
             alert('Passwords do not match');
+            document.getElementById('worker_password').focus();
             return false;
         }
 
@@ -2135,94 +2908,51 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         fields.forEach(field => {
-            document.getElementById(field).value = '';
+            const element = document.getElementById(field);
+            if (element) {
+                element.value = '';
+            }
         });
+
+        const showPasswordCheckbox = document.getElementById('show_password');
+        if (showPasswordCheckbox) {
+            showPasswordCheckbox.checked = false;
+        }
     }
 
-    function fireWorker(workerId) {
-        fetch(`/fireWorker/${workerId}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Worker fired successfully');
-                    fetchStaffInfo(); // Refresh the staff table
-                } else {
-                    alert(`Error firing worker: ${data.message}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error firing worker:', error);
-                alert('An error occurred while firing the worker.');
-            });
-    }
+    // Add this line after setupFormEventListeners();
+    setupWorkerFormEventListeners();
 
-    function showAssignedOrders(workerId) {
-        document.querySelector('.view_assigned_orders_popup').classList.add('active');
-        
-        fetch(`/getAssignedOrders/${workerId}`)
-            .then(response => response.json())
-            .then(data => {
-                const tablebody = document.getElementById('assigned_orders_table').querySelector('tbody');
-                tablebody.innerHTML = '';
-
-                if (data.length === 0) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="4">No orders assigned to this worker</td>`;
-                    tablebody.appendChild(row);
-                } else {
-                    data.forEach(order => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${order.order_ID}</td>
-                            <td>${order.event_Name}</td>
-                            <td>${new Date(order.event_date).toLocaleDateString()}</td>
-                            <td>${new Date(order.end_event_date).toLocaleDateString()}</td>
-                        `;
-                        tablebody.appendChild(row);
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching assigned orders:', error));
-    }
-
-    // ------------------------------ Dashboard Controls ------------------------------
+    // LOGOUT FUNCTIONALITY
     const logoutButton = document.getElementById('logout');
     if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            fetch('/logout', { method: 'POST' }) // Assuming a server logout endpoint
-                .then(() => {
-                    alert('Logged out successfully.');
-                    sessionStorage.clear(); 
-                    localStorage.clear(); // Clear local storage if needed
-                    window.location.href = '/login'; // Redirect to login page
+        logoutButton.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/logout', { 
+                    method: 'POST',
+                    credentials: 'same-origin' // Include cookies in the request
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear any client-side storage
+                        sessionStorage.clear();
+                        localStorage.clear();
+                        
+                        // Redirect to login page
+                        window.location.href = '/login';
+                    } else {
+                        throw new Error(data.message || 'Logout failed');
+                    }
                 })
                 .catch(error => {
                     console.error('Logout error:', error);
-                    alert('Error logging out. Please try again.');
+                    alert('Error during logout. Please try again.');
                 });
+            }
         });
     }
 
-    function fetchCurrentUser() {
-        fetch('/getCurrentUser')
-            .then(response => response.json())
-            .then(data => {
-                if (data.loggedIn) {
-                    const usernameElement = document.getElementById('dashboard_Username');
-                    if (usernameElement) {
-                        usernameElement.textContent = data.userName;
-                    }
-                } else {
-                    window.location.href = '/login';
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching user information:', error);
-            });
-    }
 
-    fetchCurrentUser();
-
-    importData();
+    showPage('content_add_order');
 });
-

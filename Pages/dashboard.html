@@ -259,6 +259,7 @@
                                             <th>Liabilities</th>
                                             <th>Total Amount</th>
                                             <th>Balance</th>
+                                            <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -458,6 +459,27 @@
                                 <h4>Total Item Cost: <span id="order_total_cost">0.00</span></h4>
                             </div>
                             <button id="content_active_order">Return</button>
+                        </div>
+                    </div>
+
+                    <!-- Popup for viewing assigned workers -->
+                    <div class="view_assigned_workers_popup">
+                        <div class="popup-content">
+                            <h3>Assigned Workers</h3>
+                            <div class="table_wrapper_view_order">
+                                <table id="assigned_workers_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Worker ID</th>
+                                            <th>Worker Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Workers will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button id="assigned_workers_return_btn" class="btn-return">Return</button>
                         </div>
                     </div>
                 </section>
@@ -680,61 +702,127 @@
                         <div class="view_order_item_history">
                             <div class="popup-content">
                                 <h3>Order Details</h3>
-                                <div class="order-details">
-                                    <div class="order-items">
-                                        <h4>Items</h4>
-                                        <table id="order_items_table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Item ID</th>
-                                                    <th>Name</th>
-                                                    <th>Description</th>
-                                                    <th>Price</th>
-                                                    <th>Quantity</th>
-                                                    <th>Subtotal</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Items will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="order-transactions">
-                                        <h4>Transactions</h4>
-                                        <table id="order_transactions_table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Type</th>
-                                                    <th>Amount</th>
-                                                    <th>Reference No</th>
-                                                    <th>Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Transactions will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="order-liabilities">
-                                        <h4>Liabilities</h4>
-                                        <table id="order_liabilities_table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Title</th>
-                                                    <th>Item</th>
-                                                    <th>Quantity</th>
-                                                    <th>Amount</th>
-                                                    <th>Description</th>
-                                                    <th>Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Liabilities will be populated here -->
-                                            </tbody>
-                                        </table>
+                                
+                                <!-- Customer & Event Info -->
+                                <div class="order-info-section">
+                                    <h4>Customer & Event Information</h4>
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <label>Event Name:</label>
+                                            <span id="history_event_name"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>Event Date:</label>
+                                            <span id="history_event_date"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>End Date:</label>
+                                            <span id="history_end_date"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>Customer Name:</label>
+                                            <span id="history_customer_name"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>Address:</label>
+                                            <span id="history_address"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>Contact:</label>
+                                            <span id="history_contact"></span>
+                                        </div>
+                                        <div class="info-item">
+                                            <label>Manager:</label>
+                                            <span id="history_manager"></span>
+                                        </div>
                                     </div>
                                 </div>
-                                <button id="order_history_items_return">Return</button>
+
+                                <!-- Missing Requirements Section -->
+                                <div class="missing-requirements-section">
+                                    <div id="history_missing_requirements"></div>
+                                </div>
+
+                                <!-- Transactions Section -->
+                                <div class="transactions-section">
+                                    <h4>Transactions</h4>
+                                    <table id="history_transactions_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Payment Type</th>
+                                                <th>Amount</th>
+                                                <th>Reference No.</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <div class="total-row">
+                                        <label>Total Payments:</label>
+                                        <span id="history_total_payment">0.00</span>
+                                    </div>
+                                </div>
+
+                                <!-- Liabilities Section -->
+                                <div class="liabilities-section">
+                                    <h4>Liabilities</h4>
+                                    <table id="history_liabilities_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Item</th>
+                                                <th>Quantity</th>
+                                                <th>Amount</th>
+                                                <th>Description</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                    <div class="total-row">
+                                        <label>Total Liabilities:</label>
+                                        <span id="history_total_liability">0.00</span>
+                                    </div>
+                                </div>
+
+                                <!-- Items Section -->
+                                <div class="items-section">
+                                    <h4>Items</h4>
+                                    <table id="history_items_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Summary Section -->
+                                <div class="summary-section">
+                                    <div class="summary-row">
+                                        <label>Days Rented:</label>
+                                        <span id="history_days_rented">0</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <label>Subtotal:</label>
+                                        <span id="history_subtotal">0.00</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <label>Extra Fees:</label>
+                                        <span id="history_extra_fees">0.00</span>
+                                    </div>
+                                    <div class="summary-row total">
+                                        <label>Total:</label>
+                                        <span id="history_total">0.00</span>
+                                    </div>
+                                </div>
+
+                                <button id="order_history_items_return" class="return-button">Return</button>
                             </div>
                         </div>
                     </section>
@@ -787,61 +875,70 @@
                         <button id="add_stocks_btn" class="inventory-button">Add Stock</button>
                     </div>
                     
-                    <!-- Popup for Item Input -->
-                    <div class="view_item_input_popup" id="view_item_input_popup">
-                        <div class="popup-content-view">
-                            <h3>Add Item</h3>
+                    <!-- Add Item Popup -->
+                    <div class="view_item_input_popup">
+                        <div class="popup-content">
+                            <h3>Add New Item</h3>
                             <form id="add_item_form">
-                                <div class="input_row_inventory">
-                                    <label for="item_name_input">Item Name:</label>
-                                    <input type="text" id="item_name_input" required>
+                                <div class="input_row_add_orders">
+                                    <label for="item_name">Item Name:</label>
+                                    <input type="text" id="item_name">
                                 </div>
-                                <div class="input_row_inventory">
-                                    <label for="item_description_input">Description:</label>
-                                    <input type="text" id="item_description_input">
+                                <div class="input_row_add_orders">
+                                    <label for="item_description">Description:</label>
+                                    <input type="text" id="item_description">
                                 </div>
-                                <div class="input_row_inventory">
-                                    <label for="item_price_input">Price:</label>
-                                    <input type="number" id="item_price_input" step="0.01" min="0" required>
+                                <div class="input_row_add_orders">
+                                    <label for="item_price">Price:</label>
+                                    <input type="number" id="item_price" min="0" step="0.01">
                                 </div>
-                                <div class="input_row_inventory">
-                                    <label for="item_type_select">Item Type:</label>
-                                    <select id="item_type_select" required></select>
+                                <div class="input_row_add_orders">
+                                    <label for="item_type">Item Type:</label>
+                                    <select id="item_type"></select>
                                 </div>
-                                <div class="order_navigation_inventory">
-                                    <button type="button" id="item_return_btn" class="btn-return">Return</button>
-                                    <button type="submit" id="item_submit_btn" class="btn-submit">Add Item</button>
+                                <div class="order_navigation">
+                                    <button type="button" id="item_return_btn">Return</button>
+                                    <button type="submit" id="item_submit_btn">Submit</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- Popup for Stock Input -->
-                    <div class="view_stock_input_popup" id="view_stock_input_popup">
-                        <div class="popup-content-view">
+                    <!-- Add Stock Popup -->
+                    <div class="view_stock_input_popup">
+                        <div class="popup-content">
                             <h3>Add Stock</h3>
                             <form id="add_stock_form">
-                                <div class="input_row_inventory">
-                                    <label for="stock_item_select">Item:</label>
-                                    <select id="stock_item_select" size="5" style="overflow-y: scroll;">
-                                        <!-- Options will be populated by JavaScript -->
+                                <div class="table_wrapper">
+                                    <table id="stock_items_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Select</th>
+                                                <th>Item Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                                <div class="input_row_add_orders">
+                                    <label for="stock_quantity">Quantity:</label>
+                                    <input type="number" id="stock_quantity" min="1" required title="Enter the quantity of stock to add">
+                                </div>
+                                <div class="input_row_add_orders">
+                                    <label for="stock_manager_select">Manager:</label>
+                                    <select id="stock_manager_select" required title="Select the manager responsible for this stock">
+                                        <option value="">Select a manager</option>
                                     </select>
                                 </div>
-                                <div class="input_row_inventory">
-                                    <label for="stock_quantity">Quantity:</label>
-                                    <input type="number" id="stock_quantity" min="0">
-                                </div>
-                                <div class="input_row_inventory">
-                                    <label for="stock_manager_select">Manager:</label>
-                                    <select id="stock_manager_select"></select>
-                                </div>
-                                <div class="input_row_inventory">
+                                <div class="input_row_add_orders">
                                     <label for="stock_supplier_id">Supplier:</label>
-                                    <select id="stock_supplier_id" required></select>
+                                    <select id="stock_supplier_id" required title="Select the supplier of this stock">
+                                        <option value="">Select a supplier</option>
+                                    </select>
                                 </div>
-                                <div class="order_navigation_inventory">
-                                    <button type="button" id="stock_return_btn" class="btn-return">Return</button>
-                                    <button type="submit" id="stock_submit_btn" class="btn-submit">Add Stock</button>
+                                <div class="order_navigation">
+                                    <button type="button" id="stock_return_btn">Return</button>
+                                    <button type="submit" id="stock_submit_btn">Submit</button>
                                 </div>
                             </form>
                         </div>
@@ -905,26 +1002,6 @@
                                 </div>
                             </form>
                         </div>
-                    </div>
-
-                    <!-- Popup for Modifying Stock -->
-                    <div class="view_modify_stock_popup" id="view_modify_stock_popup">
-                        <form>
-                            <label for="modify_stock_item_id">Item:</label>
-                            <select id="modify_stock_item_id"></select>
-
-                            <label for="modify_stock_quantity">Quantity:</label>
-                            <input type="number" id="modify_stock_quantity" min="0">
-
-                            <label for="modify_stock_supplier_id">Supplier:</label>
-                            <select id="modify_stock_supplier_id"></select>
-
-                            <label for="modify_stock_manager_id">Manager:</label>
-                            <select id="modify_stock_manager_id"></select>
-
-                            <button type="button" id="modify_stock_save_btn">Save</button>
-                            <button type="button" id="modify_stock_return_btn">Cancel</button>
-                        </form>
                     </div>
 
                     <!-- Popup for Modifying Stock -->
@@ -996,67 +1073,66 @@
                     <div class="view_add_worker_popup">
                         <div class="popup-content-worker">
                             <h3>Add New Worker</h3>
-                            <div class="card-add-worker">
                             <form class="add_worker_container">
-                                <div class="input_row_worker">
-                                    <label for="worker_first_name">First Name:</label>
-                                    <input type="text" id="worker_first_name" required>
+                                <div class="card-add-worker">
+                                    <div class="input_row_worker">
+                                        <label for="worker_first_name">First Name:</label>
+                                        <input type="text" id="worker_first_name" required>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_middle_name">Middle Name:</label>
+                                        <input type="text" id="worker_middle_name">
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_last_name">Last Name:</label>
+                                        <input type="text" id="worker_last_name" required>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_phone_number">Phone Number:</label>
+                                        <input type="tel" id="worker_phone_number" required placeholder="11-digit number">
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_age">Age:</label>
+                                        <input type="number" id="worker_age" min="18" max="100" required>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_gender">Gender:</label>
+                                        <select id="worker_gender" required></select>
+                                    </div>
                                 </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_middle_name">Middle Name:</label>
-                                    <input type="text" id="worker_middle_name">
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_last_name">Last Name:</label>
-                                    <input type="text" id="worker_last_name" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_phone_number">Phone Number:</label>
-                                    <input type="tel" id="worker_phone_number" pattern="[0-9]{10}" minlength="10" maxlength="10" required placeholder="10-digit number">
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_age">Age:</label>
-                                    <input type="number" id="worker_age" min="18" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_gender">Gender:</label>
-                                    <select id="worker_gender" required></select>
-                                </div>
-                                </form>
-                            </div>
 
-                            <div class="card-add-worker">
-                                <form class="add_worker_container">
-                                <div class="input_row_worker">
-                                    <label for="worker_manager">Manager:</label>
-                                    <select id="worker_manager" required></select>
+                                <div class="card-add-worker">
+                                    <div class="input_row_worker">
+                                        <label for="worker_manager">Manager:</label>
+                                        <select id="worker_manager" required></select>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_password">Password:</label>
+                                        <input type="password" id="worker_password" required>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="worker_confirm_password">Confirm Password:</label>
+                                        <input type="password" id="worker_confirm_password" required>
+                                    </div>
+                                    
+                                    <div class="input_row_worker">
+                                        <label for="show_password">Show Password:</label>
+                                        <input type="checkbox" id="show_password">
+                                    </div>
                                 </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_password">Password:</label>
-                                    <input type="password" id="worker_password" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_confirm_password">Confirm Password:</label>
-                                    <input type="password" id="worker_confirm_password" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="show_password">Show Password:</label>
-                                    <input type="checkbox" id="show_password">
+
+                                <div class="button-container">
+                                    <button type="button" id="worker_save_btn" class="save-btn">Save</button>
+                                    <button type="button" id="worker_cancel_btn" class="cancel-btn">Cancel</button>
                                 </div>
                             </form>
-                            </div>
-                            <div class="order_navigation_worker">
-                                <button type="button" id="worker_cancel_btn" class="btn-cancel">Cancel</button>
-                                <button type="button" id="worker_save_btn" class="btn-submit">Save</button>
-                            </div>
                         </div>
                     </div>
                 </section>

@@ -99,6 +99,17 @@ app.get('/checkSession', (req, res) => {
     }
 });
 
+// LOGOUT ENDPOINT
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error during logout' });
+        }
+        res.clearCookie('connect.sid'); // Clear the session cookie
+        res.json({ success: true, message: 'Logged out successfully' });
+    });
+});
+
 
 
 
@@ -293,7 +304,7 @@ app.get('/getActiveOrders', (req, res) => {
             FROM liabilities_tbl
             GROUP BY finance_ID
         ) l ON f.finance_ID = l.finance_ID
-        WHERE e.end_event_date >= NOW() AND (f.payment_status_id = 301 OR f.payment_status_id = 302 OR f.payment_status_id = 304)
+        WHERE e.end_event_date >= NOW() AND (f.payment_status_id = 301 OR f.payment_status_id = 302)
     `;
 
     db.query(query, (err, results) => {
@@ -336,10 +347,10 @@ app.get('/getOrderHistory', (req, res) => {
 
 
 
+
 // DELETES ORDER AND ALL RELATED RECORDS
 app.delete('/deleteOrder/:orderId', (req, res) => {
     const { orderId } = req.params;
-
     db.beginTransaction(err => {
         if (err) throw err;
 
@@ -360,58 +371,40 @@ app.delete('/deleteOrder/:orderId', (req, res) => {
 
             const { address_ID, person_ID, customer_ID } = idResults[0];
 
-            const deleteOrderDetails = 'DELETE FROM order_details_tbl WHERE order_ID = ?';
-            db.query(deleteOrderDetails, [orderId], (err) => {
-                if (err) return db.rollback(() => { throw err; });
+            const deleteQueries = [
+                'DELETE FROM order_details_tbl WHERE order_ID = ?',
+                'DELETE FROM payment_tbl WHERE finance_ID IN (SELECT finance_ID FROM finance_tbl WHERE order_ID = ?)',
+                'DELETE FROM finance_tbl WHERE order_ID = ?',
+                'DELETE FROM assigned_worker_tbl WHERE order_ID = ?',
+                'DELETE FROM event_info_tbl WHERE order_ID = ?',
+                'DELETE FROM order_info_tbl WHERE order_ID = ?',
+                'DELETE FROM customer_tbl WHERE customer_ID = ?',
+                'DELETE FROM address_tbl WHERE address_ID = ?',
+                'DELETE FROM person_tbl WHERE person_ID = ?'
+            ];
 
-                const deletePayment = 'DELETE FROM payment_tbl WHERE finance_ID IN (SELECT finance_ID FROM finance_tbl WHERE order_ID = ?)';
-                db.query(deletePayment, [orderId], (err) => {
-                    if (err) return db.rollback(() => { throw err; });
+            let queryIndex = 0;
 
-                    const deleteFinance = 'DELETE FROM finance_tbl WHERE order_ID = ?';
-                    db.query(deleteFinance, [orderId], (err) => {
+            function executeQuery() {
+                if (queryIndex < deleteQueries.length) {
+                    db.query(deleteQueries[queryIndex], [orderId], (err) => {
                         if (err) return db.rollback(() => { throw err; });
-
-                        const deleteAssignedWorkers = 'DELETE FROM assigned_worker_tbl WHERE order_ID = ?';
-                        db.query(deleteAssignedWorkers, [orderId], (err) => {
-                            if (err) return db.rollback(() => { throw err; });
-
-                            const deleteEventInfo = 'DELETE FROM event_info_tbl WHERE order_ID = ?';
-                            db.query(deleteEventInfo, [orderId], (err) => {
-                                if (err) return db.rollback(() => { throw err; });
-
-                                const deleteOrderInfo = 'DELETE FROM order_info_tbl WHERE order_ID = ?';
-                                db.query(deleteOrderInfo, [orderId], (err) => {
-                                    if (err) return db.rollback(() => { throw err; });
-
-                                    const deleteCustomer = 'DELETE FROM customer_tbl WHERE customer_ID = ?';
-                                    db.query(deleteCustomer, [customer_ID], (err) => {
-                                        if (err) return db.rollback(() => { throw err; });
-
-                                        const deleteAddress = 'DELETE FROM address_tbl WHERE address_ID = ?';
-                                        db.query(deleteAddress, [address_ID], (err) => {
-                                            if (err) return db.rollback(() => { throw err; });
-
-                                            const deletePerson = 'DELETE FROM person_tbl WHERE person_id = ?';
-                                            db.query(deletePerson, [person_ID], (err) => {
-                                                if (err) return db.rollback(() => { throw err; });
-
-                                                db.commit(err => {
-                                                    if (err) return db.rollback(() => { throw err; });
-                                                    res.json({ success: true, message: 'Order and all related records deleted successfully' });
-                                                });
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                        });
+                        queryIndex++;
+                        executeQuery();
                     });
-                });
-            });
+                } else {
+                    db.commit(err => {
+                        if (err) return db.rollback(() => { throw err; });
+                        res.json({ success: true, message: 'Order and all related records deleted successfully' });
+                    });
+                }
+            }
+
+            executeQuery();
         });
     });
 });
+
 
 app.post('/modifyOrder', (req, res) => {
     const {
@@ -636,7 +629,6 @@ app.delete('/deleteItem/:itemId', (req, res) => {
         });
     });
 });
-
 // REMOVES STOCK FROM THE ITEM STOCK TABLE
 app.delete('/deleteStock/:stockId', (req, res) => {
     const { stockId } = req.params;
@@ -678,7 +670,8 @@ app.post('/addItem', (req, res) => {
     if (!name || !price || !itemType) {
         return res.status(400).json({ success: false, message: 'Name, price, and item type are required' });
     }
-    
+        
+    // Corrected the query to have 4 placeholders.
     const query = 'INSERT INTO item_tbl (item_name, item_description, item_type_ID, item_price) VALUES (?, ?, ?, ?)';
     
     db.query(query, [name, description || '', itemType, price], (err, result) => {
@@ -696,6 +689,7 @@ app.post('/addItem', (req, res) => {
 });
 
 
+
 // ADDS STOCK TO THE ITEM STOCK TABLE
 app.post('/addStock', (req, res) => {
     const { itemId, quantity, managerId, supplierId } = req.body;
@@ -706,6 +700,7 @@ app.post('/addStock', (req, res) => {
             message: 'Item ID, quantity, manager ID, and supplier ID are required' 
         });
     }
+    
     const parsedItemId = parseInt(itemId, 10);
     if (isNaN(parsedItemId)) {
         return res.status(400).json({ 
@@ -717,7 +712,6 @@ app.post('/addStock', (req, res) => {
     const query = `
         INSERT INTO item_stock_tbl (item_ID, item_quantity, manager_ID, supplier_ID, date_stocked) 
         VALUES (?, ?, ?, ?, NOW())
-        ON DUPLICATE KEY UPDATE item_quantity = item_quantity + VALUES(item_quantity)
     `;
     
     db.query(query, [parsedItemId, quantity, managerId, supplierId], (err, result) => {
@@ -733,6 +727,8 @@ app.post('/addStock', (req, res) => {
         });
     });
 });
+
+                
 
 // RETRIEVES WORKERS WITH ORDER_ID = SELECTED ROW
 app.get('/getStaffInfo', (req, res) => {
@@ -871,8 +867,30 @@ app.post('/addWorker', (req, res) => {
 			}
 			res.json({ success: true, message: 'Worker added successfully' });
 		});
-		});
 	});
+});
+});
+// Get assigned workers for an order
+app.get('/getOrderWorkers/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    
+    const query = `
+        SELECT w.worker_ID, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name
+        FROM assigned_worker_tbl aw
+        JOIN worker_tbl w ON aw.worker_ID = w.worker_ID
+        JOIN staff_tbl s ON w.staff_ID = s.staff_id
+        JOIN person_tbl p ON s.person_ID = p.person_id
+        WHERE aw.order_ID = ?
+        ORDER BY worker_name
+    `;
+    
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Error fetching order workers:', err);
+            return res.status(500).json({ error: 'Failed to fetch order workers' });
+        }
+        res.json(results);
+    });
 });
 
 //RETREIVES ALL PAYMENT ORDERS THAT ARE EITHER ACTIVE, PARTIAL, OR PENDING
@@ -884,22 +902,27 @@ app.get('/getPaymentOrders', (req, res) => {
             CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS customer_name,
             DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date,
             DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date,
-            (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date)) AS item_subtotal,
+            od.item_subtotal AS item_subtotal,
             f.extra_Fee AS extra_fees,
             IFNULL(l.total_liabilities, 0) AS liabilities,
-            (f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))) AS total_amount,
-            ((f.extra_Fee + IFNULL(l.total_liabilities, 0) + (od.item_subtotal * DATEDIFF(e.end_event_date, e.event_date))
+            (f.extra_Fee + IFNULL(l.total_liabilities, 0) + od.item_subtotal) AS total_amount,
+            ((f.extra_Fee + IFNULL(l.total_liabilities, 0) + od.item_subtotal)
             - IFNULL(pmt.total_payment, 0)) AS balance,
+            f.payment_status_id,
+            ps.payment_status_name AS status,
             '' AS actions
         FROM finance_tbl f
         JOIN order_info_tbl o ON f.order_ID = o.order_ID
         JOIN customer_tbl c ON o.customer_ID = c.customer_ID
         JOIN person_tbl p ON c.person_ID = p.person_id
         JOIN event_info_tbl e ON o.order_ID = e.order_ID
+        JOIN payment_status_tbl ps ON f.payment_status_id = ps.payment_status_ID
         JOIN (
-            SELECT od.order_ID, SUM(od.item_quantity * i.item_price) AS item_subtotal
+            SELECT od.order_ID, 
+                   SUM(od.item_quantity * i.item_price * DATEDIFF(e.end_event_date, e.event_date)) AS item_subtotal
             FROM order_details_tbl od
             JOIN item_tbl i ON od.item_ID = i.item_ID
+            JOIN event_info_tbl e ON od.order_ID = e.order_ID
             GROUP BY od.order_ID
         ) od ON o.order_ID = od.order_ID
         LEFT JOIN (
@@ -914,8 +937,6 @@ app.get('/getPaymentOrders', (req, res) => {
         ) l ON f.finance_ID = l.finance_ID
         WHERE f.payment_status_id IN (301, 302, 303, 304)
         ORDER BY f.finance_ID DESC
-
-        
     `;
 
     db.query(query, (err, results) => {
@@ -946,13 +967,25 @@ app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
     const { orderId } = req.params;
     
     const query = `
-        SELECT od.item_ID, i.item_name, od.item_quantity
+        SELECT 
+            od.item_ID, 
+            i.item_name, 
+            od.item_quantity as total_quantity,
+            od.item_quantity - COALESCE(
+                (SELECT SUM(l.item_quantity) 
+                FROM liabilities_tbl l 
+                JOIN finance_tbl f ON l.finance_ID = f.finance_ID
+                WHERE l.item_ID = od.item_ID 
+                AND f.order_ID = ?), 
+                0
+            ) as available_quantity
         FROM order_details_tbl od
         JOIN item_tbl i ON od.item_ID = i.item_ID
         WHERE od.order_ID = ?
+        HAVING available_quantity > 0
     `;
     
-    db.query(query, [orderId], (err, results) => {
+    db.query(query, [orderId, orderId], (err, results) => {
         if (err) {
             console.error('Error fetching order items for liability:', err);
             return res.status(500).json({ error: 'Failed to fetch order items' });
@@ -1105,45 +1138,84 @@ app.post('/addLiability', (req, res) => {
             message: 'All fields are required including manager ID' 
         });
     }
-    
-    const query = `
-        INSERT INTO liabilities_tbl 
-            (finance_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date, manager_ID) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+
+    // First check available quantity
+    const checkQuantityQuery = `
+        SELECT 
+            od.item_quantity as total_quantity,
+            od.item_quantity - COALESCE(
+                (SELECT SUM(l.item_quantity) 
+                FROM liabilities_tbl l 
+                WHERE l.item_ID = od.item_ID 
+                AND l.finance_ID = f.finance_ID), 
+                0
+            ) as available_quantity
+        FROM order_details_tbl od
+        JOIN finance_tbl f ON od.order_ID = f.order_ID
+        WHERE f.finance_ID = ? AND od.item_ID = ?
     `;
-    
-    db.query(query, [financeId, title, itemId, quantity, amount, description, date, managerId], (err, result) => {
+
+    db.query(checkQuantityQuery, [financeId, itemId], (err, quantityResults) => {
         if (err) {
-            console.error('Error adding liability:', err);
+            console.error('Error checking available quantity:', err);
             return res.status(500).json({ success: false, message: err.message });
         }
-        
-        const updateStatusQuery = `
-            UPDATE finance_tbl f
-            UPDATE finance_tbl f
-            SET f.payment_status_id = 
-                CASE 
-                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
-                    THEN 304
-                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
-                    THEN 301
-                    WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
-                    AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
-                    THEN 302
-                    ELSE 303
-                END
-            WHERE f.finance_ID = ?
+
+        if (quantityResults.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Item not found in order'
+            });
+        }
+
+        const availableQuantity = quantityResults[0].available_quantity;
+
+        if (quantity > availableQuantity) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot add liability. Only ${availableQuantity} items available.`
+            });
+        }
+
+        // If quantity is valid, proceed with adding liability
+        const query = `
+            INSERT INTO liabilities_tbl 
+                (finance_ID, liability_title, item_ID, item_quantity, liability_amount, liability_description, liability_date, manager_ID) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
         
-        db.query(updateStatusQuery, [financeId], (err) => {
+        db.query(query, [financeId, title, itemId, quantity, amount, description, date, managerId], (err, result) => {
             if (err) {
-                console.error('Error updating payment status:', err);
+                console.error('Error adding liability:', err);
+                return res.status(500).json({ success: false, message: err.message });
             }
             
-            res.json({ 
-                success: true, 
-                message: 'Liability added successfully', 
-                liabilityId: result.insertId 
+            const updateStatusQuery = `
+                UPDATE finance_tbl f
+                SET f.payment_status_id = 
+                    CASE 
+                        WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < 0 
+                        THEN 304
+                        WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) = 0 
+                        THEN 301
+                        WHEN (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) > 0 
+                        AND (f.total_amount - (SELECT SUM(payment_amount) FROM payment_tbl WHERE finance_ID = f.finance_ID)) < f.total_amount
+                        THEN 302
+                        ELSE 303
+                    END
+                WHERE f.finance_ID = ?
+            `;
+            
+            db.query(updateStatusQuery, [financeId], (err) => {
+                if (err) {
+                    console.error('Error updating payment status:', err);
+                }
+                
+                res.json({ 
+                    success: true, 
+                    message: 'Liability added successfully', 
+                    liabilityId: result.insertId 
+                });
             });
         });
     });
@@ -1334,6 +1406,12 @@ app.get('/getStockInfo', (req, res) => {
 
 // Get finance ID by order ID
 app.get('/getFinanceIdByOrderId/:orderId', (req, res) => {
+    const orderId = req.params.orderId;
+    const query = `
+        SELECT f.finance_ID as financeId
+        FROM finance_tbl f
+        WHERE f.order_ID = ?
+    `;
     
     db.query(query, [orderId], (err, results) => {
         if (err) {
@@ -1427,16 +1505,19 @@ app.get('/fetchOrderDetails/:orderId', (req, res) => {
     // Enhanced query to fetch order items with type info
     const itemsQuery = `
         SELECT 
-            od.item_ID,
+            i.item_ID,
             i.item_name,
             i.item_price,
-            od.item_quantity,
             i.item_type_ID,
-            it.item_type_name
-        FROM order_details_tbl od
-        JOIN item_tbl i ON od.item_ID = i.item_ID
+            it.item_type_name,
+            COALESCE(od.item_quantity, 0) as selected_quantity,
+            (SELECT SUM(s.item_quantity) 
+             FROM item_stock_tbl s 
+             WHERE s.item_ID = i.item_ID) as available_stock
+        FROM item_tbl i
         JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
-        WHERE od.order_ID = ?
+        LEFT JOIN order_details_tbl od ON i.item_ID = od.item_ID AND od.order_ID = ?
+        ORDER BY i.item_type_ID, i.item_name
     `;
 
     // Query to fetch assigned workers
@@ -1450,52 +1531,22 @@ app.get('/fetchOrderDetails/:orderId', (req, res) => {
     db.query(`${orderQuery}; ${itemsQuery}; ${workersQuery}`, [orderId, orderId, orderId], (err, results) => {
         if (err) {
             console.error('Error fetching order details:', err);
-            return res.status(500).json({ success: false, message: err.message });
-        }
-        
-        const [orderDetails, orderItems, assignedWorkers] = results;
-        
-        if (orderDetails.length === 0) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Error fetching order details' 
+            });
         }
 
-        // Format the order details
-        const formattedOrder = orderDetails[0];
-        formattedOrder.event_date = new Date(formattedOrder.event_date)
-            .toISOString()
-            .slice(0, 16); // Format as YYYY-MM-DDTHH:MM for datetime-local input
+        // Extract results from the multiple queries
+        const orderDetails = results[0][0] || {};
+        const items = results[1] || [];
+        const workers = results[2].map(w => w.worker_ID) || [];
 
-        // Group items by type and add selected_quantity to each item
-        const itemsByType = {
-            tables: [],
-            chairs: [],
-            miscellaneous: []
-        };
-
-        console.log("Order items from database:", orderItems);
-
-        orderItems.forEach(item => {
-            // Add selected_quantity property
-            item.selected_quantity = parseInt(item.item_quantity);
-            
-            // Group by item type name for more reliability
-            if (item.item_type_name === 'Tables') {
-                itemsByType.tables.push(item);
-            } else if (item.item_type_name === 'Chairs') {
-                itemsByType.chairs.push(item);
-            } else {
-                itemsByType.miscellaneous.push(item);
-            }
-        });
-
-        // Extract just the worker IDs
-        const workerIds = assignedWorkers.map(worker => worker.worker_ID);
-
-        res.json({ 
-            success: true, 
-            orderDetails: formattedOrder,
-            items: itemsByType,
-            assignedWorkers: workerIds
+        res.json({
+            success: true,
+            orderDetails,
+            items,
+            workers
         });
     });
 });
@@ -1518,10 +1569,171 @@ app.get('/dashboard', (req, res) => {
 	}
 });
 
+// Get Order History Details
+app.get('/getOrderHistoryDetails/:orderId', (req, res) => {
+    const { orderId } = req.params;
+
+    // Main query to get order details with customer and event info
+    const orderDetailsQuery = `
+        SELECT 
+            o.order_ID,
+            e.event_Name,
+            DATE_FORMAT(e.event_date, '%Y-%m-%d %H:%i') as event_date,
+            DATE_FORMAT(e.end_event_date, '%Y-%m-%d %H:%i') as end_event_date,
+            CONCAT(p.first_Name, ' ', IFNULL(p.middle_Name, ''), ' ', p.last_Name) as customer_name,
+            CONCAT(a.street_Name, ', ', a.barangay_Name, ', ', a.city_Name) as full_address,
+            p.phone_Number,
+            (SELECT CONCAT(p2.first_Name, ' ', p2.last_Name) 
+             FROM person_tbl p2 
+             JOIN staff_tbl s ON p2.person_ID = s.person_ID 
+             JOIN manager_tbl m ON s.staff_ID = m.staff_ID 
+             WHERE m.manager_ID = o.manager_ID) as manager_name,
+            f.finance_ID,
+            f.extra_fee as extraFees,
+            DATEDIFF(e.end_event_date, e.event_date) as daysRented
+        FROM order_info_tbl o
+        JOIN event_info_tbl e ON o.order_ID = e.order_ID
+        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
+        JOIN person_tbl p ON c.person_ID = p.person_ID
+        JOIN address_tbl a ON e.address_ID = a.address_ID
+        JOIN finance_tbl f ON o.order_ID = f.order_ID
+        WHERE o.order_ID = ?
+    `;
+
+    // Query to get transactions
+    const transactionsQuery = `
+        SELECT 
+            pt.payment_type,
+            p.payment_amount,
+            p.payment_reference_no,
+            DATE_FORMAT(p.date_of_payment, '%Y-%m-%d %H:%i') as date_of_payment
+        FROM payment_tbl p
+        JOIN payment_type_tbl pt ON p.payment_type_ID = pt.payment_type_ID
+        JOIN finance_tbl f ON p.finance_ID = f.finance_ID
+        WHERE f.order_ID = ?
+        ORDER BY p.date_of_payment DESC
+    `;
+
+    // Query to get liabilities
+    const liabilitiesQuery = `
+        SELECT 
+            l.liability_title,
+            i.item_name,
+            l.item_quantity,
+            l.liability_amount,
+            l.liability_description,
+            DATE_FORMAT(l.liability_date, '%Y-%m-%d %H:%i') as liability_date
+        FROM liabilities_tbl l
+        JOIN finance_tbl f ON l.finance_ID = f.finance_ID
+        JOIN item_tbl i ON l.item_ID = i.item_ID
+        WHERE f.order_ID = ?
+        ORDER BY l.liability_date DESC
+    `;
+
+    // Query to get order items with missing requirements
+    const itemsQuery = `
+        SELECT 
+            i.item_name,
+            i.item_description,
+            i.item_price,
+            od.item_quantity,
+            (i.item_price * od.item_quantity) as item_subtotal,
+            (SELECT SUM(item_quantity) 
+             FROM item_stock_tbl 
+             WHERE item_ID = i.item_ID) as available_stock,
+            CASE 
+                WHEN (SELECT SUM(item_quantity) 
+                      FROM item_stock_tbl 
+                      WHERE item_ID = i.item_ID) < od.item_quantity 
+                THEN od.item_quantity - (SELECT SUM(item_quantity) 
+                                       FROM item_stock_tbl 
+                                       WHERE item_ID = i.item_ID)
+                ELSE 0 
+            END as missing_quantity
+        FROM order_details_tbl od
+        JOIN item_tbl i ON od.item_ID = i.item_ID
+        WHERE od.order_ID = ?
+    `;
+
+    // Execute all queries in parallel
+    Promise.all([
+        new Promise((resolve, reject) => {
+            db.query(orderDetailsQuery, [orderId], (err, results) => {
+                if (err) reject(err);
+                resolve(results[0]); // Get first row since it's a single order
+            });
+        }),
+        new Promise((resolve, reject) => {
+            db.query(transactionsQuery, [orderId], (err, results) => {
+                if (err) reject(err);
+                resolve(results);
+            });
+        }),
+        new Promise((resolve, reject) => {
+            db.query(liabilitiesQuery, [orderId], (err, results) => {
+                if (err) reject(err);
+                resolve(results);
+            });
+        }),
+        new Promise((resolve, reject) => {
+            db.query(itemsQuery, [orderId], (err, results) => {
+                if (err) reject(err);
+                resolve(results);
+            });
+        })
+    ])
+    .then(([orderDetails, transactions, liabilities, items]) => {
+        // Calculate missing requirements summary
+        const missingRequirements = items
+            .filter(item => item.missing_quantity > 0)
+            .map(item => ({
+                item_name: item.item_name,
+                required_quantity: item.item_quantity,
+                available_quantity: item.available_stock || 0,
+                missing_quantity: item.missing_quantity
+            }));
+
+        res.json({
+            orderDetails,
+            transactions,
+            liabilities,
+            items,
+            missingRequirements
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching order history details:', error);
+        res.status(500).json({ error: 'Failed to fetch order history details' });
+    });
+});
+
+// Route to get item details for modification
+app.get('/getItemDetails/:id', (req, res) => {
+    const itemId = req.params.id;
+    const query = `
+        SELECT i.item_ID, i.item_name, i.item_description, i.item_price, i.item_type_ID,
+               t.item_type_name
+        FROM item_tbl i
+        JOIN item_type_tbl t ON i.item_type_ID = t.item_type_ID
+        WHERE i.item_ID = ?
+    `;
+    
+    db.query(query, [itemId], (error, results) => {
+        if (error) {
+            console.error('Error fetching item details:', error);
+            res.status(500).json({ error: 'Error fetching item details' });
+        } else if (results.length === 0) {
+            res.status(404).json({ error: 'Item not found' });
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
 // START THE SERVER 
 app.listen(port, () => {
 	console.log(`Server running on http://localhost:${port}`);
 	console.log('Access the website at http://localhost:4000');
-	console.log('Access the website at http://localhost:4000');
-});
+});            
+
 
