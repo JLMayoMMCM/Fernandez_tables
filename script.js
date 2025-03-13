@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
+
+
     // Function to show validation message
     function showValidationMessage(message, isSuccess = false) {
         const messageElement = document.getElementById('validationMessage');
@@ -109,6 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 100);
         });
     }
+
+
 
     //button for returning to main add order page
     const backToAddOrder = document.getElementById('back_to_add_order');
@@ -1701,6 +1705,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return true;
     }
+
+    // Shows the add worker form Password
+    document.getElementById('show_password').addEventListener('change', function() {
+        const passwordField = document.getElementById('worker_password');
+        const confirmPasswordField = document.getElementById('worker_confirm_password');
+        if (this.checked) {
+            passwordField.type = 'text';
+            confirmPasswordField.type = 'text';
+        } else {
+            passwordField.type = 'password';
+            confirmPasswordField.type = 'password';
+        }
+    });
 
     // Update the worker_save_btn event listener to include manager ID
     document.getElementById('worker_save_btn').addEventListener('click', function() {

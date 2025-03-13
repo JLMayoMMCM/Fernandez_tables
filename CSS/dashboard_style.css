@@ -213,6 +213,16 @@ body {
   scroll-behavior: smooth;
 }
 
+.content_add_order.active, .content_modify_order.active {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+  scroll-behavior: smooth;
+}
+
 .card-add-orders {
   background: var(--bg-card); /* 50% transparent background */
   backdrop-filter: blur(10px); /* Blur effect */
@@ -2531,4 +2541,35 @@ body {
     box-shadow: 0 4px 8px var(--shadow-medium), 
                 0 6px 20px var(--shadow-light);
 }
+
+.modifyItemBtn, .modifyStockBtn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.modifyItemBtn:hover {
+    background-color: #45a049;
+}
+
+.view_modify_item_popup, .view_modify_stock_popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bg-card);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px var(--shadow-medium);
+    z-index: 1000;
+}
+
+.view_modify_item_popup.active, .view_modify_stock_popup.active {
+    display: block;
+}
+
+
 

@@ -5,19 +5,17 @@
 //IMPORTS
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const path = require('path');
 const session = require('express-session');
+const bcrypt = require('bcryptjs');
 
 // CREATE EXPRESS APP
 const app = express();
 const port = 4000;
 
 // MIDDLEWARE FOR STATIC FILES
-app.use("/mainPage", express.static(__dirname + "/mainPage"));
-app.use("/design", express.static(__dirname + "/design"));
-app.use("/assets", express.static(__dirname + "/Assets"));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, "../")));
 
 // MIDDLEWARE FOR BODY PARSER
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -33,9 +31,9 @@ app.use(session({
 
 // CONNECTION TO MYSQL DATABASE
 const db = mysql.createConnection({
-    host: 'fernandezdb.clskew0myhmb.ap-southeast-2.rds.amazonaws.com',
-    user: 'admin',
-    password: 'JLM12345',
+    host: 'localhost',
+    user: 'root',
+    password: '',
     database: 'fernandez_tables_chairs_db',
     multipleStatements: true
 });
@@ -47,40 +45,49 @@ db.connect((err) => {
 });
 
 
-
-// ------------------ SERVER LISTENING ------------------ //
-
 // LOGIN USER AND SET SESSION VARIABLES
 app.post('/login', (req, res) => {
     const { userID, staffPassword } = req.body;
 
-    const encryptedPassword = Buffer.from(staffPassword).toString('base64');
-
+    console.log (staffPassword);
     const query = `
         SELECT s.staff_id, s.staff_password, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS fullName
         FROM staff_tbl s
         JOIN person_tbl p ON s.person_ID = p.person_id
-        WHERE s.staff_id = ? AND s.staff_password = ?
+        WHERE s.staff_id = ?
     `;
     
-    db.query(query, [userID, encryptedPassword], (err, results) => {
+    db.query(query, [userID], (err, results) => {
         if (err) {
             console.error('Database error during login:', err);
             return res.status(500).json({ success: false, message: 'Internal server error' });
         }
         
         if (results.length > 0) {
-            req.session.userID = userID;
-            req.session.userName = results[0].fullName;
-            console.log('Login successful');
-            res.json({ success: true, redirectUrl: '/dashboard' });
+            const storedPassword = results[0].staff_password;
+            console.log('Stored password:', storedPassword);
+            bcrypt.compare(staffPassword, storedPassword, (err, isMatch) => {
+                if (err) {
+                    console.error('Error comparing passwords:', err);
+                    return res.status(500).json({ success: false, message: 'Internal server error' });
+                }
+                
+                if (isMatch) {
+                    req.session.userID = userID;
+                    req.session.userName = results[0].fullName;
+                    console.log('Login successful');
+                    res.json({ success: true, redirectUrl: '/dashboard' });
+                } else {
+                    console.log('Invalid login credentials');
+                    res.json({ success: false, message: 'Invalid credentials' });
+                }
+            });
         } else {
             console.log('Invalid login credentials');
             res.json({ success: false, message: 'Invalid credentials' });
         }
     });
 });
-
 
 
 // CHECK SESSION STATUS
@@ -95,9 +102,7 @@ app.get('/checkSession', (req, res) => {
 
 
 
-// --------------------------------- DASHBOARD ROUTES --------------------------------- //
-
-
+// --------------------------------- DASHBOARD --------------------------------- //
 
 // GETS USER'S NAME AND ID FROM SESSION AND UPDATES DASHBOARD USERNAME
 app.get('/getCurrentUser', (req, res) => {
@@ -140,16 +145,20 @@ app.get('/getCurrentUser', (req, res) => {
     }
 });
 
-
-
 // RETRIEVES ITEMS, WORKERS, MANAGERS, AND GENDER AND POPULATES THE DROPDOWNS AND TABLES
 app.get('/getItemsAndWorkers', (req, res) => {
     const itemsQuery = `
-        SELECT i.item_ID AS id, i.item_name, i.item_price, COALESCE(SUM(s.item_quantity), 0) AS item_quantity, t.item_type_name
+        SELECT 
+            i.item_ID AS id, 
+            i.item_name, 
+            i.item_price, 
+            COALESCE(SUM(s.item_quantity), 0) AS item_quantity, 
+            t.item_type_name,
+            i.item_type_ID
         FROM item_tbl i
-        LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
         JOIN item_type_tbl t ON i.item_type_ID = t.item_type_ID
-        GROUP BY i.item_ID, i.item_name, i.item_price, t.item_type_name
+        LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
+        GROUP BY i.item_ID, i.item_name, i.item_price, t.item_type_name, i.item_type_ID
     `;
     const workersQuery = `
         SELECT w.worker_ID, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name
@@ -168,7 +177,7 @@ app.get('/getItemsAndWorkers', (req, res) => {
         FROM gender_tbl
     `;
     const suppliersQuery = `
-        SELECT supplier_ID as id, supplier_source_name as name 
+        SELECT supplier_ID as id, supplier_name as name 
         FROM supplier_tbl
     `;
     const selectorQuery = `
@@ -187,8 +196,6 @@ app.get('/getItemsAndWorkers', (req, res) => {
         res.json({ items: sortedItems, workers, managers, genders, suppliers, selector});
     });
 });
-
-
 
 // ADD ORDERS TO DATABASE
 app.post('/addOrder', (req, res) => {
@@ -241,6 +248,8 @@ app.post('/addOrder', (req, res) => {
                                 db.query(financeQuery, [orderId, extra_fees, totalPrice], (err) => {
                                     if (err) return db.rollback(() => { throw err; });
 
+
+
                                     const eventQuery = 'INSERT INTO event_info_tbl (order_ID, event_Name, address_ID, event_date, end_event_date) VALUES (?, ?, ?, ?, ?)';
                                     const endEventDate = new Date(new Date(event_timestamp).getTime() + (event_duration * 24 * 60 * 60 * 1000));
                                     db.query(eventQuery, [orderId, event_name, addressId, event_timestamp, endEventDate], (err) => {
@@ -260,8 +269,6 @@ app.post('/addOrder', (req, res) => {
         });
     });
 });
-
-
 
 // RETRIEVES ALL ORDERS FROM DATABASE FOR THE ACTIVE ORDER TABLE
 app.get('/getActiveOrders', (req, res) => {
@@ -295,8 +302,6 @@ app.get('/getActiveOrders', (req, res) => {
     });
 });
 
-
-
 // RETRIEVES ALL ORDERS FROM DATABASE FOR THE ORDER HISTORY TABLE
 app.get('/getOrderHistory', (req, res) => {
     const query = `
@@ -327,8 +332,6 @@ app.get('/getOrderHistory', (req, res) => {
         res.json(results);
     });
 });
-
-
 
 //RETREIVES ITEMS WITH ORDER_ID = SELECTED ROW
 app.get('/getOrderItems/:orderId', (req, res) => {
@@ -370,8 +373,6 @@ app.get('/getOrderItems/:orderId', (req, res) => {
         });
     });
 });
-
-
 
 // RETRIEVES ORDER DETAILS FOR MODIFICATION
 app.get('/getOrderDetails/:orderId', (req, res) => {
@@ -418,13 +419,13 @@ app.get('/getOrderDetails/:orderId', (req, res) => {
                 i.item_price,
                 i.item_type_ID,
                 it.item_type_name,
-                s.item_quantity AS available_stock, 
-                od.item_quantity AS selected_quantity,
-                od.order_ID AS order_selected
+                COALESCE(SUM(s.item_quantity), 0) AS available_stock,
+                COALESCE(od.item_quantity, 0) AS selected_quantity
             FROM item_tbl i
             JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
-            JOIN item_stock_tbl s ON i.item_ID = s.item_ID
+            LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
             LEFT JOIN order_details_tbl od ON i.item_ID = od.item_ID AND od.order_ID = ?
+            GROUP BY i.item_ID, i.item_name, i.item_price, i.item_type_ID, it.item_type_name, od.item_quantity
             ORDER BY i.item_type_ID, i.item_name
         `;
         
@@ -483,7 +484,115 @@ app.get('/getOrderDetails/:orderId', (req, res) => {
     });
 });
 
+// RETRIEVES ORDER DETAILS FOR MODIFICATION INCLUDING ITEM QUANTITIES
+app.get('/getOrderDetailsForModification/:orderId', (req, res) => {
+    const orderId = req.params.orderId;
 
+    const orderQuery = `
+        SELECT o.order_ID, 
+                    e.event_Name AS event_name, 
+                    e.event_date AS event_timestamp, 
+                    e.end_event_date,
+                    f.extra_Fee AS extra_fees,
+                    a.street_Name AS street, 
+                    a.barangay_Name AS barangay, 
+                    a.city_Name AS city,
+                    p.first_Name AS first_name, 
+                    p.middle_Name AS middle_name, 
+                    p.last_Name AS last_name, 
+                    p.phone_Number AS phone_number, 
+                    p.age, 
+                    p.gender_ID AS gender, 
+                    o.manager_ID AS assigned_manager
+        FROM order_info_tbl o
+        JOIN event_info_tbl e ON o.order_ID = e.order_ID
+        JOIN finance_tbl f ON o.order_ID = f.order_ID
+        JOIN customer_tbl c ON o.customer_ID = c.customer_ID
+        JOIN person_tbl p ON c.person_ID = p.person_ID
+        JOIN address_tbl a ON e.address_ID = a.address_ID
+        WHERE o.order_ID = ?
+    `;
+
+    db.query(orderQuery, [orderId], (err, orderResults) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!orderResults.length) return res.status(404).json({ error: 'Order not found' });
+        const order = orderResults[0];
+
+        order.event_duration = Math.ceil(
+            (new Date(order.end_event_date) - new Date(order.event_timestamp)) / (1000 * 60 * 60 * 24)
+        );
+        
+        const itemsQuery = `
+            SELECT 
+                i.item_ID, 
+                i.item_name, 
+                i.item_price,
+                i.item_type_ID,
+                it.item_type_name,
+                COALESCE(SUM(s.item_quantity), 0) AS available_stock,
+                COALESCE(od.item_quantity, 0) AS selected_quantity
+            FROM item_tbl i
+            JOIN item_type_tbl it ON i.item_type_ID = it.item_type_ID
+            LEFT JOIN item_stock_tbl s ON i.item_ID = s.item_ID
+            LEFT JOIN order_details_tbl od ON i.item_ID = od.item_ID AND od.order_ID = ?
+            GROUP BY i.item_ID, i.item_name, i.item_price, i.item_type_ID, it.item_type_name, od.item_quantity
+            ORDER BY i.item_type_ID, i.item_name
+        `;
+        
+        db.query(itemsQuery, [orderId], (err, items) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const workersQuery = `
+                SELECT 
+                    w.worker_ID, 
+                    CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS worker_name,
+                    CASE WHEN aw.worker_ID IS NULL THEN 0 ELSE 1 END AS selected
+                FROM worker_tbl w
+                JOIN staff_tbl s ON w.staff_ID = s.staff_id
+                JOIN person_tbl p ON s.person_ID = p.person_id
+                LEFT JOIN assigned_worker_tbl aw ON w.worker_ID = aw.worker_ID AND aw.order_ID = ?
+            `;
+            
+            db.query(workersQuery, [orderId], (err, workers) => {
+                if (err) return res.status(500).json({ error: err.message });
+
+                const managersQuery = `
+                    SELECT m.manager_ID AS id, CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS name
+                    FROM manager_tbl m
+                    JOIN staff_tbl s ON m.staff_ID = s.staff_id
+                    JOIN person_tbl p ON s.person_ID = p.person_id
+                `;
+                
+                db.query(managersQuery, (err, managers) => {
+                    if (err) return res.status(500).json({ error: err.message });
+                    
+                    const gendersQuery = `SELECT gender_ID AS id, gender_Name AS name FROM gender_tbl`;
+                    
+                    db.query(gendersQuery, (err, genders) => {
+                        if (err) return res.status(500).json({ error: err.message });
+                        
+                        const tablesItems = items.filter(item => item.item_type_ID === 401);
+                        const chairsItems = items.filter(item => item.item_type_ID === 402);
+                        const miscItems = items.filter(item => item.item_type_ID === 403);
+                        
+                        res.json({ 
+                            order, 
+                            itemsByType: {
+                                tables: tablesItems,
+                                chairs: chairsItems,
+                                misc: miscItems
+                            },
+                            items,
+                            workers, 
+                            managers, 
+                            genders 
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
 
 // DELETES ORDER AND ALL RELATED RECORDS
 app.delete('/deleteOrder/:orderId', (req, res) => {
@@ -561,8 +670,6 @@ app.delete('/deleteOrder/:orderId', (req, res) => {
         });
     });
 });
-
-
 
 app.post('/modifyOrder', (req, res) => {
     const {
@@ -661,8 +768,6 @@ app.post('/modifyOrder', (req, res) => {
         });
     });
 });
-
-
 
 // UPDATES EXISTING ORDER
 app.put('/updateOrder/:orderId', (req, res) => {
@@ -812,8 +917,6 @@ app.put('/updateOrder/:orderId', (req, res) => {
     });
 });
 
-
-
 // CHANGES STATUS ID TO CANCELLED
 app.put('/cancelOrder/:orderId', (req, res) => {
     const orderId = req.params.orderId;
@@ -838,8 +941,6 @@ app.put('/cancelOrder/:orderId', (req, res) => {
     });
 });
 
-
-
 // RETRIEVES STOCK INFO FOR DISPLAY
 app.get('/getInventoryItems', (req, res) => {
     const query = `
@@ -860,34 +961,6 @@ app.get('/getInventoryItems', (req, res) => {
         res.json(results);
     });
 });
-
-
-
-// RETRIEVES STOCK INFO FOR DISPLAY
-app.get('/getStockInfo', (req, res) => {
-    const query = `
-        SELECT s.item_stock_ID, s.item_ID, i.item_name, s.item_quantity,
-        sup.supplier_source_name, sup.supplier_ID,
-        CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS manager_name
-        FROM item_stock_tbl s
-        JOIN item_tbl i ON s.item_ID = i.item_ID
-        JOIN supplier_tbl sup ON s.supplier_ID = sup.supplier_ID
-        JOIN manager_tbl m ON s.manager_ID = m.manager_ID
-        JOIN staff_tbl st ON m.staff_ID = st.staff_id
-        JOIN person_tbl p ON st.person_ID = p.person_id
-        ORDER BY s.item_stock_ID
-    `;
-    
-    db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error fetching stock information:', err);
-            return res.status(500).json({ success: false, message: err.message });
-        }
-        res.json(results);
-    });
-});
-
-
 
 // DELETE ITEM FROM ORDER DETAILS, ITEM STOCK, AND ITEM TABLES
 app.delete('/deleteItem/:itemId', (req, res) => {
@@ -970,8 +1043,6 @@ app.delete('/deleteItem/:itemId', (req, res) => {
     });
 });
 
-
-
 // REMOVES STOCK FROM THE ITEM STOCK TABLE
 app.delete('/deleteStock/:stockId', (req, res) => {
     const { stockId } = req.params;
@@ -992,8 +1063,6 @@ app.delete('/deleteStock/:stockId', (req, res) => {
     });
 });
 
-
-
 // GET ITEM TYPES FOR DROPDOWN
 app.get('/getItemTypes', (req, res) => {
     const query = 'SELECT item_type_ID AS id, item_type_name AS name FROM item_type_tbl';
@@ -1007,8 +1076,6 @@ app.get('/getItemTypes', (req, res) => {
         res.json(results);
     });
 });
-
-
 
 // ADDS AN ITEM TO THE ITEM TABLE
 app.post('/addItem', (req, res) => {
@@ -1035,7 +1102,6 @@ app.post('/addItem', (req, res) => {
 });
 
 
-
 // ADDS STOCK TO THE ITEM STOCK TABLE
 app.post('/addStock', (req, res) => {
     const { itemId, quantity, managerId, supplierId } = req.body;
@@ -1046,8 +1112,6 @@ app.post('/addStock', (req, res) => {
             message: 'Item ID, quantity, manager ID, and supplier ID are required' 
         });
     }
-
-    // Ensure itemId is a valid number
     const parsedItemId = parseInt(itemId, 10);
     if (isNaN(parsedItemId)) {
         return res.status(400).json({ 
@@ -1076,8 +1140,6 @@ app.post('/addStock', (req, res) => {
     });
 });
 
-
-
 // RETRIEVES WORKERS WITH ORDER_ID = SELECTED ROW
 app.get('/getStaffInfo', (req, res) => {
     const query = `
@@ -1102,8 +1164,6 @@ SELECT
         res.json(results);
     });
 });
-
-
 
 // REMOVES A WORKER AND ALL RELATED RECORDS
 app.delete('/fireWorker/:workerId', (req, res) => {
@@ -1156,8 +1216,6 @@ app.delete('/fireWorker/:workerId', (req, res) => {
     });
 });
 
-
-
 // RETRIEVES ASSIGNED WORKERS FOR A SPECIFIC ORDER
 app.get('/getAssignedOrders/:workerId', (req, res) => {
     const workerId = req.params.workerId;
@@ -1185,8 +1243,6 @@ app.get('/getAssignedOrders/:workerId', (req, res) => {
     });
 });
 
-
-
 // ADDS WORKS IN THE ADD WORKER STAFF INFO
 app.post('/addWorker', (req, res) => {
 	const { first_name, middle_name, last_name, phone_number, age, gender, manager_id, password } = req.body;
@@ -1203,7 +1259,7 @@ app.post('/addWorker', (req, res) => {
 		const personId = personResult.insertId;
 
 		const passwordToUse = password || 'password';
-		const encryptedPassword = Buffer.from(passwordToUse).toString('base64');
+		const encryptedPassword = bcrypt.hashSync(passwordToUse, 12);
 		
 		const staffQuery = 'INSERT INTO staff_tbl (staff_password, person_ID) VALUES (?, ?)';
 		db.query(staffQuery, [encryptedPassword, personId], (err, staffResult) => {
@@ -1224,8 +1280,6 @@ app.post('/addWorker', (req, res) => {
 		});
 	});
 });
-
-
 
 //RETREIVES ALL PAYMENT ORDERS THAT ARE EITHER ACTIVE, PARTIAL, OR PENDING
 app.get('/getPaymentOrders', (req, res) => {
@@ -1312,8 +1366,6 @@ app.get('/getOrderItemsForLiability/:orderId', (req, res) => {
         res.json(results);
     });
 });
-
-
 
 // GETS FINANCE INFO FOR SELECTED ORDER
 app.get('/getTransactions/:financeId', (req, res) => {
@@ -1492,7 +1544,6 @@ app.post('/addLiability', (req, res) => {
         db.query(updateStatusQuery, [financeId], (err) => {
             if (err) {
                 console.error('Error updating payment status:', err);
-                // Don't return error response here, liability was still added successfully
             }
             
             res.json({ 
@@ -1552,32 +1603,204 @@ app.delete('/deleteLiability/:financeId/:liabilityTitle', (req, res) => {
     });
 });
 
-// WEBSITE LOCALHOST NAVIGATION
-app.get('/', (_, res) => {
-    res.sendFile(__dirname + '/index.html');
+// Route to get item details for modification
+app.get('/getItemDetails/:id', (req, res) => {
+    const itemId = req.params.id;
+    const query = `
+        SELECT i.item_ID, i.item_name, i.item_description, i.item_price, i.item_type_ID
+        FROM item_tbl i
+        WHERE i.item_ID = ?
+    `;
+    db.query(query, [itemId], (error, results) => {
+        if (error) {
+            console.error('Error fetching item details:', error);
+            res.status(500).json({ error: 'Error fetching item details' });
+        } else {
+            res.json(results[0]);
+        }
+    });
+});
+
+// Route to update item details
+app.put('/updateItem/:id', (req, res) => {
+    const itemId = req.params.id;
+    const { itemName, itemDescription, itemPrice, itemType } = req.body;
+    const query = 'UPDATE item_tbl SET item_name = ?, item_description = ?, item_price = ?, item_type_ID = ? WHERE item_ID = ?';
+    db.query(query, [itemName, itemDescription, itemPrice, itemType, itemId], (error, results) => {
+        if (error) {
+            console.error('Error updating item:', error);
+            res.status(500).json({ error: 'Error updating item' });
+        } else {
+            res.json({ success: true, message: 'Item updated successfully' });
+        }
+    });
+});
+
+// Route to update stock details
+app.put('/updateStock/:id', (req, res) => {
+    const stockId = req.params.id;
+    const { itemQuantity, supplierId, managerId } = req.body;
+
+    db.beginTransaction(err => {
+        if (err) {
+            console.error('Error starting transaction:', err);
+            return res.status(500).json({ success: false, error: 'Error starting transaction' });
+        }
+
+        // First, get the item ID associated with this stock
+        const getItemIdQuery = 'SELECT item_ID FROM item_stock_tbl WHERE item_stock_ID = ?';
+        db.query(getItemIdQuery, [stockId], (err, results) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.error('Error getting item ID:', err);
+                    res.status(500).json({ success: false, error: 'Error getting item ID' });
+                });
+            }
+            
+            if (results.length === 0) {
+                return db.rollback(() => {
+                    res.status(404).json({ success: false, error: 'Stock not found' });
+                });
+            }
+            
+            const itemId = results[0].item_ID;
+            
+            // Update the stock entry
+            const updateStockQuery = 'UPDATE item_stock_tbl SET item_quantity = ?, supplier_ID = ?, manager_ID = ? WHERE item_stock_ID = ?';
+            db.query(updateStockQuery, [itemQuantity, supplierId, managerId, stockId], (err) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error('Error updating stock:', err);
+                        res.status(500).json({ success: false, error: 'Error updating stock' });
+                    });
+                }
+                
+                db.commit(err => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error('Error committing transaction:', err);
+                            res.status(500).json({ success: false, error: 'Error committing transaction' });
+                        });
+                    }
+                    res.json({ success: true, message: 'Stock updated successfully', itemId });
+                });
+            });
+        });
+    });
+});
+
+// Route to get stock details for modification
+app.get('/getStockDetails/:id', (req, res) => {
+    const stockId = req.params.id;
+    const query = `
+        SELECT s.item_stock_ID, s.item_ID, i.item_name, s.item_quantity, sup.supplier_name, sup.supplier_ID,
+               CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS manager_name,
+               m.manager_ID
+        FROM item_stock_tbl s
+        JOIN item_tbl i ON s.item_ID = i.item_ID
+        JOIN supplier_tbl sup ON s.supplier_ID = sup.supplier_ID
+        JOIN manager_tbl m ON s.manager_ID = m.manager_ID
+        JOIN staff_tbl st ON m.staff_ID = st.staff_id
+        JOIN person_tbl p ON st.person_ID = p.person_id
+        WHERE s.item_stock_ID = ?
+    `;
+    db.query(query, [stockId], (error, results) => {
+        if (error) {
+            console.error('Error fetching stock details:', error);
+            res.status(500).json({ error: 'Error fetching stock details' });
+        } else {
+            res.json(results[0]);
+        }
+    });
 });
 
 
+// Route to update stock details
+app.put('/updateStock/:id', (req, res) => {
+    const stockId = req.params.id;
+    const { itemQuantity, supplierId, managerId } = req.body;
+    
+    const query = 'UPDATE item_stock_tbl SET item_quantity = ?, supplier_ID = ?, manager_ID = ? WHERE item_stock_ID = ?';
+    db.query(query, [itemQuantity, supplierId, managerId, stockId], (error, results) => {
+        if (error) {
+            console.error('Error updating stock:', error);
+            res.status(500).json({ success: false, error: 'Error updating stock' });
+        } else {
+            res.json({ success: true, message: 'Stock updated successfully' });
+        }
+    });
+});
+
+// RETRIEVES STOCK INFO FOR DISPLAY
+app.get('/getStockInfo', (req, res) => {
+    const query = `
+        SELECT s.item_stock_ID, s.item_ID, i.item_name, s.item_quantity, sup.supplier_name, sup.supplier_ID,
+               CONCAT(p.first_Name, ' ', p.middle_Name, ' ', p.last_Name) AS manager_name,
+               m.manager_ID
+        FROM item_stock_tbl s
+        JOIN item_tbl i ON s.item_ID = i.item_ID
+        LEFT JOIN supplier_tbl sup ON s.supplier_ID = sup.supplier_ID
+        JOIN manager_tbl m ON s.manager_ID = m.manager_ID
+        JOIN staff_tbl st ON m.staff_ID = st.staff_id
+        JOIN person_tbl p ON st.person_ID = p.person_id
+        ORDER BY s.item_stock_ID
+    `;
+    
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching stock information:', err);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        res.json(results);
+    });
+});
+
+// Get finance ID by order ID
+app.get('/getFinanceIdByOrderId/:orderId', (req, res) => {
+    const orderId = req.params.orderId;
+    
+    const query = `
+        SELECT finance_ID AS financeId
+        FROM finance_tbl
+        WHERE order_ID = ?
+    `;
+    
+    db.query(query, [orderId], (err, results) => {
+        if (err) {
+            console.error('Error fetching finance ID:', err);
+            return res.status(500).json({ error: 'Failed to fetch finance ID' });
+        }
+        
+        if (results.length > 0) {
+            res.json({ financeId: results[0].financeId });
+        } else {
+            res.status(404).json({ error: 'Finance ID not found for this order' });
+        }
+    });
+});
+
+// ---------------------------- END OF API ENDPOINTS ----------------------------
+
+
+// LOGIN NAVIGATION
+app.get('/', (_, res) => {
+    res.redirect('/login');
+});
+
+app.get('/login', (_, res) => {
+    res.sendFile(path.join(__dirname, '/../index.html'));
+});
 
 // DASHBOARD NAVIGATION
 app.get('/dashboard', (req, res) => {
 	if (req.session.userID) {
-		res.sendFile(path.join(__dirname, '/mainPage/dashboard_main.html')); // Fixed path to dashboard file
+		res.sendFile(path.join(__dirname, '/../Pages/dashboard.html'));
 	} else {
 		res.redirect('/login');
 	}
 });
 
-
-
-// LOGIN NAVIGATION
-app.get('/login', (_, res) => {
-	res.sendFile(__dirname + '/index.html');
-});
-
-
-
-// START THE SERVER
+// START THE SERVER 
 app.listen(port, () => {
 	console.log(`Server running on http://localhost:${port}`);
 	console.log('Access the website at http://localhost:4000');
