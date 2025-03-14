@@ -917,7 +917,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 const { items = [], daysRented = 0, extraFees = 0 } = data;
-                const tablebody = document.querySelector('.view_order_item_popup .table_wrapper_view_order tbody');
+                const popup = document.querySelector('.view_order_item_popup');
+                const tablebody = popup.querySelector('.table_wrapper_view_order tbody');
                 tablebody.innerHTML = '';
 
                 let totalItemSum = 0;
@@ -948,6 +949,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('order_item_cost').textContent = totalItemSum.toFixed(2);
                 document.getElementById('order_extra_fees').textContent = extraFeesValue.toFixed(2);
                 document.getElementById('order_total_cost').textContent = itemTotal.toFixed(2);
+
+                // Add print button if it doesn't exist
+                let printButton = popup.querySelector('.print-order-button');
+                if (!printButton) {
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.className = 'button-container';
+                    buttonContainer.style.textAlign = 'right';
+                    buttonContainer.style.marginTop = '10px';
+                    
+                    printButton = document.createElement('button');
+                    printButton.className = 'icon-button print-order-button';
+                    printButton.innerHTML = `
+                        <i class="fa-solid fa-print"></i>
+                        <span class="tooltip">Print Order</span>
+                    `;
+                    printButton.addEventListener('click', () => printOrder('view_order_item_popup'));
+                    
+                    buttonContainer.appendChild(printButton);
+                    popup.insertBefore(buttonContainer, popup.querySelector('.table_wrapper_view_order'));
+                }
             })
             .catch(error => console.error('Error fetching order items:', error));
     }
@@ -1105,6 +1126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 try {
+                    const popup = document.querySelector('.view_order_item_history');
                     // Populate Customer & Event Info
                     const details = data.orderDetails;
                     if (details) {
@@ -1115,6 +1137,26 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('history_address').textContent = details.full_address || 'N/A';
                         document.getElementById('history_contact').textContent = details.phone_Number || 'N/A';
                         document.getElementById('history_manager').textContent = details.manager_name || 'N/A';
+                    }
+
+                    // Add print button if it doesn't exist
+                    let printButton = popup.querySelector('.print-history-button');
+                    if (!printButton) {
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.className = 'button-container';
+                        buttonContainer.style.textAlign = 'right';
+                        buttonContainer.style.marginTop = '10px';
+                        
+                        printButton = document.createElement('button');
+                        printButton.className = 'icon-button print-history-button';
+                        printButton.innerHTML = `
+                            <i class="fa-solid fa-print"></i>
+                            <span class="tooltip">Print Order</span>
+                        `;
+                        printButton.addEventListener('click', () => printOrder('view_order_item_history'));
+                        
+                        buttonContainer.appendChild(printButton);
+                        popup.insertBefore(buttonContainer, popup.firstChild);
                     }
 
                     // Display Missing Requirements
@@ -2953,6 +2995,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Add print functionality
+    function printOrder(popupClass) {
+        const popup = document.querySelector(`.${popupClass}`);
+        const printContent = popup.cloneNode(true);
+        
+        // Remove buttons and other non-printable elements
+        printContent.querySelectorAll('button').forEach(button => {
+            if (!button.classList.contains('print-order-button') && !button.classList.contains('print-history-button')) {
+                button.remove();
+            }
+        });
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Print Order</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .button-container, .icon-button, .tooltip { display: none; }
+                        @media print {
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${printContent.innerHTML}
+                </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        printWindow.focus();
+        
+        // Wait for content to load before printing
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }
 
     showPage('content_add_order');
 });

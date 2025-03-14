@@ -31,9 +31,9 @@ app.use(session({
 
 // CONNECTION TO MYSQL DATABASE
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
+    host: 'fernandezdb.clskew0myhmb.ap-southeast-2.rds.amazonaws.com',
+    user: 'admin',
+    password: 'JLM12345',
     database: 'fernandez_tables_chairs_db',
     multipleStatements: true
 });
