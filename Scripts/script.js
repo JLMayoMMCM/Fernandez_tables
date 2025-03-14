@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchPaymentOrders();
         });
     }
-
+    
     //Handles Navigation
     function showPage(pageId) {
         // Hide all sections
@@ -812,8 +812,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td>${order.end_event_date}</td>
                         <td>${order.manager_name}</td>
                         <td>${order.total_amount}</td>
-                        <td class="horizontal-button-container">
-                            <div class="button-grid">
+                        <td class="active-button-container">
                             <button class="icon-button view-order" data-id="${order.order_ID}">
                                 <i class="fa-solid fa-eye"></i>
                                 <span class="tooltip">View Order</span>
@@ -830,7 +829,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fa-solid fa-ban"></i>
                                 <span class="tooltip">Cancel Order</span>
                             </button>
-                            </div>
                         </td>
                     `;
                     tablebody.appendChild(row);
@@ -949,31 +947,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('order_item_cost').textContent = totalItemSum.toFixed(2);
                 document.getElementById('order_extra_fees').textContent = extraFeesValue.toFixed(2);
                 document.getElementById('order_total_cost').textContent = itemTotal.toFixed(2);
-
-                // Add print button if it doesn't exist
-                let printButton = popup.querySelector('.print-order-button');
-                if (!printButton) {
-                    const buttonContainer = document.createElement('div');
-                    buttonContainer.className = 'button-container';
-                    buttonContainer.style.textAlign = 'right';
-                    buttonContainer.style.marginTop = '10px';
-                    
-                    printButton = document.createElement('button');
-                    printButton.className = 'icon-button print-order-button';
-                    printButton.innerHTML = `
-                        <i class="fa-solid fa-print"></i>
-                        <span class="tooltip">Print Order</span>
-                    `;
-                    printButton.addEventListener('click', () => printOrder('view_order_item_popup'));
-                    
-                    buttonContainer.appendChild(printButton);
-                    popup.insertBefore(buttonContainer, popup.querySelector('.table_wrapper_view_order'));
-                }
             })
             .catch(error => console.error('Error fetching order items:', error));
     }
-
-
 
     // ------------------------------ ORDER HISTORY PAGE ------------------------------
     // Order History Navigation
@@ -1137,26 +1113,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('history_address').textContent = details.full_address || 'N/A';
                         document.getElementById('history_contact').textContent = details.phone_Number || 'N/A';
                         document.getElementById('history_manager').textContent = details.manager_name || 'N/A';
-                    }
-
-                    // Add print button if it doesn't exist
-                    let printButton = popup.querySelector('.print-history-button');
-                    if (!printButton) {
-                        const buttonContainer = document.createElement('div');
-                        buttonContainer.className = 'button-container';
-                        buttonContainer.style.textAlign = 'right';
-                        buttonContainer.style.marginTop = '10px';
-                        
-                        printButton = document.createElement('button');
-                        printButton.className = 'icon-button print-history-button';
-                        printButton.innerHTML = `
-                            <i class="fa-solid fa-print"></i>
-                            <span class="tooltip">Print Order</span>
-                        `;
-                        printButton.addEventListener('click', () => printOrder('view_order_item_history'));
-                        
-                        buttonContainer.appendChild(printButton);
-                        popup.insertBefore(buttonContainer, popup.firstChild);
                     }
 
                     // Display Missing Requirements
@@ -1488,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Add input validation for quantity
                     const quantityInput = document.getElementById('liability_quantity');
                     quantityInput.addEventListener('input', function() {
-                        const selectedOption = itemSelector.options[itemSelector.selectedIndex];
+                        const selectedOption = itemSelector.options[this.selectedIndex];
                         if (selectedOption) {
                             const maxQuantity = parseInt(selectedOption.dataset.maxQuantity);
                             validateNumericInput(this, 1, maxQuantity);
@@ -3039,6 +2995,46 @@ document.addEventListener('DOMContentLoaded', function() {
             printWindow.close();
         }, 250);
     }
+
+    document.getElementById('print_order_btn').addEventListener('click', function() {
+        const popup = document.querySelector('.view_order_item_history');
+        const printContent = popup.cloneNode(true);
+        
+        // Remove non-printable elements
+        printContent.querySelectorAll('button').forEach(button => button.remove());
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Order Details</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+                        .info-item { margin: 5px 0; }
+                        .total-row { font-weight: bold; margin-top: 10px; }
+                        @media print {
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>${printContent.innerHTML}</body>
+            </html>
+        `);
+        
+        // Wait for content to load then print
+        printWindow.document.close();
+        printWindow.onload = function() {
+            printWindow.print();
+            printWindow.onafterprint = function() {
+                printWindow.close();
+            };
+        };
+    });
 
     showPage('content_add_order');
 

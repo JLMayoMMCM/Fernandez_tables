@@ -488,7 +488,7 @@
                         <!-- ORDER TOTAL-->
                 <h3>Item Cost: <span id="modify_subtotal_Price">0.00</span></h3>
                 <h3>Total Cost: <span id="modify_total_Price">0.00</span></h3>
-                <div class="card-add-orders">
+                <div class="card-modify-add-orders">
                     <!-- CREATES FORM-->
                     <form class="add_order_container">
                         <h3>Event Information</h3>
@@ -530,7 +530,7 @@
                     </form>
                 </div>
                 
-                <div class="card-add-orders">
+                <div class="card-modify-add-orders">
                         <form class="add_order_container">
                             <h3>Customer Information</h3>
 
@@ -731,16 +731,15 @@
                                         <span id="history_manager"></span>
                                     </div>
                                 </div>
+                               <!-- Missing Requirements Section -->
+                                    <div id="history_missing_requirements"></div>
                             </div>
 
-                            <!-- Missing Requirements Section -->
-                            <div class="missing-requirements-section">
-                                <div id="history_missing_requirements"></div>
-                            </div>
 
                             <!-- Transactions Section -->
                             <div class="transactions-section">
                                 <h4>Transactions</h4>
+                                <div class="table_wrapper_transaction">
                                 <table id="history_transactions_table">
                                     <thead>
                                         <tr>
@@ -752,6 +751,7 @@
                                     </thead>
                                     <tbody></tbody>
                                 </table>
+                                </div>
                                 <div class="total-row">
                                     <label>Total Payments:</label>
                                     <span id="history_total_payment">0.00</span>
@@ -761,19 +761,21 @@
                             <!-- Liabilities Section -->
                             <div class="liabilities-section">
                                 <h4>Liabilities</h4>
-                                <table id="history_liabilities_table">
-                                    <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Item</th>
-                                            <th>Quantity</th>
-                                            <th>Amount</th>
-                                            <th>Description</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
+                                <div class="table_wrapper_liability">
+                                    <table id="history_liabilities_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Title</th>
+                                                <th>Item</th>
+                                                <th>Quantity</th>
+                                                <th>Amount</th>
+                                                <th>Description</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                                 <div class="total-row">
                                     <label>Total Liabilities:</label>
                                     <span id="history_total_liability">0.00</span>
@@ -783,18 +785,20 @@
                             <!-- Items Section -->
                             <div class="items-section">
                                 <h4>Items</h4>
-                                <table id="history_items_table">
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Price</th>
-                                            <th>Quantity</th>
-                                            <th>Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
+                                <div class="table_wrapper_items">
+                                    <table id="history_items_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Description</th>
+                                                <th>Price</th>
+                                                <th>Quantity</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <!-- Summary Section -->
@@ -815,6 +819,9 @@
                                     <label>Total:</label>
                                     <span id="history_total">0.00</span>
                                 </div>
+                                <button type="button" id="print_order_btn" class="print-button">
+                                    <i class="fas fa-print"></i> Print Order
+                                </button>
                             </div>
 
                             <button id="order_history_items_return" class="return-button">Return</button>
@@ -1064,72 +1071,74 @@
                     </div>
                 </div>
 
-                <!-- Popup for adding a worker -->
-                <div class="view_add_worker_popup">
-                    <div class="popup-content-worker">
-                        <h3>Add New Worker</h3>
-                        <form class="add_worker_container">
-                            <div class="card-add-worker">
-                                <div class="input_row_worker">
-                                    <label for="worker_first_name">First Name:</label>
-                                    <input type="text" id="worker_first_name" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_middle_name">Middle Name:</label>
-                                    <input type="text" id="worker_middle_name">
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_last_name">Last Name:</label>
-                                    <input type="text" id="worker_last_name" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_phone_number">Phone Number:</label>
-                                    <input type="tel" id="worker_phone_number" required placeholder="11-digit number">
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_age">Age:</label>
-                                    <input type="number" id="worker_age" min="18" max="100" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_gender">Gender:</label>
-                                    <select id="worker_gender" required></select>
-                                </div>
-                            </div>
-
-                            <div class="card-add-worker">
-                                <div class="input_row_worker">
-                                    <label for="worker_manager">Manager:</label>
-                                    <select id="worker_manager" required></select>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_password">Password:</label>
-                                    <input type="password" id="worker_password" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="worker_confirm_password">Confirm Password:</label>
-                                    <input type="password" id="worker_confirm_password" required>
-                                </div>
-                                
-                                <div class="input_row_worker">
-                                    <label for="show_password">Show Password:</label>
-                                    <input type="checkbox" id="show_password">
-                                </div>
-                            </div>
-
-                            <div class="button-container">
-                                <button type="button" id="worker_save_btn" class="save-btn">Save</button>
-                                <button type="button" id="worker_cancel_btn" class="cancel-btn">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
+                  <!-- Popup for adding a worker -->
+    <div class="view_add_worker_popup">
+        <div class="popup-content-worker">
+            <h3>Add New Worker</h3>
+            <div class="card-add-worker">
+            <form class="add_worker_container">
+                <div class="input_row_worker">
+                    <label for="worker_first_name">First Name:</label>
+                    <input type="text" id="worker_first_name" required>
                 </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_middle_name">Middle Name:</label>
+                    <input type="text" id="worker_middle_name">
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_last_name">Last Name:</label>
+                    <input type="text" id="worker_last_name" required>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_phone_number">Phone Number:</label>
+                    <input type="tel" id="worker_phone_number" required>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_age">Age:</label>
+                    <input type="number" id="worker_age" min="18" required>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_gender">Gender:</label>
+                    <select id="worker_gender" required></select>
+                </div>
+                </form>
+            </div>
+
+            <div class="card-add-worker">
+                <form class="add_worker_container">
+                <div class="input_row_worker">
+                    <label for="worker_manager">Manager:</label>
+                    <select id="worker_manager" required></select>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_password">Password:</label>
+                    <input type="password" id="worker_password" required>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="worker_confirm_password">Confirm Password:</label>
+                    <input type="password" id="worker_confirm_password" required>
+                </div>
+                
+                <div class="input_row_worker">
+                    <label for="show_password">Show Password:</label>
+                    <input type="checkbox" id="show_password">
+                </div>
+            </form>
+            </div>
+
+                <div class="order_navigation_worker">
+                    <button type="button" id="worker_cancel_btn" class="btn-cancel">Cancel</button>
+                    <button type="button" id="worker_save_btn" class="btn-submit">Save</button>
+                </div>
+        </div>
+    </div>
             </section>
         </main> 
     <script src="../Scripts/script.js"></script>

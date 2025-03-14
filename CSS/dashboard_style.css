@@ -197,8 +197,41 @@ body {
   grid-area: main;
 
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   scroll-behavior: smooth;
+  justify-content: center;
+  align-items: start;
+  padding: 0; /* Changed from padding: 20px to only have vertical padding */
+  width: 100%; /* Added width 100% */
+  max-width: none; /* Remove max-width restriction */
+}
+
+.content_panel > section {
+  justify-self: center;
+  width: 100%;
+  margin: 0 auto;
+  max-width: none; /* Remove max-width restriction */
+}
+
+.card-active-orders,
+.card-order-history,
+.card_item_container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 15px auto;
+}
+
+.content_active_order,
+.content_order_history,
+.content_inventory_stock,
+.content_staff_info {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: none; /* Remove max-width restriction */
+  margin: 0 auto;
+  justify-items: center;
+  align-items: start;
 }
 
 .content_add_order, .content_modify_order {
@@ -206,8 +239,14 @@ body {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   width: 100%;
+  max-width: 1200px; /* Add max-width */
+  margin-top: 0px;
+  gap: 20px; /* Add consistent gap */
   justify-content: center;
+  align-items: start;
+  justify-self: center; /* Center in parent grid */
   scroll-behavior: smooth;
+  padding: 0px; /* Add padding to prevent edge touching */
 }
 
 .card-add-orders {
@@ -220,11 +259,32 @@ body {
   border-radius: 20px;
   box-shadow: var(--text-dark) 0px 0px 10px;
   padding: 20px;
-  margin: 20px;
+  margin-top: 40px;
   box-shadow: 0 4px 8px var(--shadow-light), 
   0 6px 20px var(--shadow-lighter), 
   0 8px 30px var(--shadow-dark), 
   0 10px 40px var(--shadow-lighter); /* Shadow gradient */
+  justify-self: center; /* Center in grid cell */
+  align-self: start; /* Align to top of grid cell */
+}
+
+.card-modify-add-orders {
+  background: var(--bg-card); /* 50% transparent background */
+  backdrop-filter: blur(10px); /* Blur effect */
+  display: flex;
+  flex-direction: column;
+  height: 550px;
+  width: 500px;
+  border-radius: 20px;
+  box-shadow: var(--text-dark) 0px 0px 10px;
+  padding: 20px;
+  margin-top: 0px;
+  box-shadow: 0 4px 8px var(--shadow-light), 
+  0 6px 20px var(--shadow-lighter), 
+  0 8px 30px var(--shadow-dark), 
+  0 10px 40px var(--shadow-lighter); /* Shadow gradient */
+  justify-self: center; /* Center in grid cell */
+  align-self: start; /* Align to top of grid cell */
 }
 
 .card-add-orders {
@@ -328,12 +388,16 @@ body {
   padding-bottom: 0 !important;
 }
 
-.content_modify_order, .content_add_order h3 {
+.content_add_order h3 {
   margin-top: 10px !important; /* Force reduction of space */
-  margin-left: 20px;
+  margin-left: 40px;
 }
 
-#add_item_order, #add_order_button, #modify_item_order, #save_modify_order {
+.content_modify_order h3 {
+  margin-left: 40px;
+}
+
+#add_item_order, #add_order_button {
   width: 550px; /* Fixed width */
   height: 50px; /* Fixed height */
   background: var(--gradient-button); /* Darker transparent gradient */
@@ -354,6 +418,25 @@ body {
 #add_item_order:hover, #add_order_button:hover, #modify_item_order:hover, #save_modify_order:hover {
   background: var(--gradient-hover); /* Darker gradient on hover */
   transform: scale(1.05); /* Slightly increase size on hover */
+}
+
+#modify_item_order, #save_modify_order {
+  width: 550px; /* Fixed width */
+  height: 50px; /* Fixed height */
+  background: var(--gradient-button); /* Darker transparent gradient */
+  color: var(--text-white);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  justify-self: center; /* Center the buttons in each column */
+  padding: 10px 20px; /* Add padding */
+  font-size: 18px; /* Increase font size */
+  margin-top: 30px;
 }
 
 .modify-item-quantity {  /* New class for modify order quantity inputs */
@@ -398,75 +481,15 @@ body {
   .content_add_order {
     grid-template-columns: 1fr;
   }
+
+  .content_modify_order {
+    grid-template-columns: 1fr;
+}
   
   .card-add-orders {
     width: 100%;
     margin: 10px 0;
   }
-}
-
-/* Update modify order layout to match add order */
-.content_modify_order {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 20px;
-    width: 100%;
-    justify-content: center;
-    scroll-behavior: smooth;
-}
-
-.content_modify_item_order {
-    display: grid;
-    grid-area: main;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    gap: 20px;
-    width: 100%;
-}
-
-/* Match card sizes between add and modify sections */
-.content_modify_order .card-add-orders {
-    background: var(--bg-card);
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    height: 550px;
-    width: 500px;
-    border-radius: 20px;
-    padding: 20px;
-    margin: 20px;
-    box-shadow: 0 4px 8px var(--shadow-light), 
-                0 6px 20px var(--shadow-lighter), 
-                0 8px 30px var(--shadow-dark), 
-                0 10px 40px var(--shadow-lighter);
-}
-
-.content_modify_item_order .card_item_container {
-    display: flex;
-    flex-direction: column;
-    height: 345px;
-    width: 1120px;
-    background: var(--bg-card);
-    border-radius: 20px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
-                0 6px 20px var(--shadow-light), 
-                0 8px 30px var(--shadow-dark), 
-                0 10px 40px var(--shadow-light);
-}
-
-/* Update responsiveness for modify sections */
-@media (max-width: 925px) {
-    .content_modify_order {
-        grid-template-columns: 1fr 1fr;
-    }
-    
-    .content_modify_order .card-add-orders {
-        width: 100%;
-        margin: 10px 0;
-    }
 }
 
 /* Buttons */
@@ -534,26 +557,41 @@ body {
 /* ITEM AND WORKERS STYLES */
 .content_add_item_order {
   display: grid;
-  grid-area: main;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
   width: 100%;
+  max-width: 1200px; /* Add max-width to match content panel */
+  margin: 0 auto; /* Center horizontally */
+  justify-content: center;
+  align-items: start;
+  padding: 0px;
+  justify-self: center; /* Center in parent grid */
+}
+
+.content_add_item_order h3{
+  padding: 20px;
+  margin-left: 80px;
+}
+
+.content_modify_item_order h3{
+  padding: 20px;
+  margin-left: 80px;
 }
 
 .card_item_container {
   display: flex;
   flex-direction: column;
   height: 345px;
-  width: 1120px;
+  width: 100%; /* Changed from fixed width */
+  max-width: 1000px; /* Match other containers */
   background: var(--bg-card);
   border-radius: 20px;
   padding: 25px;
-  margin: 20px 0;
+  margin: 20px auto; /* Center container */
   box-shadow: 0 4px 8px var(--shadow-medium), 
-  0 6px 20px var(--shadow-light), 
-  0 8px 30px var(--shadow-dark), 
-  0 10px 40px var(--shadow-light); /* Shadow */
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
 }
 
 .card_item_container h3 {
@@ -572,20 +610,19 @@ body {
 }
 
 .table_wrapper_item {
-  overflow-x: auto; /* Enables horizontal scrolling */
-  overflow-y: auto; /* Enables vertical scrolling */
-  width: 1120px;
-  max-width: 1120px; /* Ensures the wrapper does not exceed the container width */
-  height: 345px; /* Matches the height of the cards */
-  border-radius: 20px; /* Optional: adds rounded corners */
-  margin: 10px 0; /* Optional: adds margin for spacing */
+  overflow-y: auto;
+  max-width: 1000px;
+  height: 345px;
+  border-radius: 20px;
+  margin: 10px 0;
 }
 
 .table_wrapper_item table {
   width: 100%;
+  max-width: 1000px;
   border-collapse: collapse;
-  table-layout: fixed; /* Ensures the table layout is fixed */
-  border: none; /* Remove the border */
+  table-layout: fixed;
+  border: none;
 }
 
 .table_wrapper_item th, .table_wrapper_item td {
@@ -618,13 +655,7 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
   width: 100%;
-}
-
-.content_active_order, .content_modify_order h3 {
-  margin-bottom: 3px;
-  padding-bottom: 0;
 }
 
 
@@ -640,13 +671,8 @@ body {
 }
 
 .card-active-orders {
-  gap: 5px; /* Controls spacing between child elements */
-}
-
-.card-active-orders {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Adds even spacing between input fields */
 }
 
 .table_wrapper_active_order {
@@ -705,34 +731,65 @@ body {
     display: table-cell; /* Ensure proper table cell display */
 }
 
-.table_wrapper_active_order .horizontal-button-container {
-    display: flex;
-    flex-direction: column; /* Change to column for vertical alignment */
-    justify-content: center;
-    align-items: center;
-    gap: 5px; /* Reduced gap between buttons */
-    height: 100%;
-    padding: 5px 0;
-    min-height: 35px;
-    margin: auto;
+.table_wrapper_active_order .active-button-container {
+  display: grid;
+  grid-template-columns: repeat(2, 35px); /* Two columns of fixed width */
+  grid-template-rows: repeat(2, 35px);  /* Two rows of fixed height */
+  gap: 8px;
+  justify-content: center;
+  align-content: center;
+  padding: 5px;
+  margin: 0;
+  height: 100%;
+  min-height: unset; /* Remove minimum height restriction */
+  width: 100%;
 }
 
-.table_wrapper_active_order .horizontal-button-container .icon-button {
-    margin: 2px 0; /* Add vertical margin between buttons */
+.table_wrapper_active_order .active-button-container .icon-button {
+  position: relative;
+  background: var(--gradient-button); /* Changed from background-color to background to support gradient */
+  border: none;
+  border-radius: 50%;
+  padding: 4px;
+  margin: 0;
+  cursor: pointer;
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
+}
+
+.table_wrapper_active_order .active-button-container .icon-button {
+  margin: 0;
+  width: 35px;
+  height: 35px;
+}
+
+/* Add hover effect specific to cancel button */
+.table_wrapper_active_order .active-button-container .cancel-order:hover {
+  background: var(--gradient-hover-red);
+}
+
+.table_wrapper_active_order td:last-child {
+  width: 110px; /* Set fixed width for actions column */
+  padding: 10px;
+  height: 100px; /* Set fixed height to accommodate 2x2 grid */
 }
 
 .content_payment_order {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
   width: 100vw;
 }
 
-.content_payment_order, .content_modify_order h3 {
-  margin-bottom: 3px;
-  margin-left: 30px;
-  padding-bottom: 0;
+.content_payment_order h3 {
+  margin-top: 30px;
+  margin-left: 40px;
 }
 
 
@@ -740,11 +797,12 @@ body {
   display: flex;
   flex-direction: column;
   height: 670px;
-  width: 1120px;
+  width: 100%;
+  max-width: 1200px; /* Reduced from 1000px */
   background: none;
   border-radius: 20px;
   padding: 15px;
-  margin: 15px;
+  margin: 15px auto; /* Center the card */
 }
 
 .card-payment-order {
@@ -761,7 +819,8 @@ body {
   background: var(--bg-card);
   overflow-x: auto; /* Enables horizontal scrolling */
   overflow-y: auto; /* Enables vertical scrolling */
-  width: 100%; /* Ensure the wrapper takes full width */
+  width: 100%;
+  max-width: 100%; /* Make it fit the parent */
   height: 670px; /* Matches the height of the cards */
   border-radius: 20px; /* Optional: adds rounded corners */
   margin: 10px 0; /* Optional: adds margin for spacing */
@@ -774,8 +833,9 @@ body {
 .table_wrapper_payment_order table {
   background: none;
   width: 100%;
+  min-width: 900px; /* Reduced from 1000px */
   border-collapse: collapse;
-  table-layout: auto; /* Adjust table layout to fit content */
+  table-layout: fixed; /* Adjust table layout to fit content */
   border: none; /* Remove the border */
   font-size: 12px; /* Make text smaller */
 }
@@ -947,7 +1007,7 @@ body {
 .popup-content-liability h3 {
     margin-bottom: 20px;
     text-align: center;
-    color: var(--text-white); /* Make text white */
+    color: var (--text-white); /* Make text white */
 }
 
 .input_row_liability {
@@ -1253,6 +1313,7 @@ body {
   width: 300px;
   padding: 8px;
   font-size: 16px;
+  margin-top: 20px;
 }
 
 .content_order_history .table_wrapper {
@@ -1339,6 +1400,36 @@ body {
   justify-content: space-evenly;
   background-color: var(--panel-color);
 
+}
+
+
+.table_wrapper_staff th,
+.table_wrapper_staff td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table_wrapper_staff thead {
+    background: var(--gradient-button);
+    color: var(--text-white);
+}
+
+.content_staff_info #add_worker_btn {
+    width: 200px;
+    margin: 20px 0;
+    padding: 10px;
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.content_staff_info #add_worker_btn:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
 }
 
 /* STYLES FOR STAFF INFO TABLE */
@@ -1701,7 +1792,6 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 20px;
   width: 100%;
 }
 
@@ -1740,19 +1830,26 @@ body {
   width: 100%;
   height: auto;
   border-collapse: collapse;
-  table-layout: fixed; /* Changed from auto to fixed */
+  table-layout: fixed;
   border: none;
-  font-size: 12px;
+  font-size: 11px; /* Set base font size */
   min-width: 100%;
 }
 
 .table_wrapper_order_history th, .table_wrapper_order_history td {
   text-align: center;
-  padding: 8px;
+  padding: 15px;
   border: none;
   vertical-align: middle;
   white-space: normal;
   word-wrap: break-word;
+  font-size: 11px; /* Ensure consistent font size */
+}
+
+/* Override any other font-size declarations */
+.table_wrapper_order_history tbody tr,
+.table_wrapper_order_history thead tr {
+  font-size: 11px;
 }
 
 .table_wrapper_order_history thead {
@@ -1771,65 +1868,12 @@ body {
   display: table-row-group;
 }
 
-.table_wrapper_order_history td {
-  height: 40px;
-  padding: 15px;
-  vertical-align: middle;
-  display: table-cell;
-}
-
-/* Add specific widths for each column */
-.table_wrapper_order_history th:nth-child(1), /* Order ID */
-.table_wrapper_order_history td:nth-child(1) {
-    width: 8%;
-}
-
-.table_wrapper_order_history th:nth-child(2), /* Customer */
-.table_wrapper_order_history td:nth-child(2) {
-    width: 12%;
-}
-
-.table_wrapper_order_history th:nth-child(3), /* Event Name */
-.table_wrapper_order_history td:nth-child(3) {
-    width: 12%;
-}
-
-.table_wrapper_order_history th:nth-child(4), /* Event Start */
-.table_wrapper_order_history td:nth-child(4),
-.table_wrapper_order_history th:nth-child(5), /* Event End */
-.table_wrapper_order_history td:nth-child(5) {
-    width: 12%;
-}
-
-.table_wrapper_order_history th:nth-child(6), /* Total Price */
-.table_wrapper_order_history td:nth-child(6) {
-    width: 8%;
-}
-
-.table_wrapper_order_history th:nth-child(7), /* Status */
-.table_wrapper_order_history td:nth-child(7) {
-    width: 8%;
-}
-
-.table_wrapper_order_history th:nth-child(8), /* Manager */
-.table_wrapper_order_history td:nth-child(8) {
-    width: 12%;
-}
-
-.table_wrapper_order_history th:nth-child(9), /* Address */
-.table_wrapper_order_history td:nth-child(9) {
-    width: 16%;
-}
-
-.table_wrapper_order_history th:nth-child(10), /* Actions */
-.table_wrapper_order_history td:nth-child(10) {
-    width: 12%;
-}
-
 .order_history_search {
   display: flex;
   justify-content: flex-start;
-  padding: 0 0 5px 30px; /* Changed from 10px to 5px bottom padding */
+  padding: 20px 0 5px 20px; /* Adjusted padding to match left side */
+  margin-left: 20px; /* Add left margin to align with other content */
+  width: fit-content; /* Make container fit the content */
 }
 
 .order_history_search input {
@@ -1903,22 +1947,20 @@ body {
 }
 
 #order_history_items_return {
+    width: auto;
     padding: 10px 20px;
-    border-radius: 5px;
+    margin: 20px 0;
+    align-self: flex-start;
+    background: var(--gradient-button);
+    color: var(--text-white);
     border: none;
-    margin: 10px;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
-                0 6px 20px var(--shadow-light), 
-                0 8px 10px var(--shadow-dark), 
-                0 10px 10px var(--shadow-light);
-    color: var(--text-dark);
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 #order_history_items_return:hover {
-    background: var(--gradient-hover-red);
-    color: var(--text-white);
+    background: var(--gradient-hover);
     transform: scale(1.05);
 }
 
@@ -2410,133 +2452,120 @@ body {
 
 /* Add Worker Popup Styles */
 .view_add_worker_popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(52, 52, 52, 0.308);
-    z-index: 1000;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(52, 52, 52, 0.308);
+  z-index: 1000;
 }
 
 .view_add_worker_popup.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .popup-content-worker {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    background: var(--gradient-button) !important;
-    border-radius: 20px;
-    padding: 30px;
-    width: 1000px;  /* Increased to accommodate two columns */
-    max-width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
-                0 6px 20px var(--shadow-light), 
-                0 8px 30px var(--shadow-dark), 
-                0 10px 40px var(--shadow-light);
-    color: var(--text-white);
-    z-index: 1001;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  background: var(--gradient-button) !important;
+  border-radius: 20px;
+  padding: 30px;
+  width: 1000px;  /* Increased to accommodate two columns */
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  color: var(--text-white);
+  z-index: 1001;
 }
 
+
 .popup-content-worker h3 {
-    grid-column: 1 / -1;  /* Make title span both columns */
-    margin-bottom: 20px;
-    text-align: center;
+  grid-column: 1 / -1;  /* Make title span both columns */
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .add_worker_container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .input_row_worker {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
 }
 
 .input_row_worker label {
-    flex: 0 0 150px;
-    text-align: left;
-    margin-right: 10px;
-    font-weight: bold;
+  flex: 0 0 150px;
+  text-align: left;
+  margin-right: 10px;
+  font-weight: bold;
 }
 
 .input_row_worker input:not([type="checkbox"]),
 .input_row_worker select {
-    flex: 1;
-    width: 100%;
-    min-width: 200px;
-    max-width: 300px;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background: var(--text-white);
-    color: var(--text-dark);
+  flex: 1;
+  width: 100%;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: var(--text-white);
+  color: var(--text-dark);
 }
 
 .input_row_worker input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin-left: auto;
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
 }
 
 .order_navigation_worker {
-    grid-column: 1 / -1;  /* Make buttons span both columns */
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    gap: 10px;
+  grid-column: 1 / -1;  /* Make buttons span both columns */
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
 }
 
 .order_navigation_worker button {
-    flex: 1;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    color: var(--text-dark);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
-                0 6px 20px var(--shadow-light);
+  flex: 1;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
 }
 
 .order_navigation_worker .btn-cancel:hover {
-    background: var(--gradient-hover-red);
-    color: var(--text-white);
-    transform: scale(1.05);
+  background: var(--gradient-hover-red);
+  color: var(--text-white);
+  transform: scale(1.05);
 }
 
 .order_navigation_worker .btn-submit:hover {
-    background: var(--color-success);
-    color: var(--text-white);
-    transform: scale(1.05);
+  background: var(--color-success);
+  color: var(--text-white);
+  transform: scale(1.05);
 }
 
-/* Update staff info section styles */
-.card-staff-info {
-    display: flex;
-    flex-direction: column;
-    height: 670px;
-    width: 1120px;
-    background: var(--bg-card);
-    border-radius: 20px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
-                0 6px 20px var(--shadow-light), 
-                0 8px 30px var(--shadow-dark), 
-                0 10px 40px var(--shadow-light);
-}
+
 
 .content_staff_info #add_worker_btn {
     width: 200px;
@@ -2549,7 +2578,7 @@ body {
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 8px var(--shadow-medium), 
+    box-shadow: 0 4px 8px var (--shadow-medium), 
                 0 6px 20px var(--shadow-light);
 }
 
@@ -2558,7 +2587,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 450px;
-    width: 1120px;
+    width: 1000px;
     background: var(--bg-card);
     border-radius: 20px;
     padding: 25px;
@@ -2570,10 +2599,8 @@ body {
 }
 
 .table_wrapper_staff {
-    overflow-x: auto;
     overflow-y: auto;
-    width: 100%;
-    height: 350px; /* Reduced height to accommodate the button */
+    height: 450px;
     border-radius: 20px;
     margin: 10px 0;
 }
@@ -2616,49 +2643,29 @@ body {
 }
 
 /* Extend table widths */
-.table_wrapper_payment_order,
-.table_wrapper_active_order,
-.table_wrapper_staff,
-.table_wrapper_item {
-    width: 100%;
-    min-width: 1200px; /* Minimum width to prevent squishing */
+.table_wrapper_staff {
+    height: 450px;
+    width: 1000px;
+    border-radius: 20px;
     overflow-x: auto;
 }
 
-.table_wrapper_payment_order table,
-.table_wrapper_active_order table,
-.table_wrapper_staff table,
-.table_wrapper_item table {
-    width: 100%;
-    min-width: 1200px;
+.table_wrapper_staff table table {
+  height: 450px;
+  width: 1000px;
 }
 
-/* Ensure consistent table cell widths */
-.table_wrapper_payment_order th,
-.table_wrapper_active_order th,
-.table_wrapper_staff th,
-.table_wrapper_item th {
+.table_wrapper_staff th {
     white-space: nowrap;
     padding: 15px;
     text-align: left;
 }
 
-.table_wrapper_payment_order td,
-.table_wrapper_active_order td,
-.table_wrapper_staff td,
-.table_wrapper_item td {
+.table_wrapper_staff td td {
     padding: 12px;
     white-space: nowrap;
 }
 
-/* Add horizontal scrolling for table containers */
-.card-payment-order,
-.card-active-orders,
-.card-staff-info,
-.card_item_container {
-
-    width: 75vw;
-}
 
 /* Ensure popup content is properly centered and styled */
 .popup-content,
@@ -2671,4 +2678,405 @@ body {
     overflow-y: auto;
     position: relative;
     box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* Add a container for the buttons to ensure they span full width */
+.content_add_order .order_buttons {
+  grid-column: 1 / -1; /* Make buttons span both columns */
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+}
+
+#assigned_workers_return_btn {
+  background: var(--gradient-button);
+  color: var(--text-white);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+  width: 200px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
+  align-self: center;
+}
+
+#assigned_workers_return_btn:hover {
+  background: var(--gradient-hover-red);
+  transform: scale(1.05);
+}
+
+.view_order_item_history .popup-content {
+  background: var(--gradient-button) !important;
+  border-radius: 20px;
+  padding: 30px;
+  width: 1000px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  color: var(--text-white);
+  z-index: 1001;
+}
+
+.view_order_item_history .order-info-section {
+  background: var(--bg-table-wrapper);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+}
+
+.view_order_item_history table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: none;
+}
+
+.view_order_item_history thead {
+  background: var(--gradient-button);
+  color: var(--text-white);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+}
+
+.view_order_item_history th,
+.view_order_item_history td {
+  padding: 12px;
+  text-align: center;
+  border: none;
+  color: var(--text-dark);
+}
+
+.view_order_item_history .info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.view_order_item_history .info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+}
+
+.view_order_item_history .info-item label {
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+.view_order_item_history .total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  font-weight: bold;
+  color: var(--text-white);  /* Changed from var(--text-dark) to var(--text-white) */
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+}
+
+.view_order_item_history .total-row label,
+.view_order_item_history .total-row span {
+  color: var(--text-white);  /* Added to ensure both label and value are white */
+}
+
+.view_order_item_history .summary-section {
+  background: var(--bg-table-wrapper);
+  border-radius: 20px;
+  padding: 20px;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+}
+
+.view_order_item_history .summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  color: var(--text-dark);
+}
+
+.view_order_item_history .summary-row.total {
+  font-weight: bold;
+  font-size: 1.1em;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  padding-top: 15px;
+}
+
+.view_order_item_history .order-info-section {
+  background: var(--bg-table-wrapper);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  color: var(--text-dark);
+}
+
+.view_order_item_history .order-info-section h4,
+.view_order_item_history .order-info-section label,
+.view_order_item_history .order-info-section span {
+  color: var(--text-dark);
+}
+
+.view_order_item_history .info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+  color: var(--text-dark);
+}
+
+.table_wrapper_transaction, .table_wrapper_liability, .table_wrapper_items {
+  overflow-x: auto; /* Enables horizontal scrolling */
+  overflow-y: auto; /* Enables vertical scrolling */
+  background: var(--bg-table-wrapper);
+  width: 100%;
+  max-width: 1200px; /* Ensures the wrapper does not exceed the container width */
+  height: 200px; /* Matches the height of the cards */
+  border-radius: 20px; /* Optional: adds rounded corners */
+  margin: 10px 0; /* Optional: adds margin for spacing */
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light); /* Shadow */
+}
+
+/* Style all tables in view_order_item_history consistently */
+.view_order_item_history #history_transactions_table,
+.view_order_item_history #history_liabilities_table,
+.view_order_item_history #history_items_table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border: none;
+}
+
+.view_order_item_history #history_transactions_table th,
+.view_order_item_history #history_transactions_table td,
+.view_order_item_history #history_liabilities_table th,
+.view_order_item_history #history_liabilities_table td,
+.view_order_item_history #history_items_table th,
+.view_order_item_history #history_items_table td {
+  text-align: center;
+  padding: 8px;
+  border: none;
+  vertical-align: middle;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.view_order_item_history #history_transactions_table thead,
+.view_order_item_history #history_liabilities_table thead,
+.view_order_item_history #history_items_table thead {
+  background: var(--color-blue-light);
+  color: var(--text-white);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+}
+
+.view_order_item_history #history_transactions_table tbody,
+.view_order_item_history #history_liabilities_table tbody,
+.view_order_item_history #history_items_table tbody {
+  color: var(--text-dark);
+}
+
+.view_order_item_history .summary-section .print-button {
+    grid-column: 1 / -1;  /* Make button span both columns */
+    background: var(--gradient-button);
+    color: var(--text-white);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+.view_order_item_history .summary-section .print-button:hover {
+    background: var(--gradient-hover);
+    transform: scale(1.05);
+}
+
+.view_order_item_history .summary-section .print-button i {
+    font-size: 16px;
+}
+
+/* Inventory Popup Styles */
+.view_item_input_popup,
+.view_stock_input_popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.view_item_input_popup.active,
+.view_stock_input_popup.active {
+    display: flex;
+}
+
+.view_item_input_popup .popup-content,
+.view_stock_input_popup .popup-content {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px var(--shadow-light),
+                0 6px 20px var(--shadow-lighter),
+                0 8px 30px var(--shadow-dark);
+}
+
+.view_item_input_popup h3,
+.view_stock_input_popup h3 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.view_item_input_popup form,
+.view_stock_input_popup form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.view_stock_input_popup .table_wrapper {
+    margin: 15px 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.view_stock_input_popup .table_wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order_navigation {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.order_navigation button {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#item_return_btn,
+#stock_return_btn {
+    background: var(--gradient-red);
+    color: var(--text-white);
+}
+
+#item_submit_btn,
+#stock_submit_btn {
+    background: var(--gradient-button);
+    color: var(--text-white);
+}
+
+#item_return_btn:hover,
+#stock_return_btn:hover,
+#item_submit_btn:hover,
+#stock_submit_btn:hover {
+    transform: scale(1.05);
+}
+
+.view_item_input_popup .popup-content,
+.view_stock_input_popup .popup-content {
+  background: var(--gradient-button) !important;
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light), 
+              0 8px 30px var(--shadow-dark), 
+              0 10px 40px var(--shadow-light);
+  color: var(--text-white);
+}
+
+.view_item_input_popup .input_row,
+.view_stock_input_popup .input_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.view_item_input_popup .input_row label,
+.view_stock_input_popup .input_row label {
+  flex: 0 0 150px;
+  text-align: left;
+  margin-right: 10px;
+  font-weight: bold;
+  color: var(--text-white);
+}
+
+.view_item_input_popup .input_row input,
+.view_item_input_popup .input_row select,
+.view_stock_input_popup .input_row input,
+.view_stock_input_popup .input_row select {
+  flex: 1;
+  width: 100%;
+  min-width: 200px;
+  max-width: 200px;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: var(--text-white);
+  color: var(--text-dark);
 }
