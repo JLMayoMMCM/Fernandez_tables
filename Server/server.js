@@ -814,14 +814,15 @@ app.get('/getAssignedOrders/:workerId', (req, res) => {
         SELECT 
             o.order_ID, 
             e.event_Name, 
-            DATE_FORMAT(e.event_date, '%Y-%m-%d %h:%i %p') AS event_date, 
-            DATE_FORMAT(e.end_event_date, '%Y-%m-%d %h:%i %p') AS end_event_date
+            e.event_date, 
+            e.end_event_date
         FROM assigned_worker_tbl aw
         JOIN order_info_tbl o ON aw.order_ID = o.order_ID
         JOIN event_info_tbl e ON o.order_ID = e.order_ID
         WHERE aw.worker_ID = ? 
         AND e.end_event_date > NOW()
         ORDER BY e.event_date DESC
+
     `;
     
     db.query(query, [workerId], (err, results) => {

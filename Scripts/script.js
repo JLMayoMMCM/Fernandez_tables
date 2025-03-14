@@ -2711,7 +2711,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.view-assigned-orders').forEach(button => {
                     button.addEventListener('click', function() {
                         const workerId = this.dataset.id;
-                        fetchAssignedOrders(workerId);
+                        showAssignedOrders(workerId);
                     });
                 });
 
@@ -2734,7 +2734,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function fireWorker(workerId) {
         fetch(`/fireWorker/${workerId}`, {
-            method: 'PUT'
+            method: 'DELETE'
         })
         .then(response => response.json())
         .then(data => {
@@ -3041,4 +3041,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     showPage('content_add_order');
+
+    // Function to show assigned orders for a worker
+    function showAssignedOrders(workerId) {
+        fetch(`/getAssignedOrders/${workerId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector('#assigned_orders_table tbody');
+                tbody.innerHTML = '';
+                
+                if (!data || !Array.isArray(data)) {
+                    throw new Error('Invalid data format received from server');
+                }
+
+                if (data.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="4" style="text-align: center;">No assigned orders found</td>';
+                    tbody.appendChild(row);
+                } else {
+                    data.forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${order.order_ID || 'N/A'}</td>
+                            <td>${order.event_Name|| 'Unnamed Event'}</td>
+                            <td>${order.event_date ? new Date(order.event_date).toLocaleString() : 'N/A'}</td>
+                            <td>${order.end_event_date ? new Date(order.end_event_date).toLocaleString() : 'N/A'}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                // Show the popup
+                document.querySelector('.view_assigned_orders_popup').classList.add('active');
+            })
+            .catch(error => {
+                console.error('Error fetching assigned orders:', error);
+                alert('An error occurred while fetching assigned orders. Please try again.');
+            });
+    }
+
+    // Add event listener for the assigned orders return button
+    document.getElementById('assigned_orders_return').addEventListener('click', function() {
+        document.querySelector('.view_assigned_orders_popup').classList.remove('active');
+    });
+
+    // Update the event listener in fetchStaffInfo
+    document.querySelectorAll('.view-assigned-orders').forEach(button => {
+        button.addEventListener('click', function() {
+            const workerId = this.dataset.id;
+            showAssignedOrders(workerId);
+        });
+    });
 });
