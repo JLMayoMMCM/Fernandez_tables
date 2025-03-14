@@ -954,7 +954,7 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     border: none;
-    color: var(--text-dark);
+    color: var(--text-white);
     cursor: pointer;
 }
 
@@ -1053,7 +1053,7 @@ body {
     0 6px 20px var(--shadow-light), 
     0 8px 30px var(--shadow-dark), 
     0 10px 40px var(--shadow-light); /* Shadow */
-    color: var(--text-dark);
+    color: var(--text-white);
     cursor: pointer;
 }
 
@@ -2139,7 +2139,7 @@ body {
     padding: 10px 20px;
     border-radius: 5px;
     border: none;
-    color: var(--text-dark);
+    color: var(--text-white);
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px var(--shadow-medium), 
@@ -2546,7 +2546,7 @@ body {
   padding: 10px 20px;
   border-radius: 5px;
   border: none;
-  color: var(--text-dark);
+  color: var(--text-white);
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px var(--shadow-medium), 
@@ -2990,6 +2990,7 @@ body {
 .view_stock_input_popup .table_wrapper {
     margin: 15px 0;
     max-height: 200px;
+    background-color: var(--bg-card);
     overflow-y: auto;
 }
 
@@ -3047,6 +3048,8 @@ body {
               0 8px 30px var(--shadow-dark), 
               0 10px 40px var(--shadow-light);
   color: var(--text-white);
+  position: relative;
+  z-index: 1002;
 }
 
 .view_item_input_popup .input_row,
@@ -3079,4 +3082,260 @@ body {
   border: 1px solid #ccc;
   background: var(--text-white);
   color: var(--text-dark);
+}
+
+.view_item_input_popup .input_row_add_orders input,
+.view_item_input_popup .input_row_add_orders select,
+.view_stock_input_popup .input_row_add_orders input,
+.view_stock_input_popup .input_row_add_orders select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: var(--text-white);
+  color: var(--text-dark);
+}
+
+.view_item_input_popup .input_row_add_orders label,
+.view_stock_input_popup .input_row_add_orders label {
+  flex: 0 0 150px;
+  text-align: left;
+  margin-right: 10px;
+  font-weight: bold;
+  color: var(--text-white);
+}
+
+/* Update all popup navigation buttons */
+.order_navigation button,
+.order_navigation_inventory button,
+.order_navigation_worker button,
+.order_navigation_transaction button,
+.order_navigation_liability button,
+#transactions_return_btn,
+#liabilities_return_btn,
+#content_active_order,
+#order_history_items_return,
+#assigned_orders_return,
+.btn-cancel,
+#back_to_add_order,
+#back_to_active_order,
+#back_to_modify_order,
+#item_return_btn,
+#stock_return_btn,
+#modify_item_return_btn,
+#modify_stock_return_btn,
+#worker_cancel_btn,
+#worker_save_btn,
+#cancel_transaction_btn,
+#submit_transaction_btn,
+#cancel_liability_btn,
+#submit_liability_btn {
+    background-color: var(--color-blue-light) !important;
+    color: var(--text-white) !important;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Preserve existing hover effects */
+.order_navigation button:hover,
+.order_navigation_inventory button:hover,
+.order_navigation_worker button:hover,
+.order_navigation_transaction button:hover,
+.order_navigation_liability button:hover,
+#transactions_return_btn:hover,
+#liabilities_return_btn:hover,
+#content_active_order:hover,
+#order_history_items_return:hover,
+#assigned_orders_return:hover,
+.btn-cancel:hover,
+#back_to_add_order:hover,
+#back_to_active_order:hover,
+#back_to_modify_order:hover,
+#item_return_btn:hover,
+#stock_return_btn:hover,
+#modify_item_return_btn:hover,
+#modify_stock_return_btn:hover,
+#worker_cancel_btn:hover,
+#worker_save_btn:hover,
+#cancel_transaction_btn:hover,
+#submit_transaction_btn:hover,
+#cancel_liability_btn:hover,
+#submit_liability_btn:hover {
+    background-color: var(--color-delete) !important;
+}
+
+#worker_save_btn:hover,
+#submit_transaction_btn:hover,
+#submit_liability_btn:hover,
+#item_submit_btn:hover,
+#stock_submit_btn:hover,
+#modify_item_save_btn:hover,
+#modify_stock_save_btn:hover {
+    background-color: var(--color-success) !important;
+}
+
+#item_return_btn,
+#stock_return_btn,
+#modify_item_return_btn,
+#modify_stock_return_btn {
+    background: var(--gradient-button) !important;
+    color: var(--text-white) !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+#item_return_btn:hover,
+#stock_return_btn:hover,
+#modify_item_return_btn:hover,
+#modify_stock_return_btn:hover {
+    background: var(--gradient-hover-red) !important;
+    transform: scale(1.05);
+}
+
+#item_submit_btn,
+#stock_submit_btn,
+#modify_item_save_btn,
+#modify_stock_save_btn {
+    background: var(--gradient-button) !important;
+    color: var(--text-white) !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium), 
+                0 6px 20px var(--shadow-light);
+}
+
+#item_submit_btn:hover,
+#stock_submit_btn:hover,
+#modify_item_save_btn:hover,
+#modify_stock_save_btn:hover {
+    background: var(--color-success) !important;
+    transform: scale(1.05);
+}
+
+/* Update all popup navigation buttons */
+.order_navigation button,
+.order_navigation_inventory button,
+.order_navigation_worker button,
+.order_navigation_transaction button,
+.order_navigation_liability button,
+#transactions_return_btn,
+#liabilities_return_btn,
+#content_active_order,
+#order_history_items_return,
+#assigned_orders_return,
+.btn-cancel,
+#back_to_add_order,
+#back_to_active_order,
+#back_to_modify_order,
+#worker_cancel_btn,
+#cancel_transaction_btn,
+#cancel_liability_btn {
+    background-color: var(--color-blue-light) !important;
+    color: var(--text-white) !important;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Preserve existing hover effects */
+.order_navigation button:hover,
+.order_navigation_inventory button:hover,
+.order_navigation_worker button:hover,
+.order_navigation_transaction button:hover,
+.order_navigation_liability button:hover,
+#transactions_return_btn:hover,
+#liabilities_return_btn:hover,
+#content_active_order:hover,
+#order_history_items_return:hover,
+#assigned_orders_return:hover,
+.btn-cancel:hover,
+#back_to_add_order:hover,
+#back_to_active_order:hover,
+#back_to_modify_order:hover,
+#worker_cancel_btn:hover,
+#cancel_transaction_btn:hover,
+#cancel_liability_btn:hover {
+    background-color: var(--color-delete) !important;
+}
+
+#worker_save_btn:hover,
+#submit_transaction_btn:hover,
+#submit_liability_btn:hover {
+    background-color: var(--color-success) !important;
+}
+
+.view_item_input_popup .order_navigation,
+.view_stock_input_popup .order_navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 10px;
+  position: relative;
+  z-index: 1003;
+}
+
+.view_item_input_popup .order_navigation button,
+.view_stock_input_popup .order_navigation button {
+  flex: 1;
+  max-width: 200px;
+  margin: 0;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  color: var(--text-white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1003;
+}
+
+#item_return_btn,
+#stock_return_btn {
+  background: var(--gradient-button) !important;
+  color: var(--text-white) !important;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
+}
+
+#item_submit_btn,
+#stock_submit_btn {
+  background: var(--gradient-button) !important;
+  color: var(--text-white) !important;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px var(--shadow-medium), 
+              0 6px 20px var(--shadow-light);
+}
+
+#item_return_btn:hover,
+#stock_return_btn:hover {
+  background: var(--gradient-hover-red) !important;
+  transform: scale(1.05);
+}
+
+#item_submit_btn:hover,
+#stock_submit_btn:hover {
+  background: var(--color-success) !important;
+  transform: scale(1.05);
 }

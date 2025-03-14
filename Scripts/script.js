@@ -1,5 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Check session and load initial data
+    fetch('/checkSession')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.loggedIn) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Load initial data for the default page (Add Order)
+            importData();
+            showPage('content_add_order');
+            
+            // Set the first nav button as active
+            const firstNavButton = document.querySelector('.nav-button');
+            if (firstNavButton) {
+                firstNavButton.classList.add('active');
+            }
+        })
+        .catch(error => {
+            console.error('Error checking session:', error);
+            window.location.href = '/login';
+        });
 
     //Initialize the payment channel
     const paymentChannelButton = document.querySelector('.nav-button[data-page="content_payment_order"]');
@@ -28,6 +50,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const panelTitle = document.getElementById("panel-title");
         if (panelTitle) {
             panelTitle.textContent = pageId.replace("content_", "").replace("_", " ").toUpperCase();
+        }
+
+        // Automatically fetch data based on the page shown
+        if (pageId === 'content_add_order') {
+            importData();
+        }
+        if (pageId === 'content_active_order') {
+            fetchActiveOrders();
+        }
+        if (pageId === 'content_order_history') {
+            fetchOrderHistory();
+        }
+        if (pageId === 'content_inventory_stock') {
+            fetchInventoryItems();
+            fetchStockInfo();
+        }
+        if (pageId === 'content_staff_info') {
+            fetchStaffInfo();
+        }
+        if (pageId === 'content_payment_order') {
+            fetchPaymentOrders();
         }
     }
 
@@ -312,6 +355,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Function to get data from the add order form
+    function getOrderData() {
+        const eventName = document.getElementById('event_name').value;
+        const eventTimestamp = document.getElementById('event_timestamp').value;
+        const eventDuration = document.getElementById('event_duration').value;
+        const assignedManager = document.getElementById('assigned_manager').value;
+        const street = document.getElementById('street').value;
+        const barangay = document.getElementById('barangay').value;
+        const city = document.getElementById('city').value;
+        const firstName = document.getElementById('first_name').value;
+        const middleName = document.getElementById('middle_name').value;
+        const lastName = document.getElementById('last_name').value;
+        const phoneNumber = document.getElementById('phone_number').value;
+        const age = document.getElementById('age').value;
+        const gender = document.getElementById('gender').value;
+        const extraFees = document.getElementById('extra_fees').value;
+        
+        const items = [];
+        document.querySelectorAll('#tables_Container .item-quantity, #chairs_Container .item-quantity, #misc_Container .item-quantity')
+            .forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    items.push({
+                        item_id: input.dataset.id,
+                        quantity: quantity,
+                        price: parseFloat(input.dataset.price)
+                    });
+                }
+            });
+        
+        const workers = [];
+        document.querySelectorAll('#workers_Container .worker-select:checked').forEach(checkbox => {
+            workers.push(checkbox.dataset.id);
+        });
+        
+        return {
+            event_name: eventName,
+            event_timestamp: eventTimestamp,
+            event_duration: eventDuration,
+            assigned_manager: assignedManager,
+            street: street,
+            barangay: barangay,
+            city: city,
+            first_name: firstName,
+            middle_name: middleName,
+            last_name: lastName,
+            phone_number: phoneNumber,
+            age: age,
+            gender: gender,
+            extra_fees: extraFees,
+            items: items,
+            workers: workers
+        };
+    }
+
     // Adds an order to the database
     function addOrder() {
         // Validate form fields
@@ -364,6 +462,31 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     
+    // Function to get selected items
+    function getSelectedItems() {
+        const items = [];
+        document.querySelectorAll('#tables_Container .item-quantity, #chairs_Container .item-quantity, #misc_Container .item-quantity')
+            .forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    items.push({
+                        item_id: input.dataset.id,
+                        quantity: quantity
+                    });
+                }
+            });
+        return items;
+    }
+
+    // Function to get selected workers
+    function getSelectedWorkers() {
+        const workers = [];
+        document.querySelectorAll('#workers_Container .worker-select:checked').forEach(checkbox => {
+            workers.push(checkbox.dataset.id);
+        });
+        return workers;
+    }
+
     function validateForm() {
         const requiredFields = [
             'event_name', 'event_timestamp', 'event_duration', 'assigned_manager',
