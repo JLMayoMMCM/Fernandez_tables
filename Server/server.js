@@ -1,5 +1,5 @@
 // ------------------ SERVER-SIDE JAVASCRIPT ------------------ //
-//BY: JONATHAN LANCE MAYO
+//DOCUMENTATION BY: JONATHAN LANCE MAYO
 
 // ------------------ NODE MODULES ------------------ //
 //IMPORTS
@@ -195,7 +195,7 @@ app.get('/getItemsAndWorkers', (req, res) => {
         SELECT item_id as id, item_name AS name
         FROM item_tbl
     `;
-
+    // MULTIPLE QUERIES
     db.query(`${itemsQuery}; ${workersQuery}; ${managersQuery}; ${gendersQuery}; ${suppliersQuery}; ${selectorQuery}`, (err, results) => {
         if (err) throw err;
         const [items, workers, managers, genders, suppliers, selector] = results;
@@ -353,7 +353,7 @@ app.delete('/deleteOrder/:orderId', (req, res) => {
     const { orderId } = req.params;
     db.beginTransaction(err => {
         if (err) throw err;
-
+        // Get IDs of related records
         const getIdsQuery = `
             SELECT e.address_ID, c.person_ID, c.customer_ID
             FROM order_info_tbl o
@@ -405,7 +405,7 @@ app.delete('/deleteOrder/:orderId', (req, res) => {
     });
 });
 
-
+// RETRIEVES ORDER DETAILS FOR MODIFICATION
 app.post('/modifyOrder', (req, res) => {
     const {
         order_ID, event_name, event_timestamp, event_duration, assigned_manager,

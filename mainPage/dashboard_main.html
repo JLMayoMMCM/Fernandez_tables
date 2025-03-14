@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- DOCUMENTATION BY JONATHAN LANCE MAYO (GROUP PROGRAMMER)-->
+
+    <!-- HTML HEAD AND CSS CONNECTION-->
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="../design/dashboard_style_main.css">
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            fetch('/checkSession')
+              .then(response => response.json())
+              .then(data => {
+                if (!data.loggedIn) {
+                  window.location.href = '/login'; // Redirect to login if not logged in
+                }
+              })
+              .catch(error => {
+                console.error('Error checking session:', error);
+                window.location.href = '/login';
+              });
+          });
+        </script>
+    </head>
+    <!-- HTML BODY -->
+    <body>
+            <!-- HEADER - CONTAINS TOP BAR-->
+            <div class = "header">
+                <div class="header_panel_title">
+                    <h1 id="panel-title">Add Order</h1>
+                </div>
+
+                <div class="header_username">
+                    <h2 id="dashboard_Username">User Name</h2>
+                </div>
+            </div>
+
+            <!-- DASHBOARD CONTAINER - CONTAINS ENTIRE PAGE-->
+            <div class = "dashboard_container">
+
+                <!-- SIDEBAR - CONTAINS LOGO, NAVIGATION, AND LOGOUT-->
+                <section class ="sidebar">
+                    <button id="minimize-sidebar">Minimize</button>
+                    <img src="../Assets/logo.png" alt="Logo" class="sidebar_img">
+                    <button class="nav-button" data-page="content_add_order">Add Order</button>
+                    <button class="nav-button" data-page="content_active_order">Active Orders</button>
+                    <button class="nav-button" data-page="content_payment_order">Payment Channel</button>
+                    <button class="nav-button" data-page="content_order_history">Order History</button>
+                    <button class="nav-button" data-page="content_inventory_stock">Inventory Stock</button>
+                    <button class="nav-button" data-page="content_staff_info">Staff Info</button>
+                    <button class="nav-button" id="logout">Logout</button>
+                </section>
+
+
+                <!-- CONTENT PANEL - CONTAINS ALL CONTENT PANEL DISPLAY-->
+                <div class = "content_panel">
+
+                    <!-- ADD ORDERS PANEL - CONTAINS ADD ORDERS FORM-->
+                    <section class="content_add_order">
+
+                        <!-- CREATES FORM-->
+                        <form class="add_order_container">
+
+                            <!-- LEFT PANEL-->
+                            <div class="event_info">
+                                <h3>Event Information</h3>
+                                <div class="input_row">
+                                    <label for="event_name">Event Name:</label>
+                                    <input type="text" id="event_name" required>
+                                </div>
+
+                                <div class="input_row">
+                                    <label for="event_timestamp">Event Timestamp:</label>
+                                    <input type="datetime-local" id="event_timestamp" required>
+                                </div>
+
+                                <div class="input_row">
+                                    <label for="event_duration">Event Duration (days):</label>
+                                    <input type="number" id="event_duration" min="1" required>
+                                </div>
+
+                                <div class="input_row">
+                                    <label for="assigned_manager">Assigned Manager:</label>
+                                    <select id="assigned_manager" required></select>
+                                </div>
+
+                                <h3>Address Information</h3>
+                                <div class="input_row">
+                                    <label for="street">Street:</label>
+                                    <input type="text" id="street" required>
+                                </div>
+                                
+                                <div class="input_row">
+                                    <label for="barangay">Barangay:</label>
+                                    <input type="text" id="barangay" required>
+                                </div>
+
+                                <div class="input_row">
+                                    <label for="city">City:</label>
+                                    <input type="text" id="city" required>
+                                </div>
+                            </div>
+                        
+                            <!-- RIGHT PANEL-->
+                            <div class="customer_info">
+                                <h3>Customer Information</h3>
+
+                                <!-- CUSTOMER FIRST NAME-->
+                                <div class="input_row">
+                                    <label for="first_name">First Name:</label>
+                                    <input type="text" id="first_name" required>
+                                </div>
+
+                                <!-- CUSTOMER MIDDLE NAME-->
+                                <div class="input_row">
+                                    <label for="middle_name">Middle Name:</label>
+                                    <input type="text" id="middle_name">
+                                </div>
+
+                                <!-- CUSTOMER LAST NAME-->
+                                <div class="input_row">
+                                    <label for="last_name">Last Name:</label>
+                                    <input type="text" id="last_name" required>
+                                </div>
+
+                                <!-- CUSTOMER PHONE NUMBER-->
+                                <div class="input_row">
+                                    <label for="phone_number">Phone Number:</label>
+                                    <input type="tel" id="phone_number" required>
+                                </div>
+
+                                <!-- CUSTOMER AGE-->
+                                <div class="input_row">
+                                    <label for="age">Age:</label>
+                                    <input type="number" id="age" min="0">
+                                </div>
+
+                                <!-- CUSTOMER GENDER-->
+                                <div class="input_row">
+                                    <label for="gender">Gender:</label>
+                                    <select id="gender" required></select>
+                                </div>
+
+                                <!-- MANUAL EXTRA FEES ADDED BY BUSINESS-->
+                                <div class="input_row">
+                                    <label for="extra_fees">Extra Fees:</label>
+                                    <input type="number" id="extra_fees" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                        </form>
+                    
+                    <div class = "order_total">
+                        <h3>Item Cost: <span id="add_subtotal_price">0.00</span></h3>
+                        <h3>Total Cost: <span id="add_total_price">0.00</span></h3>
+                    </div>
+                    <!-- NAVIGATION BUTTONS-->
+                    <div class="order_navigation">
+                        <button type="button" id="add_item_order">ITEM LIST</button>
+                        <button type="button" id="add_order_button">ADD ORDER</button>
+                    </div>
+                </section>
+                
+                <!-- ADD ITEMS ORDER PANEL - CONTAINS SUBPANEL FOR TABLE SELECTION-->
+                <section class="content_add_item_order">
+
+                    <!-- REVERTS BACK TO THE ADD ORDERS PAGE-->
+                    <div class = "order_navigation">
+                        <button type="button" id="back_to_add_order">Back to Order Information</button>
+                    </div>
+
+                    <!-- CREATES TABLES -->
+                    <div class="item_and_worker_info">
+                        <div class="item_container">
+
+                            <!-- TABLES SELECTION-->
+                            <div class="tables_info">
+                                <h3>Tables</h3>
+
+                                <!-- TABLES CONTAINER-->
+                                <div class="table_wrapper">
+                                    
+                                    <table id="tables_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- CHAIRS SELECTION-->
+                            <div class="chairs_info">
+                            <h3>Chairs</h3>
+                                
+                                <!-- CHAIRS CONTAINER-->
+                                <div class="table_wrapper">
+                                    <table id="chairs_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item_container">
+                            <!-- MISCELLANEOUS SELECTION-->
+                            <div class="misc_info">
+                            <h3>Miscellaneous</h3>
+
+                                <!-- MISCELLANEOUS CONTAINER-->
+                                <div class="table_wrapper">
+                                    <table id="misc_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- WORKERS SELECTION-->
+                            <div class="workers_info">
+                                <h3>Workers</h3>
+
+                                <!-- WORKERS CONTAINER-->
+                                <div class="table_wrapper">
+                                <table id="workers_Container">
+                                    <thead>
+                                        <tr>
+                                            <th>Sel</th>
+                                            <th>Worker Name</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class = "order_total">
+                        <h3>Item Cost: <span id="add_subtotal_price">0.00</span></h3>
+                        <h3>Total Cost: <span id="add_total_price">0.00</span></h3>
+                    </div>
+                </section>
+
+                <!-- ACTIVE ORDERS PANEL - CONTAINS ACTIVE ORDERS AND MANIPULATIONS-->
+                <section class="content_active_order">
+                    <div class="table_wrapper">
+                        <table id="active_order_table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Event Name</th>
+                                    <th>Customer Name</th>
+                                    <th>Order Status</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Manager</th>
+                                    <th>Order Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Popup for viewing order items -->
+                <section class="view_order_item_popup">
+                    <div class="popup-content">
+                        <h3>Order Items</h3>
+                        <div class="table_wrapper">
+                            <table id="order_items_table">
+                                <thead>
+                                    <tr>
+                                        <th>Item ID</th>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="order_cost_summary">
+                            <h4 id="days_rented">Days Rented: 0</h4>
+                            <h4>Items Subtotal: <span id="order_items_subtotal">0.00</span></h4>
+                            <h4>Subtotal (with days): <span id="order_subtotal_with_days">0.00</span></h4>
+                            <h4>Extra Fees: <span id="order_extra_fees">0.00</span></h4>
+                            <h4>Total: <span id="order_items_total">0.00</span></h4>
+                        </div>
+                        <button id="content_active_order">Return</button>
+                    </div>
+                </section>
+
+                <!-- MODIFY SELECTED ACTIVE ORDER-->
+                <section class="content_modify_order">
+
+                    <div class = "order_navigation">
+                        <button type="button" id="back_to_active_order">Back to Active Order</button>
+                    </div>
+
+                    <form class="modify_order_container">
+                        <div class="event_info">
+                            <h3>Event Information</h3>
+
+                            <div class="input_row">
+                                <label for="modify_event_name">Event Name:</label>
+                                <input type="text" id="modify_event_name" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_event_timestamp">Event Timestamp:</label>
+                                <input type="datetime-local" id="modify_event_timestamp" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_event_duration">Event Duration (days):</label>
+                                <input type="number" id="modify_event_duration" min="1" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_assigned_manager">Assigned Manager:</label>
+                                <select id="modify_assigned_manager" required></select>
+                            </div>
+
+                            <h3>Address Information</h3>
+
+                            <div class="input_row">
+                                <label for="modify_street">Street:</label>
+                                <input type="text" id="modify_street" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_barangay">Barangay:</label>
+                                <input type="text" id="modify_barangay" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_city">City:</label>
+                                <input type="text" id="modify_city" required>
+                            </div>
+                        </div>
+
+                        <div class="customer_info">
+                            <h3>Customer Information</h3>
+
+                            <div class="input_row">
+                                <label for="modify_first_name">First Name:</label>
+                                <input type="text" id="modify_first_name" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_middle_name">Middle Name:</label>
+                                <input type="text" id="modify_middle_name">
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_last_name">Last Name:</label>
+                                <input type="text" id="modify_last_name" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_phone_number">Phone Number:</label>
+                                <input type="tel" id="modify_phone_number" required>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_age">Age:</label>
+                                <input type="number" id="modify_age" min="0">
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_gender">Gender:</label>
+                                <select id="modify_gender" required></select>
+                            </div>
+
+                            <div class="input_row">
+                                <label for="modify_extra_fees">Extra Fees:</label>
+                                <input type="number" id="modify_extra_fees" min="0" step="0.01" value="0">
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class = "order_total">
+                        <h3>Item Cost: <span id="modify_subtotal_Price">0.00</span></h3>
+                        <h3>Total Cost: <span id="modify_total_Price">0.00</span></h3>
+                    </div>
+
+                    <!-- NAVIGATION BUTTONS-->
+                    <div class="order_navigation">
+                        <button type="button" id="modify_item_order">MODIFY ITEM LIST</button>
+                        <button type="button" id="save_modify_order">SAVE ORDER</button>
+                    </div>
+                </section>
+
+                <section class="content_modify_item_order">
+
+                    <div class="order_navigation">
+                        <button type="button" id="back_to_modify_order">Back to Order Info</button>
+                    </div>
+
+                    <div class="item_and_worker_info">
+
+                        <div class="item_container">
+                            
+                            <div class="tables_info">
+                                <h3>Tables</h3>
+
+                                <!-- TABLES CONTAINER-->
+                                <div class="table_wrapper">
+                                        <table id="modify_tables_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="chairs_info">
+                            <h3>Chairs</h3>
+
+                                <!-- CHAIRS CONTAINER-->
+                                <div class="table_wrapper">
+                                    <table id="modify_chairs_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="item_container">
+                                <div class="misc_info">
+                                <h3>Miscellaneous</h3>
+
+                                <!-- MISCELLANEOUS CONTAINER-->
+                                <div class="table_wrapper">
+                                    <table id="modify_misc_Container">
+                                        <thead>
+                                            <tr>
+                                            <th>Name</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="workers_info">
+                                <h3>Workers</h3>
+
+                                <!-- WORKERS CONTAINER-->
+                                <div class="table_wrapper">
+                                    <table id="modify_workers_Container">
+                                        <thead>
+                                        <tr>
+                                            <th>Sel</th>
+                                            <th>Worker Name</th>
+                                        </tr>
+                                        </thead>
+                                        <!-- EMPTY BODY FOR IMPORT-->
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="order_total">
+                            <h3>Item Cost: <span id="modify_subtotal_Price">0.00</span></h3>
+                            <h3>Total Cost: <span id="modify_total_Price">0.00</span></h3>
+                        </div>
+                    </div>
+                </section>
+
+                    <!-- PAYMENT CHANNEL PANEL - CONTAINS FINANCE MANIPULATION -->
+                    <section class="content_payment_order">
+                        <h2>Payment Channel</h2>
+                        <div class="table_wrapper">
+                            <table id="payment_order_table">
+                                <thead>
+                                    <tr>
+                                        <th>Finance ID</th>
+                                        <th>Order ID</th>
+                                        <th>Customer Name</th>
+                                        <th>Event Start</th>
+                                        <th>Event End</th>
+                                        <th>Item Subtotal</th>
+                                        <th>Extra Fees</th>
+                                        <th>Liabilities</th>
+                                        <th>Total Amount</th>
+                                        <th>Balance</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- This will be populated by script.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Creating Transaction -->
+                    <section class="view_create_transaction_popup">
+                        <div class="popup-content">
+                            <h3>Create Transaction</h3>
+                            <form id="create_transaction_form">
+                                <div class="input_row">
+                                    <label for="transaction_order_id">Order ID:</label>
+                                    <input type="text" id="transaction_order_id" readonly>
+                                </div>
+                                <div class="input_row">
+                                    <label for="payment_type">Payment Type:</label>
+                                    <select id="payment_type" required></select>
+                                </div>
+                                <div class="input_row">
+                                    <label for="payment_amount">Payment Amount:</label>
+                                    <input type="number" id="payment_amount" min="1" required>
+                                </div>
+                                <div class="input_row">
+                                    <label for="payment_reference">Reference Number:</label>
+                                    <input type="text" id="payment_reference">
+                                </div>
+                                <div class="order_navigation">
+                                    <button type="button" id="cancel_transaction_btn">Cancel Transaction</button>
+                                    <button type="button" id="submit_transaction_btn">Submit Payment</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Adding Liabilities -->
+                    <section class="view_add_liability_popup">
+                        <div class="popup-content">
+                            <h3>Add Liability</h3>
+                            <form id="add_liability_form">
+                                <div class="input_row">
+                                    <label for="liability_title">Liability Title:</label>
+                                    <input type="text" id="liability_title" required>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_item_id">Item:</label>
+                                    <select id="liability_item_id" required></select>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_quantity">Quantity:</label>
+                                    <input type="number" id="liability_quantity" min="1" required>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_amount">Amount:</label>
+                                    <input type="number" id="liability_amount" min="1" step="0.01" required>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_description">Description:</label>
+                                    <textarea id="liability_description" required></textarea>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_date">Date:</label>
+                                    <input type="datetime-local" id="liability_date" required>
+                                </div>
+                                <div class="input_row">
+                                    <label for="liability_manager_id">Manager:</label>
+                                    <select id="liability_manager_id" required></select>
+                                </div>
+                                <div class="order_navigation">
+                                    <button type="button" id="cancel_liability_btn">Cancel</button>
+                                    <button type="button" id="submit_liability_btn">Add Liability</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Viewing Transactions -->
+                    <section class="view_transactions_popup">
+                        <div class="popup-content">
+                            <h3>Transaction History</h3>
+                            <div class="table_wrapper">
+                                <table id="transactions_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Payment Type</th>
+                                            <th>Amount</th>
+                                            <th>Reference No</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Rows will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="total-payment">
+                                <strong>Total Payment: </strong><span id="total_payment_amount">0.00</span>
+                            </div>
+                            <button id="transactions_return_btn">Return</button>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Viewing Liabilities -->
+                    <section class="view_liabilities_popup">
+                        <div class="popup-content">
+                            <h3>Liabilities</h3>
+                            <div class="table_wrapper">
+                                <table id="liabilities_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Item</th>
+                                            <th>Quantity</th>
+                                            <th>Amount</th>
+                                            <th>Description</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Rows will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="total-liability">
+                                <strong>Total Liability: </strong><span id="total_liability_amount">0.00</span>
+                            </div>
+                            <button id="liabilities_return_btn">Return</button>
+                        </div>
+                    </section>
+
+                    <!-- ORDER HISTORY PANEL - CONTAINS ORDER HISTORY AND SEARCH-->
+                    <section class="content_order_history">
+                        <h2>Order History</h2>
+
+                        <!-- SEARCH BAR-->
+                        <div class="order_history_search">
+                            <input type="text" id="orderHistorySearch" placeholder="Search by Order ID or Customer Name">
+                        </div>
+
+                        <!-- TABLE CONTAINER-->
+                        <div class="table_wrapper">
+                            <table id="order_History_Table">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Event Name</th>
+                                        <th>Event Start</th>
+                                        <th>Event End</th>
+                                        <th>Total Price</th>
+                                        <th>Status</th>
+                                        <th>Manager</th>
+                                        <th>Address</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                            <tbody></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+
+                    <section class="view_order_item_history">
+                        <div class="popup-view">
+                          <h3>Order Items</h3>
+                          <div class="table_wrapper">
+                            <table id="order_History_Items_Table">
+                              <thead>
+                                <tr>
+                                  <th>Item ID</th>
+                                  <th>Name</th>
+                                  <th>Description</th>
+                                  <th>Price</th>
+                                  <th>Quantity</th>
+                                  <th>Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody></tbody>
+                            </table>
+                          </div>
+                          <div class="order_cost_summary">
+                            <h4 id="history_days_rented">Days Rented: 0</h4>
+                            <h4>Items Subtotal: <span id="history_items_subtotal">0.00</span></h4>
+                            <h4>Subtotal (with days): <span id="history_subtotal_with_days">0.00</span></h4>
+                            <h4>Extra Fees: <span id="history_extra_fees">0.00</span></h4>
+                            <h4>Total: <span id="order_history-items-total">0.00</span></h4>
+                          </div>
+                          <button id="order_history_items_return">Return</button>
+                        </div>
+                    </section>
+
+
+
+                    <!-- INVENTORY STOCK PANEL - CONTAINS INVENTORY STOCK AND MANIPULATION-->
+                    <section class="content_inventory_stock">
+                        <h2>Inventory Stock</h2>
+                        <div class="inventory_tables">
+                            <h3>Item Information</h3>
+                            <div class="table_wrapper">
+                                <table id="inventory_items_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item ID</th>
+                                            <th>Item Name</th>
+                                            <th>Description</th>
+                                            <th>Item Type</th>
+                                            <th>Price</th>
+                                            <th>Total Stock</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <h3>Stock Information</h3>
+                            <div class="table_wrapper">
+                                <table id="stock_info_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Stock ID</th>
+                                            <th>Item ID</th>
+                                            <th>Name</th>
+                                            <th>Quantity</th>
+                                            <th>Supplier Name</th>
+                                            <th>Supplier ID</th>
+                                            <th>Manager Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="inventory_buttons">
+                            <button id="add_stocks_btn">Add Stocks</button>
+                            <button id="add_item_btn">Add Item</button>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Stock Input -->
+                    <section class="view_stock_input">
+                        <div class="popup-content">
+                            <h3>Add Stock</h3>
+                            <div class="input_row">
+                                <label for="stock_item_select">Item:</label>
+                                <select id="stock_item_select" size="5" style="overflow-y: scroll;">
+                                    <!-- Ensure options have valid values -->
+                                    <option value="" disabled selected>Select an item</option>
+                                </select>
+                            </div>
+                            <div class="input_row">
+                                <label for="stock_quantity">Quantity:</label>
+                                <input type="number" id="stock_quantity" min="1">
+                            </div>
+                            <div class="input_row">
+                                <label for="stock_manager_select">Manager:</label>
+                                <select id="stock_manager_select"></select>
+                            </div>
+                            <div class="input_row">
+                                <label for="stock_supplier_id">Supplier:</label>
+                                <select id="stock_supplier_id" required></select>
+                            </div>
+                            <div class="inventory_buttons">
+                                <button id="stock_return_btn">Return to Stock Inventory</button>
+                                <button id="stock_submit_btn">Add Stock</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Popup for Item Input -->
+                    <section class="view_item_input"">
+                        <div class="popup-content">
+                            <h3>Add Item</h3>
+
+                            <div class="input_row">
+                                <label for="item_name_input">Item Name:</label>
+                                <input type="text" id="item_name_input">
+                            </div>
+
+                            <div class="input_row">
+                                <label for="item_description_input">Description:</label>
+                                <input type="text" id="item_description_input">
+                            </div>
+
+                            <div class="input_row">
+                                <label for="item_price_input">Price:</label>
+                                <input type="number" id="item_price_input" step="0.01" min="0">
+                            </div>
+
+                            <div class="input_row">
+                                <label for="item_type_select">Item Type:</label>
+                                <select id="item_type_select"></select>
+                            </div>
+
+                            <div class="order_navigation">
+                                <button id="item_return_btn">Return to Stock Inventory</button>
+                                <button id="item_submit_btn">Add Item</button>
+                            </div>
+                        </div>  
+                    </section>
+
+                    <!-- STAFF INFO PANEL - CONTAINS STAFF INFO AND MANIPULATION -->
+                    <section class="content_staff_info">
+                        <h2>Staff Information</h2>
+                        <div class="order_navigation">
+                            <button type="button" id="add_worker_btn">Add Worker</button>
+                        </div>
+
+                        <div class="table_wrapper">
+                            <table id="staff_info_table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Age</th>
+                                        <th>Phone Number</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>  
+                    </section>
+
+                    <!-- Popup for viewing assigned orders -->
+                    <section class="view_assigned_orders_popup">
+                        <div class="popup-content">
+                            <h3>Assigned Orders</h3>
+                            <div class="table_wrapper">
+                                <table id="assigned_orders_table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Event Name</th>
+                                            <th>Event Date</th>
+                                            <th>End Event Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <button id="assigned_orders_return">Return</button>
+                        </div>
+                    </section>
+
+                    <!-- Popup for adding a worker -->
+                    <section class="view_add_worker_popup">
+                        <div class="popup-content">
+                            <h3>Add New Worker</h3>
+                            <form class="add_worker_container">
+                                <div class="worker_info">
+                                    <h4>Personal Information</h4>
+                                    <div class="input_row">
+                                        <label for="worker_first_name">First Name:</label>
+                                        <input type="text" id="worker_first_name" required>
+                                    </div>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_middle_name">Middle Name:</label>
+                                        <input type="text" id="worker_middle_name">
+                                    </div>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_last_name">Last Name:</label>
+                                        <input type="text" id="worker_last_name" required>
+                                    </div>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_phone_number">Phone Number:</label>
+                                        <input type="tel" id="worker_phone_number" required>
+                                    </div>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_age">Age:</label>
+                                        <input type="number" id="worker_age" min="18" required>
+                                    </div>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_gender">Gender:</label>
+                                        <select id="worker_gender" required></select>
+                                    </div>
+
+                                    <div class="input_row">
+                                        <label for="worker_manager">Assigned Manager:</label>
+                                        <select id="worker_manager" required></select>
+                                    </div>
+                                    
+                                    <h4>Account Information</h4>
+                                    
+                                    <div class="input_row">
+                                        <label for="worker_password">Password:</label>
+                                        <input type="password" id="worker_password" required>
+                                    </div>
+                                    <div class="input_row">
+                                        <label for="worker_confirm_password">Confirm Password:</label>
+                                        <input type="password" id="worker_confirm_password" required>
+                                    </div>
+                                    <div class="input_row">
+                                        <input type="checkbox" id="show_password"> Show Password
+                                    </div>
+                                </div>
+                            </form>
+                            
+                            <div class="order_navigation">
+                                <button id="worker_cancel_btn">Cancel</button>
+                                <button id="worker_save_btn">Save Worker</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div> 
+        <script src="../script.js"></script>
+    </body>
+</html>

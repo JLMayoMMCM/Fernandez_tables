@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-
+    // Populate workers table
     function populateWorkersTable(workers, tableId) {
         const tablebody = document.getElementById(tableId).querySelector('tbody');
         tablebody.innerHTML = '';
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#workers_Container .worker-select:checked').forEach(checkbox => {
             workers.push(checkbox.dataset.id);
         });
-        
+        // Return the order data as an object
         return {
             event_name: eventName,
             event_timestamp: eventTimestamp,
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please fill in all required fields and ensure at least one item and one worker are selected.');
             return;
         }
-
+        // Get order data
         const orderData = getOrderData();
 
         fetch('/addOrder', {
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error adding order:', error));
     }
-
+    // Function to clear the add order form
     function clearAddOrderForm() {
         document.getElementById('event_name').value = '';
         document.getElementById('event_timestamp').value = '';
@@ -889,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
             
 
-
+    // Add event listeners for buttons
     document.querySelectorAll('.view-order').forEach(button => {
         button.addEventListener('click', function() {
             const orderId = this.dataset.id;
@@ -897,7 +897,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('.view_order_item_popup').classList.add('active');
         });
     });
-
+    // Add event listeners for the modify order buttons
     document.getElementById('content_active_order').addEventListener('click', function() {
         document.querySelector('.view_order_item_popup').classList.remove('active');
     });
@@ -916,7 +916,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showPage('content_active_order');
     });
 
-
+    // Add function to return button (content_active_order)
     function fetchActiveOrders() {
         fetch('/getActiveOrders')
             .then(response => response.json())
@@ -965,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.querySelector('.view_order_item_popup').classList.add('active');
                     });
                 });
-
+                // Add event listeners for the modify order buttons
                 document.querySelectorAll('.modify-order').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
@@ -973,7 +973,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         fetchOrderDetails(orderId);
                     });
                 });
-
+                // Add event listeners for the view workers buttons
                 document.querySelectorAll('.view-workers').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
@@ -1002,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             .catch(error => console.error('Error fetching assigned workers:', error));
                     });
                 });
-
+                // Add event listeners for the cancel order buttons
                 document.querySelectorAll('.cancel-order').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
@@ -1104,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-
+    // Fetch order history and populate the order history table
     function fetchOrderHistory() {
         fetch('/getOrderHistory')
             .then(response => response.json())
@@ -1148,6 +1148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 });
 
+                // Add event listeners to the delete buttons
                 document.querySelectorAll('.delete-history-order').forEach(button => {
                     button.addEventListener('click', function() {
                         const orderId = this.dataset.id;
@@ -1163,6 +1164,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching order history:', error));
     }
 
+    // Add event listener to the view order button
     function setupOrderHistorySearch() {
         const searchInput = document.getElementById('orderHistorySearch');
         if (searchInput) {
@@ -1184,8 +1186,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fetch order history on page load
     function showOrderHistoryDetails(orderId) {
-        // First check if all required elements exist
         const requiredElements = [
             'history_event_name',
             'history_event_date',
@@ -1777,6 +1779,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching liabilities:', error));
     }
 
+    // Function to delete a transaction
     function deleteTransaction(financeId, paymentAmount) {
         if (!financeId) {
             console.error('Finance ID is undefined');
@@ -1801,6 +1804,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to delete a liability
     function deleteLiability(financeId, liabilityTitle) {
         if (!financeId) {
             console.error('Finance ID is undefined');
@@ -1932,6 +1936,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     }
 
+    // Add cancel button handlers for transaction and liability forms
     const cancelLiabilityBtn = document.getElementById('cancel_liability_btn');
     if (cancelLiabilityBtn) {
         cancelLiabilityBtn.addEventListener('click', function() {
@@ -2362,6 +2367,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Send the stock data to the server
         const stockData = {
             itemId: parseInt(selectedItem.value),
             quantity: parseInt(quantity),
@@ -2667,6 +2673,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to validate numeric input fields
     function validateWorkerForm() {
         const firstName = document.getElementById('worker_first_name').value.trim();
         const lastName = document.getElementById('worker_last_name').value.trim();
@@ -2713,6 +2720,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
+    // Function to add a new worker
     function addWorker() {
         const workerData = {
             firstName: document.getElementById('worker_first_name').value.trim(),
