@@ -2086,6 +2086,24 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error fetching stock information:', error));
     }
 
+    function deleteStock(stockId) {
+        fetch(`/deleteStock/${stockId}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    fetchStockInfo();
+                    fetchInventoryItems(); // Refresh items to update total stock count
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting stock entry:', error);
+                alert('An error occurred while deleting the stock entry.');
+            });
+    }
+
     // Function to fetch stock details for modification
     function fetchStockDetails(stockId) {
         // First, fetch suppliers

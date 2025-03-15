@@ -1005,7 +1005,7 @@ app.get('/getTransactions/:financeId', (req, res) => {
             p.finance_ID,
             pt.payment_type AS payment_type, 
             p.payment_amount, 
-            p.payment_Reference_No, 
+            p.payment_reference_no, 
             p.date_of_payment
         FROM payment_tbl p
         JOIN payment_type_tbl pt ON p.payment_type_ID = pt.payment_type_ID
